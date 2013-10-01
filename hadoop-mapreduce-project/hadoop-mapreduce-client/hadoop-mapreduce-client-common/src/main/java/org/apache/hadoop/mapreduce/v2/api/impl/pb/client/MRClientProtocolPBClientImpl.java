@@ -35,6 +35,8 @@ import org.apache.hadoop.mapreduce.v2.api.protocolrecords.FailTaskAttemptRequest
 import org.apache.hadoop.mapreduce.v2.api.protocolrecords.FailTaskAttemptResponse;
 import org.apache.hadoop.mapreduce.v2.api.protocolrecords.GetCountersRequest;
 import org.apache.hadoop.mapreduce.v2.api.protocolrecords.GetCountersResponse;
+import org.apache.hadoop.mapreduce.v2.api.protocolrecords.SetConfNamesValuesRequest;
+import org.apache.hadoop.mapreduce.v2.api.protocolrecords.SetConfNamesValuesResponse;
 import org.apache.hadoop.mapreduce.v2.api.protocolrecords.GetDelegationTokenRequest;
 import org.apache.hadoop.mapreduce.v2.api.protocolrecords.GetDelegationTokenResponse;
 import org.apache.hadoop.mapreduce.v2.api.protocolrecords.GetDiagnosticsRequest;
@@ -63,6 +65,8 @@ import org.apache.hadoop.mapreduce.v2.api.protocolrecords.impl.pb.FailTaskAttemp
 import org.apache.hadoop.mapreduce.v2.api.protocolrecords.impl.pb.FailTaskAttemptResponsePBImpl;
 import org.apache.hadoop.mapreduce.v2.api.protocolrecords.impl.pb.GetCountersRequestPBImpl;
 import org.apache.hadoop.mapreduce.v2.api.protocolrecords.impl.pb.GetCountersResponsePBImpl;
+import org.apache.hadoop.mapreduce.v2.api.protocolrecords.impl.pb.SetConfNamesValuesRequestPBImpl;
+import org.apache.hadoop.mapreduce.v2.api.protocolrecords.impl.pb.SetConfNamesValuesResponsePBImpl;
 import org.apache.hadoop.mapreduce.v2.api.protocolrecords.impl.pb.GetDelegationTokenRequestPBImpl;
 import org.apache.hadoop.mapreduce.v2.api.protocolrecords.impl.pb.GetDelegationTokenResponsePBImpl;
 import org.apache.hadoop.mapreduce.v2.api.protocolrecords.impl.pb.GetDiagnosticsRequestPBImpl;
@@ -87,6 +91,7 @@ import org.apache.hadoop.mapreduce.v2.api.protocolrecords.impl.pb.RenewDelegatio
 import org.apache.hadoop.mapreduce.v2.api.protocolrecords.impl.pb.RenewDelegationTokenResponsePBImpl;
 import org.apache.hadoop.mapreduce.v2.proto.MRServiceProtos.FailTaskAttemptRequestProto;
 import org.apache.hadoop.mapreduce.v2.proto.MRServiceProtos.GetCountersRequestProto;
+import org.apache.hadoop.mapreduce.v2.proto.MRServiceProtos.SetConfNamesValuesRequestProto;
 import org.apache.hadoop.mapreduce.v2.proto.MRServiceProtos.GetDiagnosticsRequestProto;
 import org.apache.hadoop.mapreduce.v2.proto.MRServiceProtos.GetJobReportRequestProto;
 import org.apache.hadoop.mapreduce.v2.proto.MRServiceProtos.GetTaskAttemptCompletionEventsRequestProto;
@@ -169,6 +174,17 @@ public class MRClientProtocolPBClientImpl implements MRClientProtocol,
     }
   }
 
+   @Override
+  public SetConfNamesValuesResponse setConfNamesValues(SetConfNamesValuesRequest request)
+      throws YarnRemoteException {
+    SetConfNamesValuesRequestProto requestProto = ((SetConfNamesValuesRequestPBImpl)request).getProto();
+    try {
+      return new SetConfNamesValuesResponsePBImpl(proxy.setConfNamesValues(null,requestProto));
+    } catch (ServiceException e) {
+      throw YarnRemoteExceptionPBImpl.unwrapAndThrowException(e);
+    }
+  } 
+   
   @Override
   public GetTaskAttemptCompletionEventsResponse getTaskAttemptCompletionEvents(
       GetTaskAttemptCompletionEventsRequest request) throws IOException {

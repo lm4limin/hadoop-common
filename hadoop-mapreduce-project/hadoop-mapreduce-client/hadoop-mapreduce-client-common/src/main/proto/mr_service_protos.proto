@@ -53,6 +53,16 @@ message GetCountersResponseProto {
   optional CountersProto counters = 1;
 }
 
+message SetConfNamesValuesRequestProto {
+  optional JobIdProto job_id = 1;
+  optional ConfNamesValuesProto confNamesValues= 2;   
+  optional string source = 3;
+  
+}
+message SetConfNamesValuesResponseProto {
+  
+}
+
 message GetTaskAttemptCompletionEventsRequestProto {
   optional JobIdProto job_id = 1;
   optional int32 from_event_id = 2;

@@ -1650,7 +1650,8 @@ public class MapTask extends Task {
           totalIndexCacheMemory +=
             spillRec.size() * MAP_OUTPUT_INDEX_RECORD_LENGTH;
         }
-        LOG.info("Finished spill " + numSpills);
+        //LOG.info("Finished spill " + numSpills );
+        LOG.info("Finished spill " + numSpills+" spilled records "+ Long.toString(spilledRecordsCounter.getValue()) );
         ++numSpills;
       } finally {
         if (out != null) out.close();

@@ -77,6 +77,24 @@ message CounterGroupProto {
 message CountersProto {
   repeated StringCounterGroupMapProto counter_groups = 1;
 }
+message StringCounterMapProto {
+  optional string key = 1;
+  optional CounterProto value = 2;
+}
+
+message StringCounterGroupMapProto {
+  optional string key = 1;
+  optional CounterGroupProto value = 2;
+}
+
+message ConfNameValueProto {
+  optional string name = 1;
+  optional string value = 2;
+}
+
+message ConfNamesValuesProto {
+  repeated ConfNameValueProto  namesValues = 1;  
+}
 
 message TaskReportProto {
   optional TaskIdProto task_id = 1;
@@ -172,12 +190,3 @@ message TaskAttemptCompletionEventProto {
   optional int32 event_id = 5;
 }
 
-message StringCounterMapProto {
-  optional string key = 1;
-  optional CounterProto value = 2;
-}
-
-message StringCounterGroupMapProto {
-  optional string key = 1;
-  optional CounterGroupProto value = 2;
-}

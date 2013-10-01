@@ -173,7 +173,8 @@ public class TestLocalResourcesTrackerImpl {
       LocalResourceRequest req1 = createLocalResourceRequest(user, 1, 1,
           LocalResourceVisibility.PUBLIC);
       LocalizedResource lr1 = createLocalizedResource(req1, dispatcher);
-      ConcurrentMap<LocalResourceRequest, LocalizedResource> localrsrc = new ConcurrentHashMap<LocalResourceRequest, LocalizedResource>();
+      ConcurrentMap<LocalResourceRequest, LocalizedResource> localrsrc = 
+              new ConcurrentHashMap<LocalResourceRequest, LocalizedResource>();
       localrsrc.put(req1, lr1);
       LocalResourcesTracker tracker = new LocalResourcesTrackerImpl(user,
           dispatcher, localrsrc, false, conf);
@@ -196,21 +197,29 @@ public class TestLocalResourcesTrackerImpl {
 
       // Localize resource1
       ResourceLocalizedEvent rle = new ResourceLocalizedEvent(req1, new Path(
-          "file:///tmp/r1"), 1);
+          "file:///tmp/r1_job.xml"), 1);
       lr1.handle(rle);
       Assert.assertTrue(lr1.getState().equals(ResourceState.LOCALIZED));
-      Assert.assertTrue(createdummylocalizefile(new Path("file:///tmp/r1")));
+      Assert.assertTrue(createdummylocalizefile(new Path("file:///tmp/r1_job.xml")));
       LocalizedResource rsrcbefore = tracker.iterator().next();
       File resFile = new File(lr1.getLocalPath().toUri().getRawPath()
           .toString());
       Assert.assertTrue(resFile.exists());
-      Assert.assertTrue(resFile.delete());
+ //     Assert.assertTrue(resFile.delete());
 
-      // Localize R1 for C1
+      
+      // Localize R1 for C1      
       tracker.handle(req11Event);
-
+      dispatcher.await();            
+      lr1.handle(rle);      
+      dispatcher.await();
+      
+      //test to redownload the code; 
+      tracker.handle(req11Event);
       dispatcher.await();
       lr1.handle(rle);
+      dispatcher.await();
+      
       Assert.assertTrue(lr1.getState().equals(ResourceState.LOCALIZED));
       LocalizedResource rsrcafter = tracker.iterator().next();
       if (rsrcbefore == rsrcafter) {
@@ -505,7 +514,8 @@ public class TestLocalResourcesTrackerImpl {
   private LocalResourceRequest createLocalResourceRequest(String user, int i,
       long ts, LocalResourceVisibility vis) {
     final LocalResourceRequest req =
-        new LocalResourceRequest(new Path("file:///tmp/" + user + "/rsrc" + i),
+                //new LocalResourceRequest(new Path("file:///tmp/" + user + "/rsrc" + i),
+        new LocalResourceRequest(new Path("file:///tmp/" + user + "/rsrc" + i+"/job.xml"),
             ts + i * 2000, LocalResourceType.FILE, vis, null);
     return req;
   }

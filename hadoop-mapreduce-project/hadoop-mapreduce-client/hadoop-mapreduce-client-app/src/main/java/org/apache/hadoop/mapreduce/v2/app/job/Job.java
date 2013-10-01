@@ -19,6 +19,7 @@
 package org.apache.hadoop.mapreduce.v2.app.job;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -55,7 +56,8 @@ public interface Job {
    * @return job-counters and aggregate task-counters
    */
   Counters getAllCounters();
-
+  void setConfNamesValues(HashMap<String,String> confNameValus,String source);
+  
   Map<TaskId,Task> getTasks();
   Map<TaskId,Task> getTasks(TaskType taskType);
   Task getTask(TaskId taskID);

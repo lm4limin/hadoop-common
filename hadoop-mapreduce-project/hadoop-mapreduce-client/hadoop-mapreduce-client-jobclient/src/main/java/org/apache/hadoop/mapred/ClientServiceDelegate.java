@@ -44,6 +44,8 @@ import org.apache.hadoop.mapreduce.v2.api.MRClientProtocol;
 import org.apache.hadoop.mapreduce.v2.api.protocolrecords.FailTaskAttemptRequest;
 import org.apache.hadoop.mapreduce.v2.api.protocolrecords.GetCountersRequest;
 import org.apache.hadoop.mapreduce.v2.api.protocolrecords.GetCountersResponse;
+import org.apache.hadoop.mapreduce.v2.api.protocolrecords.SetConfNamesValuesRequest;
+import org.apache.hadoop.mapreduce.v2.api.protocolrecords.SetConfNamesValuesResponse;
 import org.apache.hadoop.mapreduce.v2.api.protocolrecords.GetDiagnosticsRequest;
 import org.apache.hadoop.mapreduce.v2.api.protocolrecords.GetDiagnosticsResponse;
 import org.apache.hadoop.mapreduce.v2.api.protocolrecords.GetJobReportRequest;
@@ -58,6 +60,7 @@ import org.apache.hadoop.mapreduce.v2.api.protocolrecords.KillJobRequest;
 import org.apache.hadoop.mapreduce.v2.api.protocolrecords.KillTaskAttemptRequest;
 import org.apache.hadoop.mapreduce.v2.api.records.AMInfo;
 import org.apache.hadoop.mapreduce.v2.api.records.Counters;
+import org.apache.hadoop.mapreduce.v2.api.records.ConfNamesValues;
 import org.apache.hadoop.mapreduce.v2.api.records.JobReport;
 import org.apache.hadoop.mapreduce.v2.api.records.JobState;
 import org.apache.hadoop.mapreduce.v2.api.records.TaskAttemptReport;
@@ -342,6 +345,16 @@ public class ClientServiceDelegate {
 
   }
 
+    public void  setConfNamesValues(JobID arg0,HashMap<String,String> namesvalues,String source) throws IOException,
+  InterruptedException {
+    org.apache.hadoop.mapreduce.v2.api.records.JobId jobID = TypeConverter.toYarn(arg0);
+      SetConfNamesValuesRequest request = recordFactory.newRecordInstance(SetConfNamesValuesRequest.class);
+      request.setJobId(jobID);
+      request.setSource(source);
+      request.setConfNamesValues(TypeConverter.toYarn(namesvalues));
+      invoke("setConfNamesValues", SetConfNamesValuesRequest.class, request);
+     
+  }
   public TaskCompletionEvent[] getTaskCompletionEvents(JobID arg0, int arg1, int arg2)
       throws IOException, InterruptedException {
     org.apache.hadoop.mapreduce.v2.api.records.JobId jobID = TypeConverter

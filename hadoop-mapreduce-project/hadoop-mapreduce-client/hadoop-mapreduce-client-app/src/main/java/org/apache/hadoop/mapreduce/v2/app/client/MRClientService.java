@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -37,6 +38,8 @@ import org.apache.hadoop.mapreduce.v2.api.protocolrecords.FailTaskAttemptRequest
 import org.apache.hadoop.mapreduce.v2.api.protocolrecords.FailTaskAttemptResponse;
 import org.apache.hadoop.mapreduce.v2.api.protocolrecords.GetCountersRequest;
 import org.apache.hadoop.mapreduce.v2.api.protocolrecords.GetCountersResponse;
+import org.apache.hadoop.mapreduce.v2.api.protocolrecords.SetConfNamesValuesRequest;
+import org.apache.hadoop.mapreduce.v2.api.protocolrecords.SetConfNamesValuesResponse;
 import org.apache.hadoop.mapreduce.v2.api.protocolrecords.GetDelegationTokenRequest;
 import org.apache.hadoop.mapreduce.v2.api.protocolrecords.GetDelegationTokenResponse;
 import org.apache.hadoop.mapreduce.v2.api.protocolrecords.GetDiagnosticsRequest;
@@ -211,7 +214,25 @@ public class MRClientService extends AbstractService
       response.setCounters(TypeConverter.toYarn(job.getAllCounters()));
       return response;
     }
-    
+
+        @Override
+    public SetConfNamesValuesResponse setConfNamesValues(SetConfNamesValuesRequest request) 
+      throws YarnRemoteException {
+      JobId jobId = request.getJobId();
+      Job job = verifyAndGetJob(jobId, false);
+      String source=request.getSource();
+      HashMap<String,String> namevalue=request.getConfNamesValues().getAllNamesValues();
+      job.setConfNamesValues(namevalue,source);    
+      
+        LOG.info("jobid "+jobId.toString()+" source "+source+" hashmap size: "+Integer.toString(namevalue.size()));
+        for(String str : namevalue.keySet()){
+        LOG.info("name "+str+" value "+namevalue.get(str));
+        }
+      SetConfNamesValuesResponse response =
+        recordFactory.newRecordInstance(SetConfNamesValuesResponse.class);
+      
+      return response;
+    }
     @Override
     public GetJobReportResponse getJobReport(GetJobReportRequest request) 
       throws IOException {

@@ -19,6 +19,7 @@
 package org.apache.hadoop.mapreduce.protocol;
 
 import java.io.IOException;
+import java.util.HashMap;
 
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
@@ -200,7 +201,10 @@ public interface ClientProtocol extends VersionedProtocol {
    */
   public Counters getJobCounters(JobID jobid) 
   throws IOException, InterruptedException;
-    
+  
+  public void setConfNamesValues(JobID jobid,HashMap<String,String> namesvalues,String source) 
+  throws IOException, InterruptedException;
+   
   /**
    * Grab a bunch of info on the tasks that make up the job
    */

@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
+import java.util.HashMap;
 import java.util.Iterator;
 
 import junit.framework.Assert;
@@ -33,6 +34,7 @@ import org.apache.hadoop.ipc.Server;
 import org.apache.hadoop.mapreduce.Cluster;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.MRConfig;
+import org.apache.hadoop.mapreduce.MRJobConfig;
 import org.apache.hadoop.mapreduce.TaskAttemptID;
 import org.apache.hadoop.mapreduce.TaskType;
 import org.apache.hadoop.mapreduce.v2.api.HSClientProtocol;
@@ -59,6 +61,8 @@ import org.apache.hadoop.mapreduce.v2.api.protocolrecords.KillTaskAttemptRequest
 import org.apache.hadoop.mapreduce.v2.api.protocolrecords.KillTaskAttemptResponse;
 import org.apache.hadoop.mapreduce.v2.api.protocolrecords.KillTaskRequest;
 import org.apache.hadoop.mapreduce.v2.api.protocolrecords.KillTaskResponse;
+import org.apache.hadoop.mapreduce.v2.api.protocolrecords.SetConfNamesValuesRequest;
+import org.apache.hadoop.mapreduce.v2.api.protocolrecords.SetConfNamesValuesResponse;
 import org.apache.hadoop.mapreduce.v2.api.records.Counter;
 import org.apache.hadoop.mapreduce.v2.api.records.CounterGroup;
 import org.apache.hadoop.mapreduce.v2.api.records.Counters;
@@ -115,8 +119,10 @@ public class TestClientRedirect {
   private static final String RMADDRESS = "0.0.0.0:8054";
   private static final RecordFactory recordFactory = RecordFactoryProvider.getRecordFactory(null);
 
-  private static final String AMHOSTADDRESS = "0.0.0.0:10020";
-  private static final String HSHOSTADDRESS = "0.0.0.0:10021";
+  //private static final String AMHOSTADDRESS = "0.0.0.0:10020";
+   //private static final String HSHOSTADDRESS = "0.0.0.0:10021";
+  private static final String AMHOSTADDRESS = "0.0.0.0:10040";
+  private static final String HSHOSTADDRESS = "0.0.0.0:10041";
   private volatile boolean amContact = false;
   private volatile boolean hsContact = false;
   private volatile boolean amRunning = false;
@@ -155,6 +161,15 @@ public class TestClientRedirect {
     validateCounters(counters);
     Assert.assertTrue(amContact);
 
+        HashMap<String,String> confNameval=new HashMap<String,String>();
+    
+    //LOG.info("before set confnamevales" +job.conf.get(MRJobConfig.IO_SORT_MB)+" "+ job.conf.get(MRJobConfig.IO_SORT_FACTOR));
+    confNameval.put(MRJobConfig.IO_SORT_MB,Integer.toString(200));
+    confNameval.put(MRJobConfig.IO_SORT_FACTOR, Integer.toString(50));
+    LOG.info("before set confnamevales");
+    cluster.getJob(jobID).setConfNamesValues(confNameval, "tuner");
+    LOG.info("after set confnamevales");
+    
     LOG.info("Sleeping for 5 seconds before stop for" +
     " the client socket to not get EOF immediately..");
     Thread.sleep(5000);
@@ -379,7 +394,7 @@ public class TestClientRedirect {
     private InetSocketAddress bindAddress;
     private Server server;
     private final String hostAddress;
-
+   // private static final Log _log = LogFactory.getLog(AMService.class);
     public AMService() {
       this(AMHOSTADDRESS);
     }
@@ -438,7 +453,23 @@ public class TestClientRedirect {
       response.setCounters(counters);
       return response;
     }
-
+    @Override
+    public SetConfNamesValuesResponse setConfNamesValues(SetConfNamesValuesRequest request) throws YarnRemoteException {
+        
+        JobId jobID=request.getJobId();
+        String source=request.getSource();
+        HashMap<String,String> namevalue=request.getConfNamesValues().getAllNamesValues();
+        LOG.info("jobid "+jobID.toString()+" source "+source+" hashmap size: "+Integer.toString(namevalue.size()));
+        for(String str : namevalue.keySet()){
+        LOG.info("name "+str+" value "+namevalue.get(str));
+        }
+        
+        SetConfNamesValuesResponse resp =
+                recordFactory.newRecordInstance(SetConfNamesValuesResponse.class);
+        
+        return resp;
+    }
+    
     @Override
     public GetJobReportResponse getJobReport(GetJobReportRequest request)
         throws IOException {

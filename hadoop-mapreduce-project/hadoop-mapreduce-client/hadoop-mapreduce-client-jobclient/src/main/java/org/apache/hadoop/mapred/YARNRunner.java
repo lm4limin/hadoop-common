@@ -506,11 +506,17 @@ public class YARNRunner implements ClientProtocol {
 
 
   @Override
+  public void  setConfNamesValues(JobID arg0,HashMap<String,String>namesvalues,String source) throws IOException,
+      InterruptedException {      
+     clientCache.getClient(arg0).setConfNamesValues(arg0, namesvalues,source);
+  }
+  @Override
   public Counters getJobCounters(JobID arg0) throws IOException,
       InterruptedException {
     return clientCache.getClient(arg0).getJobCounters(arg0);
   }
 
+  
   @Override
   public String getJobHistoryDir() throws IOException, InterruptedException {
     return JobHistoryUtils.getConfiguredHistoryServerDoneDirPrefix(conf);

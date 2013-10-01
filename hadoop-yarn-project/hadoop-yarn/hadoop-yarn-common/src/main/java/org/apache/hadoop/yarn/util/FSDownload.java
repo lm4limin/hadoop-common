@@ -173,9 +173,13 @@ public class FSDownload implements Callable<Path> {
     Path dCopy = new Path(dstdir, sCopy.getName() + ".tmp");
     FileStatus sStat = sourceFs.getFileStatus(sCopy);
     if (sStat.getModificationTime() != resource.getTimestamp()) {
-      throw new IOException("Resource " + sCopy +
+        //minli
+        LOG.warn("Resource " + sCopy +
           " changed on src filesystem (expected " + resource.getTimestamp() +
           ", was " + sStat.getModificationTime());
+      //throw new IOException("Resource " + sCopy +
+       //   " changed on src filesystem (expected " + resource.getTimestamp() +
+       //   ", was " + sStat.getModificationTime());
     }
     if (resource.getVisibility() == LocalResourceVisibility.PUBLIC) {
       if (!isPublic(sourceFs, sCopy)) {

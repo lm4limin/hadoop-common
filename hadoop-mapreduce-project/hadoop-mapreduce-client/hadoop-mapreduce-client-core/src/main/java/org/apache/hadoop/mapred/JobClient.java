@@ -24,6 +24,7 @@ import java.net.URL;
 import java.security.PrivilegedExceptionAction;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 
 import org.apache.hadoop.classification.InterfaceAudience;
@@ -814,7 +815,34 @@ public class JobClient extends CLI {
       throw new IOException(ie);
     }
   }
-  
+    public void setConfNamesValues(JobID jid, HashMap<String,String> namesvalues, String source) throws Exception {
+        try {
+            Job job = cluster.getJob(jid);
+            job.setConfNamesValues(namesvalues, source);
+        } catch (InterruptedException ie) {
+            throw new IOException(ie);
+        }
+    }
+    public void setConfNamesValues_v2(JobID jid, HashMap<String,String> namesvalues, String source) throws Exception {
+        try {
+            Job job = cluster.getJob_v2(jid);
+            
+            job.setConfNamesValues_v2(namesvalues, source);
+            
+        } catch (InterruptedException ie) {
+            throw new IOException(ie);
+        }
+    }
+    public void setConfNamesValues_v3(JobID jid, String conffile,HashMap<String,String> namesvalues, String source) throws Exception {
+        try {
+            Job job = cluster.getJob_v2(jid);
+            
+            job.setConfNamesValues_v3(conffile,namesvalues, source);
+            
+        } catch (InterruptedException ie) {
+            throw new IOException(ie);
+        }
+    }
   /** 
    * Utility that submits a job, then polls for progress until the job is
    * complete.

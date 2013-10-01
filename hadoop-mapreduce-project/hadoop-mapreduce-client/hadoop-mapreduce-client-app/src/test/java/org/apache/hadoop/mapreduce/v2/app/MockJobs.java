@@ -516,7 +516,12 @@ public class MockJobs extends MockApps {
       public Counters getAllCounters() {
         return counters;
       }
-
+  @Override public
+ void setConfNamesValues(HashMap<String,String> confNameValues,String source){
+      for(String name : confNameValues.keySet()){
+          conf.set(name, confNameValues.get(name),source);
+      }
+  }	
       @Override
       public Map<TaskId, Task> getTasks() {
         return tasks;

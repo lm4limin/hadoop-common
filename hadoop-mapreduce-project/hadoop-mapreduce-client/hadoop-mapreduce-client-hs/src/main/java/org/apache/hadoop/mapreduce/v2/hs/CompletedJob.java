@@ -127,6 +127,10 @@ public class CompletedJob implements org.apache.hadoop.mapreduce.v2.app.job.Job 
     }
     return report;
   }
+@Override
+ public void setConfNamesValues(HashMap<String,String> confNameValus,String source){
+    throw new IllegalStateException("Not implemented yet");
+}
 
   private void constructJobReport() {
     report = Records.newRecord(JobReport.class);

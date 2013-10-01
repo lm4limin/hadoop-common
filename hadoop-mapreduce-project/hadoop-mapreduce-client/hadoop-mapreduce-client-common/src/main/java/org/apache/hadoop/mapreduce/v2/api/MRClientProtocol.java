@@ -27,6 +27,8 @@ import org.apache.hadoop.mapreduce.v2.api.protocolrecords.FailTaskAttemptRequest
 import org.apache.hadoop.mapreduce.v2.api.protocolrecords.FailTaskAttemptResponse;
 import org.apache.hadoop.mapreduce.v2.api.protocolrecords.GetCountersRequest;
 import org.apache.hadoop.mapreduce.v2.api.protocolrecords.GetCountersResponse;
+import org.apache.hadoop.mapreduce.v2.api.protocolrecords.SetConfNamesValuesRequest;
+import org.apache.hadoop.mapreduce.v2.api.protocolrecords.SetConfNamesValuesResponse;
 import org.apache.hadoop.mapreduce.v2.api.protocolrecords.GetDelegationTokenRequest;
 import org.apache.hadoop.mapreduce.v2.api.protocolrecords.GetDelegationTokenResponse;
 import org.apache.hadoop.mapreduce.v2.api.protocolrecords.GetDiagnosticsRequest;
@@ -60,6 +62,7 @@ public interface MRClientProtocol {
   public GetTaskReportResponse getTaskReport(GetTaskReportRequest request) throws IOException;
   public GetTaskAttemptReportResponse getTaskAttemptReport(GetTaskAttemptReportRequest request) throws IOException;
   public GetCountersResponse getCounters(GetCountersRequest request) throws IOException;
+  public SetConfNamesValuesResponse setConfNamesValues(SetConfNamesValuesRequest request) throws IOException;
   public GetTaskAttemptCompletionEventsResponse getTaskAttemptCompletionEvents(GetTaskAttemptCompletionEventsRequest request) throws IOException;
   public GetTaskReportsResponse getTaskReports(GetTaskReportsRequest request) throws IOException;
   public GetDiagnosticsResponse getDiagnostics(GetDiagnosticsRequest request) throws IOException;

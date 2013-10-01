@@ -793,6 +793,43 @@ public abstract class TaskAttemptImpl implements
     myEnv.putAll(env);
     MapReduceChildJVM.setVMEnv(myEnv, remoteTask);
 
+    //setup my localresources
+    // //////////// Set up taskconf to be localized properly on the remote NM.
+	  ///task_id.xml task_1373383696604_0061_m_000006.xml; 
+        // TaskId ttid; 
+    
+    Map<String, LocalResource> myLocalResources = 
+        new HashMap<String, LocalResource>();
+                         
+    try{
+        org.apache.hadoop.mapred.TaskID tid = new org.apache.hadoop.mapred.TaskID(oldJobId, org.apache.hadoop.mapreduce.TaskType.MAP, 2);
+       // org.apache.hadoop.mapred.TaskID  tid=remoteTask.getTaskID().getTaskID();
+        String taskConf = tid.toString() + ".xml";
+        Path path =
+          MRApps.getStagingAreaDir(conf, UserGroupInformation
+              .getCurrentUser().getShortUserName());
+        FileSystem remoteFS = FileSystem.get(conf);
+              Path remoteJobSubmitDir =
+          new Path(path, oldJobId.toString());
+        Path remoteTaskConfPath =
+                new Path(remoteJobSubmitDir, taskConf);
+        if (remoteFS.exists(remoteTaskConfPath)) {            
+            myLocalResources.put(
+                    taskConf,
+                    createLocalResource(remoteFS, remoteTaskConfPath,
+                    LocalResourceType.FILE, LocalResourceVisibility.APPLICATION));
+            LOG.info("The task-conf file on the remote FS is "
+                    + remoteTaskConfPath.toUri().toASCIIString()+" taskid "+remoteTask.getTaskID().getTaskID().toString());
+            MRApps.setupDistributedCache(conf, myLocalResources);
+        } else {
+            LOG.info("taskid "+remoteTask.getTaskID().getTaskID().toString()+"task conf file " + taskConf + " do not exist");
+        }
+        
+    }catch(Exception e){}
+    Map<String, LocalResource> localResources = commonContainerSpec.getLocalResources();
+    myLocalResources.putAll(localResources);   
+      // //////////// End of TaskConf setup
+    
     // Set up the launch command
     List<String> commands = MapReduceChildJVM.getVMCommand(
         taskAttemptListener.getAddress(), remoteTask, jvmID);
@@ -806,7 +843,7 @@ public abstract class TaskAttemptImpl implements
 
     // Construct the actual Container
     ContainerLaunchContext container = ContainerLaunchContext.newInstance(
-        commonContainerSpec.getLocalResources(), myEnv, commands,
+        myLocalResources.getLocalResources(), myEnv, commands,
         myServiceData, commonContainerSpec.getTokens().duplicate(),
         applicationACLs);
 

@@ -53,6 +53,8 @@ import org.apache.hadoop.mapreduce.v2.api.protocolrecords.KillTaskRequest;
 import org.apache.hadoop.mapreduce.v2.api.protocolrecords.KillTaskResponse;
 import org.apache.hadoop.mapreduce.v2.api.protocolrecords.RenewDelegationTokenRequest;
 import org.apache.hadoop.mapreduce.v2.api.protocolrecords.RenewDelegationTokenResponse;
+import org.apache.hadoop.mapreduce.v2.api.protocolrecords.SetConfNamesValuesRequest;
+import org.apache.hadoop.mapreduce.v2.api.protocolrecords.SetConfNamesValuesResponse;
 import org.apache.hadoop.mapreduce.v2.api.records.CounterGroup;
 import org.apache.hadoop.mapreduce.v2.api.records.Counters;
 import org.apache.hadoop.mapreduce.v2.api.records.JobReport;
@@ -195,6 +197,12 @@ public class NotRunningJob implements MRClientProtocol {
     KillJobResponse resp =
       recordFactory.newRecordInstance(KillJobResponse.class);
     return resp;
+  }
+  @Override
+  public SetConfNamesValuesResponse setConfNamesValues(SetConfNamesValuesRequest request) throws IOException {
+     SetConfNamesValuesResponse resp =
+       recordFactory.newRecordInstance(SetConfNamesValuesResponse.class);
+     return resp;
   }
 
   @Override

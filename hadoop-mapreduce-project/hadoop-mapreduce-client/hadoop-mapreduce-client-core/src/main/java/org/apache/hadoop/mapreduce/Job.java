@@ -18,9 +18,11 @@
 
 package org.apache.hadoop.mapreduce;
 
+import java.io.InputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.security.PrivilegedExceptionAction;
+import java.util.HashMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -29,8 +31,8 @@ import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.classification.InterfaceAudience.Private;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configuration.IntegerRanges;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.*;
+import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.io.RawComparator;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapreduce.filecache.DistributedCache;
@@ -367,7 +369,106 @@ public class Job extends JobContextImpl implements JobContext {
     ensureState(JobState.RUNNING);
     return status.getJobFile();
   }
+  //minli
+public void setConfNamesValues_v2(HashMap<String, String> namesvalues, String source) throws Exception {
+        try {
+            
+            ensureState(JobState.RUNNING);
+            //conf.setQuietMode(false);
+             
+            LOG.info("job file dir: "+this.getJobFile());
+            
+        //    Path confPath=new Path(this.status.getJobFile());
+            
+            //the way to get the job configuration file;  JobSubmitter.java
+            Path jobStagingArea = JobSubmissionFiles.getStagingDir(cluster,
+                    this.getConfiguration());
+            Path submitJobDir = new Path(jobStagingArea, this.getJobID().toString());
+                    Path confPath = JobSubmissionFiles.getJobConfPath(submitJobDir);
+            FileSystem fc=FileSystem.get(confPath.toUri(), conf);    
+            
+            //FileContext fc = FileContext.getFileContext(confPath.toUri(), conf);
 
+            Path submitJobFile = new Path(submitJobDir, "job_tmp.xml");
+            // Write job file to JobTracker's fs 
+            FSDataOutputStream out =FileSystem.create(fc, submitJobFile,
+                    new FsPermission(JobSubmissionFiles.JOB_FILE_PERMISSION));
+                    //FileSystem.create(cluster.getFileSystem(), submitJobFile,
+                    //new FsPermission(JobSubmissionFiles.JOB_FILE_PERMISSION));
+            for(String key:namesvalues.keySet()){
+                conf.set(key, namesvalues.get(key),source);
+            }
+
+           // FileSystem fc=cluster.getFileSystem();
+            if(fc.exists(confPath)){
+                LOG.info("job file exist");
+            }else{
+                LOG.info("job file do not exist");
+            }
+            //FSDataInputStream is=fc.open(confPath);
+           InputStream is=fc.open(confPath);
+            conf.addResource(is, confPath.toString());
+          //  LOG.info("inputstream null? "+Boolean.toString(is!=null)+" "+Boolean.toString(is instanceof InputStream));
+            conf.writeXml(out);	//write out the properties;
+            out.flush();
+            out.close();
+            is.close();
+            fc.delete(confPath, false);
+            fc.rename(submitJobFile, confPath);
+            
+            
+        } catch (Exception ie) {
+            ie.printStackTrace();
+            throw new IOException(ie);
+        }
+    }
+    //for task level reconfiguration; 
+    public void setConfNamesValues_v3(String confFile, HashMap<String, String> namesvalues, String source) throws Exception {
+        try {
+
+            ensureState(JobState.RUNNING);
+            //the way to get the job configuration file;  JobSubmitter.java
+            
+            //org.apache.hadoop.mapred.JobConf taskconf = new org.apache.hadoop.mapred.JobConf();
+            Configuration taskconf = new Configuration(false);
+            for (String key : namesvalues.keySet()) {
+                taskconf.set(key, namesvalues.get(key), source);
+            }
+            
+            Path jobStagingArea = JobSubmissionFiles.getStagingDir(cluster,
+                    this.getConfiguration());
+            Path submitJobDir = new Path(jobStagingArea, this.getJobID().toString());
+            FileSystem fc = FileSystem.get(JobSubmissionFiles.getJobConfPath(submitJobDir).toUri(), conf);
+            
+            Path tmpconf = new Path(submitJobDir, "tmp_" + confFile);            
+            FSDataOutputStream out = FileSystem.create(fc, tmpconf,
+                    new FsPermission(JobSubmissionFiles.JOB_FILE_PERMISSION));
+            
+            taskconf.writeXml(out);	//write out the properties;
+            out.flush();
+            out.close();
+                    
+            Path confPath = new Path(submitJobDir, confFile);
+            if (fc.exists(confPath)) {
+                LOG.info("task conf file exist");
+                fc.delete(confPath, false);
+            } else {
+                LOG.info("task conf file do not exist");
+            }
+          //  InputStream is = fc.open(confPath);
+          //  taskconf.addResource(is, confPath.toString());
+            //  LOG.info("inputstream null? "+Boolean.toString(is!=null)+" "+Boolean.toString(is instanceof InputStream));
+            
+         //   is.close();
+            
+            fc.rename(tmpconf, confPath);
+
+
+        } catch (Exception ie) {
+            ie.printStackTrace();
+            throw new IOException(ie);
+        }
+    }
   /**
    * Get start time of the job.
    * 
@@ -762,6 +863,11 @@ public class Job extends JobContextImpl implements JobContext {
     }
   }
 
+    public void setConfNamesValues(HashMap<String,String> namesvalues,String source) 
+      throws IOException, InterruptedException {
+    ensureState(JobState.RUNNING);
+     cluster.getClient().setConfNamesValues(getJobID(), namesvalues, source);                  
+  }
   /**
    * Gets the diagnostic messages for a given task attempt.
    * @param taskid

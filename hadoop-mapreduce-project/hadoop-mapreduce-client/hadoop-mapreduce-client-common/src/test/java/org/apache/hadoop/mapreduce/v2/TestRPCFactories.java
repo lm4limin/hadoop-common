@@ -55,6 +55,8 @@ import org.apache.hadoop.mapreduce.v2.api.protocolrecords.KillTaskRequest;
 import org.apache.hadoop.mapreduce.v2.api.protocolrecords.KillTaskResponse;
 import org.apache.hadoop.mapreduce.v2.api.protocolrecords.RenewDelegationTokenRequest;
 import org.apache.hadoop.mapreduce.v2.api.protocolrecords.RenewDelegationTokenResponse;
+import org.apache.hadoop.mapreduce.v2.api.protocolrecords.SetConfNamesValuesRequest;
+import org.apache.hadoop.mapreduce.v2.api.protocolrecords.SetConfNamesValuesResponse;
 import org.apache.hadoop.net.NetUtils;
 import org.apache.hadoop.yarn.exceptions.YarnRuntimeException;
 import org.apache.hadoop.yarn.factories.impl.pb.RpcClientFactoryPBImpl;
@@ -130,7 +132,10 @@ public class TestRPCFactories {
     public InetSocketAddress getConnectAddress() {
       return null;
     }
-    
+    @Override
+    public SetConfNamesValuesResponse setConfNamesValues(SetConfNamesValuesRequest request) throws YarnRemoteException{
+        return null;
+    }
     @Override
     public GetJobReportResponse getJobReport(GetJobReportRequest request)
         throws IOException {

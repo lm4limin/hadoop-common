@@ -29,6 +29,7 @@ service MRClientProtocolService {
   rpc getTaskReport (GetTaskReportRequestProto) returns (GetTaskReportResponseProto);
   rpc getTaskAttemptReport (GetTaskAttemptReportRequestProto) returns (GetTaskAttemptReportResponseProto);
   rpc getCounters (GetCountersRequestProto) returns (GetCountersResponseProto);
+  rpc setConfNamesValues (SetConfNamesValuesRequestProto) returns (SetConfNamesValuesResponseProto);
   rpc getTaskAttemptCompletionEvents (GetTaskAttemptCompletionEventsRequestProto) returns (GetTaskAttemptCompletionEventsResponseProto);
   rpc getTaskReports (GetTaskReportsRequestProto) returns (GetTaskReportsResponseProto);
   rpc getDiagnostics (GetDiagnosticsRequestProto) returns (GetDiagnosticsResponseProto);

@@ -18,6 +18,7 @@
 
 package org.apache.hadoop.mapreduce.v2.hs;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -179,6 +180,10 @@ public class PartialJob implements org.apache.hadoop.mapreduce.v2.app.job.Job {
   public Configuration loadConfFile() {
     throw new IllegalStateException("Not implemented yet");
   }
+@Override
+ public void setConfNamesValues(HashMap<String,String> confNameValus,String source){
+    throw new IllegalStateException("Not implemented yet");
+}  
 
   @Override
   public Map<JobACL, AccessControlList> getJobACLs() {

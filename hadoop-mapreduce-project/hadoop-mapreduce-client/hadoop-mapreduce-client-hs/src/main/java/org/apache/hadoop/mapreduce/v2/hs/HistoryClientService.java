@@ -66,6 +66,8 @@ import org.apache.hadoop.mapreduce.v2.api.protocolrecords.KillTaskRequest;
 import org.apache.hadoop.mapreduce.v2.api.protocolrecords.KillTaskResponse;
 import org.apache.hadoop.mapreduce.v2.api.protocolrecords.RenewDelegationTokenRequest;
 import org.apache.hadoop.mapreduce.v2.api.protocolrecords.RenewDelegationTokenResponse;
+import org.apache.hadoop.mapreduce.v2.api.protocolrecords.SetConfNamesValuesRequest;
+import org.apache.hadoop.mapreduce.v2.api.protocolrecords.SetConfNamesValuesResponse;
 import org.apache.hadoop.mapreduce.v2.api.records.JobId;
 import org.apache.hadoop.mapreduce.v2.api.records.TaskAttemptId;
 import org.apache.hadoop.mapreduce.v2.api.records.TaskId;
@@ -269,7 +271,10 @@ public class HistoryClientService extends AbstractService {
     public KillJobResponse killJob(KillJobRequest request) throws IOException {
       throw new IOException("Invalid operation on completed job");
     }
-
+    @Override
+    public SetConfNamesValuesResponse setConfNamesValues(SetConfNamesValuesRequest request) throws IOException{
+        throw new IOException("Invalid operation on completed job");
+    }
     @Override
     public KillTaskResponse killTask(KillTaskRequest request)
         throws IOException {

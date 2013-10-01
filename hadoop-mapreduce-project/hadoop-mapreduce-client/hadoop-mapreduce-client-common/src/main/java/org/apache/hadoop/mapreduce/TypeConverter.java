@@ -26,6 +26,8 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.mapred.JobPriority;
 import org.apache.hadoop.mapred.TaskCompletionEvent;
 import org.apache.hadoop.mapreduce.JobStatus.State;
+import org.apache.hadoop.mapreduce.v2.api.records.ConfNameValue;
+import org.apache.hadoop.mapreduce.v2.api.records.ConfNamesValues;
 import org.apache.hadoop.mapreduce.v2.api.records.Counter;
 import org.apache.hadoop.mapreduce.v2.api.records.CounterGroup;
 import org.apache.hadoop.mapreduce.v2.api.records.Counters;
@@ -291,7 +293,20 @@ public class TypeConverter {
     }
     return yCntrs;
   }
-  
+  public static ConfNamesValues toYarn(HashMap<String,String> namesvalues) {
+      if(namesvalues==null){
+          return null;
+      }
+      ConfNamesValues yNamesValues=recordFactory.newRecordInstance(ConfNamesValues.class);
+      yNamesValues.addAllNamesValues(new HashMap<String,String>());
+      for (String key : namesvalues.keySet()) {
+          ConfNameValue yNameValue=recordFactory.newRecordInstance(ConfNameValue.class);
+          yNameValue.setName(key);
+          yNameValue.setValue(namesvalues.get(key));
+          yNamesValues.setConfNameValue(key, namesvalues.get(key));
+      }
+      return yNamesValues;
+  }
   public static JobStatus fromYarn(JobReport jobreport, String trackingUrl) {
     JobPriority jobPriority = JobPriority.NORMAL;
     JobStatus jobStatus = new org.apache.hadoop.mapred.JobStatus(

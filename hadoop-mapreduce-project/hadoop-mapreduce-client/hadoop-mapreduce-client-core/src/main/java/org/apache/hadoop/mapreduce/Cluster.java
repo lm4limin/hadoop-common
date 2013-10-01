@@ -19,6 +19,7 @@
 package org.apache.hadoop.mapreduce;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.net.InetSocketAddress;
 import java.security.PrivilegedExceptionAction;
 import java.util.ArrayList;
@@ -111,6 +112,9 @@ public class Cluster {
         catch (Exception e) {
           LOG.info("Failed to use " + provider.getClass().getName()
               + " due to error: " + e.getMessage());
+          LOG.info("error cause:"+e.getCause().getMessage());
+          e.printStackTrace();
+          ;
         }
       }
     }
@@ -185,7 +189,13 @@ public class Cluster {
     }
     return null;
   }
-  
+  public Job getJob_v2(JobID jobId) throws IOException, InterruptedException {
+    JobStatus status = client.getJobStatus(jobId);
+    if (status != null) {
+      return Job.getInstance(this, status, new JobConf(new Configuration()));
+    }
+    return null;
+  }  
   /**
    * Get all the queues in cluster.
    * 

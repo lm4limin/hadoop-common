@@ -123,6 +123,28 @@ class LocalResourcesTrackerImpl implements LocalResourcesTracker {
         decrementFileCountForLocalCacheDirectory(req, rsrc);
         rsrc = null;
       }
+                 if (rsrc != null && rsrc.getLocalPath() != null && (rsrc.getLocalPath().toString().contains("job.xml"))) {
+                     LOG.info("Resource " + rsrc.getLocalPath()
+                             + " is job config file, localizing it again");
+                     localrsrc.remove(req);
+                     decrementFileCountForLocalCacheDirectory(req, rsrc);
+                     rsrc = null;
+                 }
+                 if (rsrc != null && rsrc.getLocalPath() != null && (rsrc.getLocalPath().toString().contains("job.split"))) {
+                     LOG.info("Resource " + rsrc.getLocalPath()
+                             + " is job.split, localizing it again");
+                     localrsrc.remove(req);
+                     decrementFileCountForLocalCacheDirectory(req, rsrc);
+                     rsrc = null;
+                 }
+                 if (rsrc != null && rsrc.getLocalPath() != null && (rsrc.getLocalPath().toString().contains("job.splitmetainfo"))) {
+                     LOG.info("Resource " + rsrc.getLocalPath()
+                             + " is job.splitmetainfo, localizing it again");
+                     localrsrc.remove(req);
+                     decrementFileCountForLocalCacheDirectory(req, rsrc);
+                     rsrc = null;
+                 }
+
       if (null == rsrc) {
         rsrc = new LocalizedResource(req, dispatcher);
         localrsrc.put(req, rsrc);

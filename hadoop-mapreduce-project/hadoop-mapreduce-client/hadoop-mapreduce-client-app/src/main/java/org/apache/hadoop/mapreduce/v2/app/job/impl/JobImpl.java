@@ -708,7 +708,18 @@ public class JobImpl implements org.apache.hadoop.mapreduce.v2.app.job.Job,
   public boolean isUber() {
     return isUber;
   }
-
+  
+  //todo: fix the synchronization issue; 
+  @Override public
+ void setConfNamesValues(HashMap<String,String> confNameValues,String source){
+      writeLock.lock();
+      try{
+      for(String name : confNameValues.keySet()){
+          conf.set(name, confNameValues.get(name),source);
+      }}finally{
+          writeLock.unlock();
+      }
+  }
   @Override
   public Counters getAllCounters() {
 

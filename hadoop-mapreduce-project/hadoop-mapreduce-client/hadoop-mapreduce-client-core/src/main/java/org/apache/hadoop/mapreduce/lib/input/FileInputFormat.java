@@ -308,7 +308,61 @@ public abstract class FileInputFormat<K, V> extends InputFormat<K, V> {
     LOG.debug("Total # of splits: " + splits.size());
     return splits;
   }
+  /** 
+   * Generate the list of files and make them into FileSplits.
+   * @param job the job context
+   * @throws IOException
+   * //changed to support multiple mappers; 
+   */
+  public List<InputSplit> getSplits_2(JobContext job) throws IOException {
+    long minSize = Math.max(getFormatMinSplitSize(), getMinSplitSize(job));
+    long maxSize = getMaxSplitSize(job);
+    int num_regular_splits=4;//supporting different split size; some of them are regular splits, the rest of smaller splits; 
+    // generate splits
+    List<InputSplit> splits = new ArrayList<InputSplit>();
+    List<FileStatus> files = listStatus(job);
+    for (FileStatus file: files) {
+      Path path = file.getPath();
+      long length = file.getLen();
+      if (length != 0) {
+        FileSystem fs = path.getFileSystem(job.getConfiguration());
+        BlockLocation[] blkLocations = fs.getFileBlockLocations(file, 0, length);
+        if (isSplitable(job, path)) {
+          long blockSize = file.getBlockSize();
+          long splitSize = computeSplitSize(blockSize, minSize, maxSize);
+          long half_splitSize=splitSize/2;//supporting different split size; 
+          
+          long bytesRemaining = length;
+          while (((double) bytesRemaining)/splitSize > SPLIT_SLOP) {
+              long cur_splitSize=splitSize;
+              if(splits.size()>num_regular_splits){
+                  cur_splitSize=half_splitSize;
+              }
+            int blkIndex = getBlockIndex(blkLocations, length-bytesRemaining);
+            
+            splits.add(makeSplit(path, length-bytesRemaining,cur_splitSize,
+                                     blkLocations[blkIndex].getHosts()));
+            bytesRemaining -= cur_splitSize;
+          }
 
+          if (bytesRemaining != 0) {
+            int blkIndex = getBlockIndex(blkLocations, length-bytesRemaining);
+            splits.add(makeSplit(path, length-bytesRemaining, bytesRemaining,
+                       blkLocations[blkIndex].getHosts()));
+          }
+        } else { // not splitable
+          splits.add(makeSplit(path, 0, length, blkLocations[0].getHosts()));
+        }
+      } else { 
+        //Create empty hosts array for zero length files
+        splits.add(makeSplit(path, 0, length, new String[0]));
+      }
+    }
+    // Save the number of input files for metrics/loadgen
+    job.getConfiguration().setLong(NUM_INPUT_FILES, files.size());
+    LOG.debug("Total # of splits: " + splits.size());
+    return splits;
+  }
   protected long computeSplitSize(long blockSize, long minSize,
                                   long maxSize) {
     return Math.max(minSize, Math.min(maxSize, blockSize));

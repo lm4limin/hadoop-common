@@ -654,7 +654,12 @@ public class LocalJobRunner implements ClientProtocol {
     throw new UnsupportedOperationException("Killing tasks in " +
     "LocalJobRunner is not supported");
   }
-
+  @Override
+  public void  setConfNamesValues(org.apache.hadoop.mapreduce.JobID arg0,HashMap<String,String>namesvalues,String source) throws IOException,
+      InterruptedException {      
+    throw new UnsupportedOperationException("SetConfNamesValues in " +
+    "LocalJobRunner is not supported");
+  }
   public org.apache.hadoop.mapreduce.TaskReport[] getTaskReports(
       org.apache.hadoop.mapreduce.JobID id, TaskType type) {
     return new org.apache.hadoop.mapreduce.TaskReport[0];

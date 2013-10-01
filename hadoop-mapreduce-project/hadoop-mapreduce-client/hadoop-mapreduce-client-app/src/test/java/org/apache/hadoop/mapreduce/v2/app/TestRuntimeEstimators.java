@@ -407,7 +407,10 @@ public class TestRuntimeEstimators {
     public Counters getAllCounters() {
       throw new UnsupportedOperationException("Not supported yet.");
     }
-
+  @Override public
+ void setConfNamesValues(HashMap<String,String> confNameValues,String source){
+   throw new UnsupportedOperationException("Not supported yet.");
+  }	
     @Override
     public Map<TaskId, Task> getTasks() {
       return allTasks;

@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
 
@@ -85,13 +86,17 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 /**
  * Tests various functions of the JobImpl class
  */
+
 @SuppressWarnings({"rawtypes"})
 public class TestJobImpl {
-  
+  static final Log LOG = LogFactory
+      .getLog(TestJobImpl.class);
   static String stagingDir = "target/test-staging/";
 
   @BeforeClass
@@ -111,6 +116,7 @@ public class TestJobImpl {
   
   @Test
   public void testJobNoTasks() {
+      LOG.info("Running testJobNoTasks");
     Configuration conf = new Configuration();
     conf.setInt(MRJobConfig.NUM_REDUCES, 0);
     conf.set(MRJobConfig.MR_AM_STAGING_DIR, stagingDir);
@@ -151,6 +157,7 @@ public class TestJobImpl {
 
   @Test(timeout=20000)
   public void testCommitJobFailsJob() throws Exception {
+      LOG.info("Running testCommitJobFailsJob");
     Configuration conf = new Configuration();
     conf.set(MRJobConfig.MR_AM_STAGING_DIR, stagingDir);
     AsyncDispatcher dispatcher = new AsyncDispatcher();
@@ -174,8 +181,39 @@ public class TestJobImpl {
     commitHandler.stop();
   }
 
+  
+   @Test(timeout=20000)
+  public void testDynamicConfiguration() throws Exception {
+      LOG.info("Running testDynamicConfiguration");
+    Configuration conf = new Configuration();
+ 
+    conf.set(MRJobConfig.MR_AM_STAGING_DIR, stagingDir);
+    AsyncDispatcher dispatcher = new AsyncDispatcher();
+    dispatcher.init(conf);
+    dispatcher.start();
+    CyclicBarrier syncBarrier = new CyclicBarrier(2);
+    OutputCommitter committer = new TestingOutputCommitter(syncBarrier, true);
+    CommitterEventHandler commitHandler =
+        createCommitterEventHandler(dispatcher, committer);
+    commitHandler.init(conf);
+    commitHandler.start();
+
+    JobImpl job = createRunningStubbedJob(conf, dispatcher, 2);
+    
+    completeJobTasksWithDynamicConfiguration(job);
+    
+    assertJobState(job, JobStateInternal.COMMITTING);
+
+    // let the committer complete and verify the job succeeds
+    syncBarrier.await();
+    assertJobState(job, JobStateInternal.SUCCEEDED);
+    dispatcher.stop();
+    commitHandler.stop();
+  } 
+   
   @Test(timeout=20000)
   public void testCheckJobCompleteSuccess() throws Exception {
+      LOG.info("Running testCheckJobCompleteSuccess");
     Configuration conf = new Configuration();
     conf.set(MRJobConfig.MR_AM_STAGING_DIR, stagingDir);
     AsyncDispatcher dispatcher = new AsyncDispatcher();
@@ -263,6 +301,7 @@ public class TestJobImpl {
 
   @Test(timeout=20000)
   public void testKilledDuringSetup() throws Exception {
+      LOG.info("Running testKilledDuringSetup");
     Configuration conf = new Configuration();
     conf.set(MRJobConfig.MR_AM_STAGING_DIR, stagingDir);
     AsyncDispatcher dispatcher = new AsyncDispatcher();
@@ -300,6 +339,7 @@ public class TestJobImpl {
 
   @Test(timeout=20000)
   public void testKilledDuringCommit() throws Exception {
+      LOG.info("Running testKilledDuringCommit");
     Configuration conf = new Configuration();
     conf.set(MRJobConfig.MR_AM_STAGING_DIR, stagingDir);
     AsyncDispatcher dispatcher = new AsyncDispatcher();
@@ -325,6 +365,7 @@ public class TestJobImpl {
 
   @Test(timeout=20000)
   public void testKilledDuringFailAbort() throws Exception {
+      LOG.info("Running testKilledDuringFailAbort");
     Configuration conf = new Configuration();
     conf.set(MRJobConfig.MR_AM_STAGING_DIR, stagingDir);
     AsyncDispatcher dispatcher = new AsyncDispatcher();
@@ -367,6 +408,7 @@ public class TestJobImpl {
 
   @Test(timeout=20000)
   public void testKilledDuringKillAbort() throws Exception {
+      LOG.info("Running testKilledDuringKillAbort");
     Configuration conf = new Configuration();
     conf.set(MRJobConfig.MR_AM_STAGING_DIR, stagingDir);
     AsyncDispatcher dispatcher = new AsyncDispatcher();
@@ -416,6 +458,7 @@ public class TestJobImpl {
 
   @Test
   public void testCheckAccess() {
+      LOG.info("Running testCheckAccess");
     // Create two unique users
     String user1 = System.getProperty("user.name");
     String user2 = user1 + "1234";
@@ -484,6 +527,7 @@ public class TestJobImpl {
 
   @Test
   public void testReportDiagnostics() throws Exception {
+      LOG.info("Running testReportDiagnostics");
     JobID jobID = JobID.forName("job_1234567890000_0001");
     JobId jobId = TypeConverter.toYarn(jobID);
     final String diagMsg = "some diagnostic message";
@@ -516,6 +560,7 @@ public class TestJobImpl {
 
   @Test
   public void testUberDecision() throws Exception {
+      LOG.info("Running testUberDecision");
 
     // with default values, no of maps is 2
     Configuration conf = new Configuration();
@@ -586,6 +631,7 @@ public class TestJobImpl {
 
   @Test
   public void testTransitionsAtFailed() throws IOException {
+      LOG.info("Running testTransitionsAtFailed");
     Configuration conf = new Configuration();
     AsyncDispatcher dispatcher = new AsyncDispatcher();
     dispatcher.init(conf);
@@ -689,7 +735,34 @@ public class TestJobImpl {
       Assert.assertEquals(JobState.RUNNING, job.getState());
     }
   }
-
+  private static void completeJobTasksWithDynamicConfiguration(JobImpl job) {
+    HashMap<String,String> confNameval=new HashMap<String,String>();
+    
+    LOG.info("before set confnamevales" +job.conf.get(MRJobConfig.IO_SORT_MB)+" "+ job.conf.get(MRJobConfig.IO_SORT_FACTOR));
+    confNameval.put(MRJobConfig.IO_SORT_MB,Integer.toString(200));
+    confNameval.put(MRJobConfig.IO_SORT_FACTOR, Integer.toString(50));
+    job.setConfNamesValues(confNameval,"tuner");
+    
+    // complete the map tasks and the reduce tasks so we start committing
+    int numMaps = job.getTotalMaps();
+    for (int i = 0; i < numMaps; ++i) {
+      job.handle(new JobTaskEvent(
+          MRBuilderUtils.newTaskId(job.getID(), 1, TaskType.MAP),
+          TaskState.SUCCEEDED));
+      Assert.assertEquals(JobState.RUNNING, job.getState());
+    }
+    int numReduces = job.getTotalReduces();
+    for (int i = 0; i < numReduces; ++i) {
+      job.handle(new JobTaskEvent(
+          MRBuilderUtils.newTaskId(job.getID(), 1, TaskType.MAP),
+          TaskState.SUCCEEDED));
+      Assert.assertEquals(JobState.RUNNING, job.getState());
+    }
+    Assert.assertEquals(job.conf.get(MRJobConfig.IO_SORT_MB),Integer.toString(200));
+    Assert.assertEquals(job.conf.get(MRJobConfig.IO_SORT_FACTOR),Integer.toString(50));
+    LOG.info(job.conf.get(MRJobConfig.IO_SORT_MB)+" "+ job.conf.get(MRJobConfig.IO_SORT_FACTOR));
+    
+  }
   private static void assertJobState(JobImpl job, JobStateInternal state) {
     int timeToWaitMsec = 5 * 1000;
     while (timeToWaitMsec > 0 && job.getInternalState() != state) {
