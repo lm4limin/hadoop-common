@@ -176,7 +176,7 @@ public class MRClientProtocolPBServiceImpl implements MRClientProtocolPB {
     try {
       SetConfNamesValuesResponse response = real.setConfNamesValues(request);
       return ((SetConfNamesValuesResponsePBImpl)response).getProto();
-    } catch (YarnRemoteException e) {
+    } catch (IOException e) {
       throw new ServiceException(e);
     }
   }

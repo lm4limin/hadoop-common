@@ -176,12 +176,12 @@ public class MRClientProtocolPBClientImpl implements MRClientProtocol,
 
    @Override
   public SetConfNamesValuesResponse setConfNamesValues(SetConfNamesValuesRequest request)
-      throws YarnRemoteException {
+      throws IOException {
     SetConfNamesValuesRequestProto requestProto = ((SetConfNamesValuesRequestPBImpl)request).getProto();
     try {
       return new SetConfNamesValuesResponsePBImpl(proxy.setConfNamesValues(null,requestProto));
     } catch (ServiceException e) {
-      throw YarnRemoteExceptionPBImpl.unwrapAndThrowException(e);
+      throw unwrapAndThrowException(e);
     }
   } 
    
