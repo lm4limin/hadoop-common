@@ -133,7 +133,8 @@ public class TestRPCFactories {
       return null;
     }
     @Override
-    public SetConfNamesValuesResponse setConfNamesValues(SetConfNamesValuesRequest request) throws YarnRemoteException{
+    public SetConfNamesValuesResponse setConfNamesValues(
+            SetConfNamesValuesRequest request) throws IOException{
         return null;
     }
     @Override
