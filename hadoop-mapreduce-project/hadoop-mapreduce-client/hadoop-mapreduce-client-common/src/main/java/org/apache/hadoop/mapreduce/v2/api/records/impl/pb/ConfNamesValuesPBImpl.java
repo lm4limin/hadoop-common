@@ -24,7 +24,8 @@ import org.apache.hadoop.mapreduce.v2.api.records.Counter;
 import org.apache.hadoop.mapreduce.v2.proto.MRProtos.ConfNamesValuesProto;
 import org.apache.hadoop.mapreduce.v2.proto.MRProtos.ConfNameValueProto;
 import org.apache.hadoop.mapreduce.v2.proto.MRProtos.ConfNamesValuesProtoOrBuilder;
-import org.apache.hadoop.yarn.api.records.ProtoBase;
+//import org.apache.hadoop.yarn.api.records.ProtoBase;
+import org.apache.hadoop.yarn.api.records.impl.pb.ProtoBase;
 /**
  *
  * @author limin

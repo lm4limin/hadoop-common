@@ -16,7 +16,8 @@
 package org.apache.hadoop.mapreduce.v2.api.protocolrecords.impl.pb;
 import org.apache.hadoop.mapreduce.v2.api.protocolrecords.SetConfNamesValuesResponse;
 import org.apache.hadoop.mapreduce.v2.proto.MRServiceProtos.SetConfNamesValuesResponseProto;
-import org.apache.hadoop.yarn.api.records.ProtoBase;
+//import org.apache.hadoop.yarn.api.records.ProtoBase;
+import org.apache.hadoop.yarn.api.records.impl.pb.ProtoBase;
 /**
  *
  * @author limin

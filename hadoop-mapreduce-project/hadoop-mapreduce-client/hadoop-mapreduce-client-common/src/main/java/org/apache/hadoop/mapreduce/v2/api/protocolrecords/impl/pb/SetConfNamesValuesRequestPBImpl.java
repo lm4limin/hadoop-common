@@ -25,7 +25,8 @@ import org.apache.hadoop.mapreduce.v2.proto.MRProtos.JobIdProto;
 import org.apache.hadoop.mapreduce.v2.proto.MRProtos.ConfNamesValuesProto;
 import org.apache.hadoop.mapreduce.v2.proto.MRServiceProtos.SetConfNamesValuesRequestProto;
 import org.apache.hadoop.mapreduce.v2.proto.MRServiceProtos.SetConfNamesValuesRequestProtoOrBuilder;
-import org.apache.hadoop.yarn.api.records.ProtoBase;
+//import org.apache.hadoop.yarn.api.records.ProtoBase;
+import org.apache.hadoop.yarn.api.records.impl.pb.ProtoBase;
 
 /**
  *
