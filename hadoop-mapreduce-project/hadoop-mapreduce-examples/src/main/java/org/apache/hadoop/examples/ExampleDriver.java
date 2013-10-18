@@ -73,8 +73,14 @@ public class ExampleDriver {
       pgd.addClass("terasort", TeraSort.class, "Run the terasort");
       pgd.addClass("teravalidate", TeraValidate.class, "Checking results of terasort");
       pgd.addClass("kmeans", Kmeans.class, "Kmeans on movies data");
+      pgd.addClass("classification", Classification.class, "Classify movies into clusters");
       pgd.addClass("histogram_movies", HistogramMovies.class,
       "A map/reduce program that gives a histogram of movies based on ratings.");
+      pgd.addClass("histogram_ratings", HistogramRatings.class,
+      "A map/reduce program that gives a histogram of users ratings on movies.");
+      pgd.addClass("adjlist", AdjList.class,
+      "A map/reduce program that finds adjacency list of graph nodes.");
+
 
       exitCode = pgd.run(argv);
     }
