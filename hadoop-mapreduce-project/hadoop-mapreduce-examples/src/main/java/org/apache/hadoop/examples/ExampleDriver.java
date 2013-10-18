@@ -71,6 +71,7 @@ public class ExampleDriver {
       pgd.addClass("teragen", TeraGen.class, "Generate data for the terasort");
       pgd.addClass("terasort", TeraSort.class, "Run the terasort");
       pgd.addClass("teravalidate", TeraValidate.class, "Checking results of terasort");
+      pgd.addClass("kmeans", Kmeans.class, "Kmeans on movies data");
       pgd.addClass("histogram_movies", HistogramMovies.class,
       "A map/reduce program that gives a histogram of movies based on ratings.");
 
