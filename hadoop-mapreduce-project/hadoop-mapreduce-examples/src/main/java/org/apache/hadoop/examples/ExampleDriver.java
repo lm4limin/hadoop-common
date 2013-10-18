@@ -80,6 +80,14 @@ public class ExampleDriver {
       "A map/reduce program that gives a histogram of users ratings on movies.");
       pgd.addClass("adjlist", AdjList.class,
       "A map/reduce program that finds adjacency list of graph nodes.");
+      pgd.addClass("sequencecount", SequenceCount.class,
+      "A map/reduce program that counts the occurrence of consecutive words in the input files.");
+      pgd.addClass("rankedinvertedindex", RankedInvertedIndex.class,
+      "A map/reduce program that creates the top k document lists per word");
+      pgd.addClass("termvectorperhost", TermVectorPerHost.class,
+      "A map/reduce program that creates the term-vectors (frequency of words) per document.");
+      pgd.addClass("invertedindex", InvertedIndex.class,
+      "A map/reduce program that creates an inverted index of documents.");
 
 
       exitCode = pgd.run(argv);
