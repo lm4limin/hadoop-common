@@ -26,7 +26,7 @@ public class Kmeans {
   public static Cluster[] centroids = new Cluster[maxClusters];
   public static Cluster[] centroids_ref = new Cluster[maxClusters];
 
-  public static String strModelFile = "/localhome/hadoop1/work/kmeans/mr_centroids";
+  public static String strModelFile = "/home/limin/2_ibm2013/data_sets/kmeans/mr_centroids";
   // Input data should have the following format. Each line of input record represents one movie and all of its reviews. 
   // Each record has the format: <movie_id><:><reviewer><_><rating><,><movie_id><:><reviewer><_><rating><,> .....
 

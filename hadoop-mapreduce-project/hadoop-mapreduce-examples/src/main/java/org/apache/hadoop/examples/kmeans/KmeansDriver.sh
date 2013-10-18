@@ -12,8 +12,9 @@ input=$3;
 output=$4;
 iterations=$5;
 count=0;
-base_model="/localhome/hadoop1/work/kmeans/mr_centroids";
-centroids_file="/localhome/hadoop1/work/kmeans/centroids_file";
+basedir=/home/limin/2_ibm2013/data_sets/kmeans/
+base_model="${basedir}/mr_centroids";
+centroids_file="{basedir}/centroids_file";
 cp $centroids_file $base_model
 rm -r $hadoop/Results/* 2>&1
 
