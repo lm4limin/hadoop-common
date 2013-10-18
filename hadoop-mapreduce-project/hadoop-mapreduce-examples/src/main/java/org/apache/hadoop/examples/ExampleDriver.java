@@ -71,6 +71,9 @@ public class ExampleDriver {
       pgd.addClass("teragen", TeraGen.class, "Generate data for the terasort");
       pgd.addClass("terasort", TeraSort.class, "Run the terasort");
       pgd.addClass("teravalidate", TeraValidate.class, "Checking results of terasort");
+      pgd.addClass("histogram_movies", HistogramMovies.class,
+      "A map/reduce program that gives a histogram of movies based on ratings.");
+
       exitCode = pgd.run(argv);
     }
     catch(Throwable e){
