@@ -27,7 +27,7 @@ do
   out="tmpout$count" 2>&1
   hadoop dfs -rmr $out 2>&1
   hadoop dfs -rmr $output 2>&1
-  hadoop jar hadoop-0.20.3-dev-examples.jar kmeans -m $numMaps -r $numReds $input $out 2>&1
+  hadoop jar ${HADOOP_PREFIX}/share/hadoop/mapreduce/hadoop-mapreduce-examples-2.1.0-beta.jar kmeans -m $numMaps -r $numReds $input $out 2>&1
   #######################
   # Get results from HDFS
   #######################
