@@ -5,7 +5,8 @@ then
   echo "Usage: ./KmeansDriver.sh [numMaps][numReds][input directory][output directory][num of iterations]"
   exit 1
 fi
-cd $hadoop
+outdir=/tmp
+cd ${outdir}
 numMaps=$1;
 numReds=$2;
 input=$3;
@@ -16,7 +17,7 @@ basedir=/home/limin/2_ibm2013/data_sets/kmeans/
 base_model="${basedir}/mr_centroids";
 centroids_file="${basedir}/centroids_file";
 cp $centroids_file $base_model
-rm -r $hadoop/Results/* 2>&1
+rm -r ${outdir}/Results/* 2>&1
 
 for (( i = 0; i < $iterations; i++ ))
 do
@@ -25,8 +26,8 @@ do
   echo "========================"
   count=`expr $count + 1` 2>&1
   out="tmpout$count" 2>&1
-  hadoop dfs -rmr $out 2>&1
-  hadoop dfs -rmr $output 2>&1
+  hadoop fs -rm -r $out 2>&1
+  hadoop fs -rm -r $output 2>&1
   hadoop jar ${HADOOP_PREFIX}/share/hadoop/mapreduce/hadoop-mapreduce-examples-2.1.0-beta.jar kmeans -m $numMaps -r $numReds $input $out 2>&1
   #######################
   # Get results from HDFS
@@ -34,13 +35,13 @@ do
   if [ $count -lt $iterations ]
   then
     echo "Getting results from HDFS for iteration $count ..."
-    mkdir -p $hadoop/Results/$out 2>&1
-    hadoop dfs -get $out/* $hadoop/Results/$out/ 2>&1
+    mkdir -p ${outdir}/Results/$out 2>&1
+    hadoop fs -get $out/* ${outdir}/Results/$out/ 2>&1
     #######################
     # concatenate results into a single file
     #######################
     echo "Generating new centroids file ..."
-    cd $hadoop/Results/$out 2>&1
+    cd ${outdir}/Results/$out 2>&1
     tmpcc=0;
     files=$(ls) 2>&1
     for num in $files
@@ -66,9 +67,9 @@ do
         echo "file $cc of $tmpcc scanned ..."
         cc=`expr $cc + 1` 
     done
-    cd $hadoop
+    cd ${outdir}
     model_file="model_file_$count"
-    mv $hadoop/Results/$out/model_file_tmp $hadoop/Results/$model_file 2>&1
+    mv ${outdir}/Results/$out/model_file_tmp ${outdir}/Results/$model_file 2>&1
     #######################
     # test condition
     #######################
@@ -80,7 +81,7 @@ do
         sim_arr_1[$k]="$word2";
         echo "sim_arr_1[$k] = ${sim_arr_1[$k]}";
         k=`expr $k + 1`;
-    done < $hadoop/Results/$model_file
+    done < ${outdir}/Results/$model_file
 
     j=0;
 #    IFS = space, tab, newline by default, so no need to set it explicitly
@@ -131,11 +132,11 @@ do
         break
     else
         echo "Threshold not achieved, continuing to next Iteration # `expr $i + 2`"
-        cp $hadoop/Results/$model_file $base_model
+        cp ${outdir}/Results/$model_file $base_model
         while read -r slave
         do
             scp $base_model $slave:$base_model
-        done < $HADOOP_HOME/conf/slaves
+        done < ${HADOOP_PREFIX}/conf/slaves
     fi
   else # $count ge $iterations
     echo "Last iteration done"
@@ -146,13 +147,13 @@ echo "exiting..."
 echo "cleaning ..."
 #######################
 count=0;
-#hadoop dfs -mkdir $output 2>&1
-#hadoop dfs -put $hadoop/Results/$model_file $output/part-00000 2>&1
-hadoop dfs -mv $out $output 2>&1
+#hadoop fs -mkdir $output 2>&1
+#hadoop fs -put ${outdir}/Results/$model_file $output/part-00000 2>&1
+hadoop fs -mv $out $output 2>&1
 for (( i = 1; i < $iterations; i++ )) 
 do
   out="tmpout$i" 2>&1
-  rm -r $hadoop/Results/$out 2>&1
-  hadoop dfs -rmr $out
+  rm -r ${outdir}/Results/$out 2>&1
+  hadoop fs -rm -r $out
 done
 exit 0
