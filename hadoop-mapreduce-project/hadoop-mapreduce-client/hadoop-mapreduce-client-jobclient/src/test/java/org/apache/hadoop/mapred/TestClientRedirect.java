@@ -454,7 +454,7 @@ public class TestClientRedirect {
       return response;
     }
     @Override
-    public SetConfNamesValuesResponse setConfNamesValues(SetConfNamesValuesRequest request) throws YarnRemoteException {
+    public SetConfNamesValuesResponse setConfNamesValues(SetConfNamesValuesRequest request) throws IOException {
         
         JobId jobID=request.getJobId();
         String source=request.getSource();
