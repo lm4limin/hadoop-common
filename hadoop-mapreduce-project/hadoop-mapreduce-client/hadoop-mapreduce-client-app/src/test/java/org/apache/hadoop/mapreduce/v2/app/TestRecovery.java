@@ -1338,70 +1338,68 @@ public class TestRecovery {
         arg, jobHistoryEvents, 2L, 0L);
   }
 
-  private void recoveryChecker(MapTaskImpl checkTask, TaskState finalState,
-      Map<TaskAttemptID, TaskAttemptState> finalAttemptStates,
-      ArgumentCaptor<Event> arg, List<EventType> expectedJobHistoryEvents,
-      long expectedMapLaunches, long expectedFailedMaps) {
+    private void recoveryChecker(MapTaskImpl checkTask, TaskState finalState,
+            Map<TaskAttemptID, TaskAttemptState> finalAttemptStates,
+            ArgumentCaptor<Event> arg, List<EventType> expectedJobHistoryEvents,
+            long expectedMapLaunches, long expectedFailedMaps) {
 
-    assertEquals("Final State of Task", finalState, checkTask.getState());
+        assertEquals("Final State of Task", finalState, checkTask.getState());
 
-    Map<TaskAttemptId, TaskAttempt> recoveredAttempts =
-        checkTask.getAttempts();
-    assertEquals("Expected Number of Task Attempts",
-        finalAttemptStates.size(), recoveredAttempts.size());
-    for (TaskAttemptID taID : finalAttemptStates.keySet()) {
-      assertEquals("Expected Task Attempt State",
-          finalAttemptStates.get(taID),
-          recoveredAttempts.get(TypeConverter.toYarn(taID)).getState());
-    }
-
-    Iterator<Event> ie = arg.getAllValues().iterator();
-    int eventNum = 0;
-    long totalLaunchedMaps = 0;
-    long totalFailedMaps = 0;
-    boolean jobTaskEventReceived = false;
-
-    while (ie.hasNext()) {
-      Object current = ie.next();
-      ++eventNum;
-      LOG.info(eventNum + " " + current.getClass().getName());
-      if (current instanceof JobHistoryEvent) {
-        JobHistoryEvent jhe = (JobHistoryEvent) current;
-        LOG.info(expectedJobHistoryEvents.get(0).toString() + " " +
-            jhe.getHistoryEvent().getEventType().toString() + " " +
-            jhe.getJobID());
-        assertEquals(expectedJobHistoryEvents.get(0),
-            jhe.getHistoryEvent().getEventType());
-        expectedJobHistoryEvents.remove(0);
-      }  else if (current instanceof JobCounterUpdateEvent) {
-        JobCounterUpdateEvent jcue = (JobCounterUpdateEvent) current;
-
-        LOG.info("JobCounterUpdateEvent "
-            + jcue.getCounterUpdates().get(0).getCounterKey()
-            + " " + jcue.getCounterUpdates().get(0).getIncrementValue());
-        if (jcue.getCounterUpdates().get(0).getCounterKey() ==
-            JobCounter.NUM_FAILED_MAPS) {
-          totalFailedMaps += jcue.getCounterUpdates().get(0)
-              .getIncrementValue();
-        } else if (jcue.getCounterUpdates().get(0).getCounterKey() ==
-            JobCounter.TOTAL_LAUNCHED_MAPS) {
-          totalLaunchedMaps += jcue.getCounterUpdates().get(0)
-              .getIncrementValue();
+        Map<TaskAttemptId, TaskAttempt> recoveredAttempts =
+                checkTask.getAttempts();
+        assertEquals("Expected Number of Task Attempts",
+                finalAttemptStates.size(), recoveredAttempts.size());
+        for (TaskAttemptID taID : finalAttemptStates.keySet()) {
+            assertEquals("Expected Task Attempt State",
+                    finalAttemptStates.get(taID),
+                    recoveredAttempts.get(TypeConverter.toYarn(taID)).getState());
         }
-      } else if (current instanceof JobTaskEvent) {
-        JobTaskEvent jte = (JobTaskEvent) current;
-        assertEquals(jte.getState(), finalState);
-        jobTaskEventReceived = true;
-      }
+
+        Iterator<Event> ie = arg.getAllValues().iterator();
+        int eventNum = 0;
+        long totalLaunchedMaps = 0;
+        long totalFailedMaps = 0;
+        boolean jobTaskEventReceived = false;
+
+        while (ie.hasNext()) {
+            Object current = ie.next();
+            ++eventNum;
+            LOG.info(eventNum + " " + current.getClass().getName());
+            if (current instanceof JobHistoryEvent) {
+                JobHistoryEvent jhe = (JobHistoryEvent) current;
+                LOG.info(expectedJobHistoryEvents.get(0).toString() + " "
+                        + jhe.getHistoryEvent().getEventType().toString() + " "
+                        + jhe.getJobID());
+                assertEquals(expectedJobHistoryEvents.get(0),
+                        jhe.getHistoryEvent().getEventType());
+                expectedJobHistoryEvents.remove(0);
+            } else if (current instanceof JobCounterUpdateEvent) {
+                JobCounterUpdateEvent jcue = (JobCounterUpdateEvent) current;
+
+                LOG.info("JobCounterUpdateEvent "
+                        + jcue.getCounterUpdates().get(0).getCounterKey()
+                        + " " + jcue.getCounterUpdates().get(0).getIncrementValue());
+              /*  if (jcue.getCounterUpdates().get(0).getCounterKey()
+                        == JobCounter.NUM_FAILED_MAPS) {
+                    totalFailedMaps += jcue.getCounterUpdates().get(0).getIncrementValue();
+                } else if (jcue.getCounterUpdates().get(0).getCounterKey()
+                        == JobCounter.TOTAL_LAUNCHED_MAPS) {
+                    totalLaunchedMaps += jcue.getCounterUpdates().get(0).getIncrementValue();
+                }*/
+            } else if (current instanceof JobTaskEvent) {
+                JobTaskEvent jte = (JobTaskEvent) current;
+                assertEquals(jte.getState(), finalState);
+                jobTaskEventReceived = true;
+            }
+        }
+        assertTrue(jobTaskEventReceived || (finalState == TaskState.RUNNING));
+        assertEquals("Did not process all expected JobHistoryEvents",
+                0, expectedJobHistoryEvents.size());
+        assertEquals("Expected Map Launches",
+                expectedMapLaunches, totalLaunchedMaps);
+        assertEquals("Expected Failed Maps",
+                expectedFailedMaps, totalFailedMaps);
     }
-    assertTrue(jobTaskEventReceived || (finalState == TaskState.RUNNING));
-    assertEquals("Did not process all expected JobHistoryEvents",
-        0, expectedJobHistoryEvents.size());
-    assertEquals("Expected Map Launches",
-        expectedMapLaunches, totalLaunchedMaps);
-    assertEquals("Expected Failed Maps",
-        expectedFailedMaps, totalFailedMaps);
-  }
 
   private MapTaskImpl getMockMapTask(long clusterTimestamp, EventHandler eh) {
 
