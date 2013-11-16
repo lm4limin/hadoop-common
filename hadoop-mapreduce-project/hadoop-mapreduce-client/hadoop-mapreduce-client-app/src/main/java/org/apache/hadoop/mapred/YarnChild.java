@@ -257,9 +257,10 @@ class YarnChild {
   private static JobConf configureTask(Task task, Credentials credentials,
       Token<JobTokenIdentifier> jt) throws IOException {
     final JobConf job = new JobConf(MRJobConfig.JOB_CONF_FILE);
-    org.apache.hadoop.mapred.TaskID tid = new org.apache.hadoop.mapred.TaskID(task.getJobID(), org.apache.hadoop.mapreduce.TaskType.MAP, 2);
+    //org.apache.hadoop.mapred.TaskID tid = new org.apache.hadoop.mapred.TaskID(task.getJobID(), org.apache.hadoop.mapreduce.TaskType.MAP, 2);        
+    org.apache.hadoop.mapred.TaskID tid =task.getTaskID().getTaskID();
     job.addResource(tid.toString()+".xml");
-   // job.addResource(task.getTaskID().getTaskID().toString()+".xml");//added by min
+    //job.addResource(task.getTaskID().getTaskID().toString()+".xml");//added by limin
     job.setCredentials(credentials);
 
     ApplicationAttemptId appAttemptId =
