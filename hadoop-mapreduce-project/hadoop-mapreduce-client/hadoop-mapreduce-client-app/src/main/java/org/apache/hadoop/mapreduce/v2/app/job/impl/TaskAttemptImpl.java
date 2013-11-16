@@ -802,8 +802,8 @@ public abstract class TaskAttemptImpl implements
         new HashMap<String, LocalResource>();
                          
     try{
-        org.apache.hadoop.mapred.TaskID tid = new org.apache.hadoop.mapred.TaskID(oldJobId, org.apache.hadoop.mapreduce.TaskType.MAP, 2);
-       // org.apache.hadoop.mapred.TaskID  tid=remoteTask.getTaskID().getTaskID();
+       // org.apache.hadoop.mapred.TaskID tid = new org.apache.hadoop.mapred.TaskID(oldJobId, org.apache.hadoop.mapreduce.TaskType.MAP, 2);
+        org.apache.hadoop.mapred.TaskID  tid=remoteTask.getTaskID().getTaskID();
         String taskConf = tid.toString() + ".xml";
         Path path =
           MRApps.getStagingAreaDir(conf, UserGroupInformation
