@@ -259,7 +259,7 @@ class YarnChild {
     final JobConf job = new JobConf(MRJobConfig.JOB_CONF_FILE);
     //org.apache.hadoop.mapred.TaskID tid = new org.apache.hadoop.mapred.TaskID(task.getJobID(), org.apache.hadoop.mapreduce.TaskType.MAP, 2);        
     org.apache.hadoop.mapred.TaskID tid =task.getTaskID().getTaskID();
-    LOG.debug("task conf for task_ID: " + tid.toString());
+    LOG.info("task conf for task_ID: " + tid.toString());
     job.addResource(tid.toString()+".xml");
     //job.addResource(task.getTaskID().getTaskID().toString()+".xml");//added by limin
     job.setCredentials(credentials);
