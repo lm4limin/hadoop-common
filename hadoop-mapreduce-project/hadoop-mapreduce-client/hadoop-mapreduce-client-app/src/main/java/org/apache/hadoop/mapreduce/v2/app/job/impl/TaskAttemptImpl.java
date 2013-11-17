@@ -828,7 +828,7 @@ public abstract class TaskAttemptImpl implements
                     "waiting ms "+Integer.toString(i*50));
             MRApps.setupDistributedCache(conf, myLocalResources);
         } else {
-            LOG.info("taskid "+remoteTask.getTaskID().getTaskID().toString()+"task conf file " + taskConf + " do not exist");
+            LOG.info("taskid "+remoteTask.getTaskID().getTaskID().toString()+" task conf file " + taskConf + " do not exist");
         }
         
     }catch(Exception e){}
