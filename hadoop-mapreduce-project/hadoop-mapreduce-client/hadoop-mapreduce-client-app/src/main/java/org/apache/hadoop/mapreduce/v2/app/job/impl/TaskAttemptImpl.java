@@ -813,13 +813,19 @@ public abstract class TaskAttemptImpl implements
           new Path(path, oldJobId.toString());
         Path remoteTaskConfPath =
                 new Path(remoteJobSubmitDir, taskConf);
+        int i=0;
+        while(!remoteFS.exists(remoteTaskConfPath)&&i++<40){
+            Thread.sleep(50);
+        }
         if (remoteFS.exists(remoteTaskConfPath)) {            
             myLocalResources.put(
                     taskConf,
                     createLocalResource(remoteFS, remoteTaskConfPath,
                     LocalResourceType.FILE, LocalResourceVisibility.APPLICATION));
             LOG.info("The task-conf file on the remote FS is "
-                    + remoteTaskConfPath.toUri().toASCIIString()+" taskid "+remoteTask.getTaskID().getTaskID().toString());
+                    + remoteTaskConfPath.toUri().toASCIIString()+
+                    " taskid "+remoteTask.getTaskID().getTaskID().toString()+
+                    "waiting ms "+Integer.toString(i*50));
             MRApps.setupDistributedCache(conf, myLocalResources);
         } else {
             LOG.info("taskid "+remoteTask.getTaskID().getTaskID().toString()+"task conf file " + taskConf + " do not exist");
