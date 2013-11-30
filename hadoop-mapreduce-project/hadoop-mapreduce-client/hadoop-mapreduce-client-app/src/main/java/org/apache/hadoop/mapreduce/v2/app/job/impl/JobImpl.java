@@ -132,6 +132,7 @@ import org.apache.hadoop.yarn.util.Clock;
 public class JobImpl implements org.apache.hadoop.mapreduce.v2.app.job.Job, 
   EventHandler<JobEvent> {
 
+  
   private static final TaskAttemptCompletionEvent[]
     EMPTY_TASK_ATTEMPT_COMPLETION_EVENTS = new TaskAttemptCompletionEvent[0];
 
@@ -169,6 +170,8 @@ public class JobImpl implements org.apache.hadoop.mapreduce.v2.app.job.Job,
   private final Object tasksSyncHandle = new Object();
   private final Set<TaskId> mapTasks = new LinkedHashSet<TaskId>();
   private final Set<TaskId> reduceTasks = new LinkedHashSet<TaskId>();
+  private final Set<TaskId> mapTasksNoScheduled = new LinkedHashSet<TaskId>();//limin
+  private final Set<TaskId> reduceTasksNoScheduled = new LinkedHashSet<TaskId>();//limin
   /**
    * maps nodes to tasks that have run on those nodes
    */
@@ -709,17 +712,20 @@ public class JobImpl implements org.apache.hadoop.mapreduce.v2.app.job.Job,
     return isUber;
   }
   
-  //todo: fix the synchronization issue; 
-  @Override public
- void setConfNamesValues(HashMap<String,String> confNameValues,String source){
-      writeLock.lock();
-      try{
-      for(String name : confNameValues.keySet()){
-          conf.set(name, confNameValues.get(name),source);
-      }}finally{
-          writeLock.unlock();
-      }
-  }
+  //limin
+    @Override
+    public void setConfNamesValues(HashMap<String, String> confNameValues, String source) {
+        writeLock.lock();
+        try {
+            //for (String name : confNameValues.keySet()) {
+             //   conf.set(name, confNameValues.get(name), source);
+            //}
+            scheduleTasks(mapTasksNoScheduled, numReduceTasks == 0);//limin
+            scheduleTasks(reduceTasksNoScheduled, true); //limin
+        } finally {
+            writeLock.unlock();
+        }
+    }
   @Override
   public Counters getAllCounters() {
 
@@ -903,8 +909,37 @@ public class JobImpl implements org.apache.hadoop.mapreduce.v2.app.job.Job,
       readLock.unlock();
     }
   }
+    protected void scheduleTasks(Set<TaskId> taskIDs,//limin
+            boolean recoverTaskOutput) {
+        try {
+            for (TaskId taskID : taskIDs) {
+                TaskInfo taskInfo = completedTasksFromPreviousRun.remove(taskID);
+                if (taskInfo != null) {
+                    eventHandler.handle(new TaskRecoverEvent(taskID, taskInfo,
+                            committer, recoverTaskOutput));
+                } else {                    
+                    String taskConf = taskID.toString() + ".xml";
+                    Path path =MRApps.getStagingAreaDir(conf,
+                            UserGroupInformation.getCurrentUser().getShortUserName());
+                    FileSystem remoteFS = FileSystem.get(conf);
+                    Path remoteJSubmitDir =
+                            new Path(path, oldJobId.toString());
+                    Path remoteTaskConfPath =
+                            new Path(remoteJSubmitDir, taskConf);
 
-  protected void scheduleTasks(Set<TaskId> taskIDs,
+                    while (remoteFS.exists(remoteTaskConfPath) ) {
+                        eventHandler.handle(new TaskEvent(taskID, TaskEventType.T_SCHEDULE));
+                        this.mapTasksNoScheduled.remove(taskID);
+                        this.reduceTasksNoScheduled.remove(taskID);
+                    }
+                    
+                }
+            }
+        } catch (Exception e) {
+            LOG.error(e);
+        }
+    }
+  protected void scheduleTasks_org(Set<TaskId> taskIDs,
       boolean recoverTaskOutput) {
     for (TaskId taskID : taskIDs) {
       TaskInfo taskInfo = completedTasksFromPreviousRun.remove(taskID);
@@ -994,8 +1029,10 @@ public class JobImpl implements org.apache.hadoop.mapreduce.v2.app.job.Job,
     tasks.put(task.getID(), task);
     if (task.getType() == TaskType.MAP) {
       mapTasks.add(task.getID());
+      mapTasksNoScheduled.add(task.getID());//limin
     } else if (task.getType() == TaskType.REDUCE) {
       reduceTasks.add(task.getID());
+      reduceTasksNoScheduled.add(task.getID());//limin
     }
     metrics.waitingTask(task);
   }
@@ -1377,7 +1414,7 @@ public class JobImpl implements org.apache.hadoop.mapreduce.v2.app.job.Job,
             job.conf.getInt(MRJobConfig.REDUCE_FAILURES_MAXPERCENT, 0);
 
         // create the Tasks but don't start them yet
-        createMapTasks(job, inputLength, taskSplitMetaInfo);
+        createMapTasks(job, inputLength, taskSplitMetaInfo);        
         createReduceTasks(job);
 
         job.metrics.endPreparingJob(job);

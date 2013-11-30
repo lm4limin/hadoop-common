@@ -512,7 +512,9 @@ public abstract class TaskAttemptImpl implements
       Credentials credentials, Clock clock,
       AppContext appContext) {
     oldJobId = TypeConverter.fromYarn(taskId.getJobId());
-    this.conf = conf;
+    //this.conf = conf;//limin
+    this.conf=new JobConf(conf);//limin
+    conf.addResource(taskId.toString()+".xml");//limin
     this.clock = clock;
     attemptId = recordFactory.newRecordInstance(TaskAttemptId.class);
     attemptId.setTaskId(taskId);
@@ -555,6 +557,7 @@ public abstract class TaskAttemptImpl implements
     //  instance variable.
     stateMachine = stateMachineFactory.make(this);
   }
+
 
   private int getMemoryRequired(Configuration conf, TaskType taskType) {
     int memory = 1024;
@@ -828,7 +831,9 @@ public abstract class TaskAttemptImpl implements
                     "waiting ms "+Integer.toString(i*50));
             MRApps.setupDistributedCache(conf, myLocalResources);
         } else {
-            LOG.info("taskid "+remoteTask.getTaskID().getTaskID().toString()+" task conf file " + taskConf + " do not exist");
+            LOG.info("taskid "+remoteTask.getTaskID().getTaskID().toString()
+                    +" task conf file " + taskConf + " do not exist"
+                    +"waiting ms "+Integer.toString(i*50));
         }
         
     }catch(Exception e){}
