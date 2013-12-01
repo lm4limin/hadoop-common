@@ -921,9 +921,14 @@ public class JobImpl implements org.apache.hadoop.mapreduce.v2.app.job.Job,
       readLock.unlock();
     }
   }
+  //note: the taskIDs should be either mapTasksNotScheduled or reduceTasksNotScheduled.
     protected void scheduleTasks(Set<TaskId> taskIDs,//limin
             boolean recoverTaskOutput) {
         try {
+            if(taskIDs!=this.mapTasksNoScheduled&&taskIDs!=this.reduceTasksNoScheduled){
+                throw new Exception();
+            }
+            Set<TaskId> tmpset=new LinkedHashSet<TaskId>();
             for (TaskId taskID : taskIDs) {
                 TaskInfo taskInfo = completedTasksFromPreviousRun.remove(taskID);
                 if (taskInfo != null) {
@@ -940,15 +945,17 @@ public class JobImpl implements org.apache.hadoop.mapreduce.v2.app.job.Job,
                             new Path(remoteJSubmitDir, taskConf);
 
                     if (remoteFS.exists(remoteTaskConfPath)||test_bool++<3 ) {
-                        eventHandler.handle(new TaskEvent(taskID, TaskEventType.T_SCHEDULE));
-                        this.mapTasksNoScheduled.remove(taskID);
-                        this.reduceTasksNoScheduled.remove(taskID);
+                        eventHandler.handle(new TaskEvent(taskID, TaskEventType.T_SCHEDULE));                                                
+                        tmpset.add(taskID);
                         LOG.info("taskconf "+taskConf+" exist test_bool"+Integer.toString(test_bool));
                     }else{
                         LOG.info("taskconf "+taskConf+" not exist");
                     }
                     
                 }
+            }
+            for(TaskId t: tmpset){
+                taskIDs.remove(t);
             }
         } catch (Exception e) {
             LOG.error(e);
@@ -1548,8 +1555,10 @@ public class JobImpl implements org.apache.hadoop.mapreduce.v2.app.job.Job,
     @Override
     public void transition(JobImpl job, JobEvent event) {
       job.setupProgress = 1.0f;
-      job.scheduleTasks(job.mapTasks, job.numReduceTasks == 0);
-      job.scheduleTasks(job.reduceTasks, true);
+      //job.scheduleTasks(job.mapTasks, job.numReduceTasks == 0);
+     // job.scheduleTasks(job.reduceTasks, true);
+    job.scheduleTasks(job.mapTasksNoScheduled, job.numReduceTasks == 0);//limin
+      job.scheduleTasks(job.reduceTasksNoScheduled, true);//limin
 
       // If we have no tasks, just transition to job completed
       if (job.numReduceTasks == 0 && job.numMapTasks == 0) {
