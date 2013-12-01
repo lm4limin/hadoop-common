@@ -931,9 +931,9 @@ public class JobImpl implements org.apache.hadoop.mapreduce.v2.app.job.Job,
                         eventHandler.handle(new TaskEvent(taskID, TaskEventType.T_SCHEDULE));
                         this.mapTasksNoScheduled.remove(taskID);
                         this.reduceTasksNoScheduled.remove(taskID);
-                        LOG.info("remotetaskConfPath  exist");
+                        LOG.info("taskconf "+taskConf+" exist");
                     }else{
-                        LOG.info("remotetaskConfPath not exist");
+                        LOG.info("taskconf "+taskConf+" not exist");
                     }
                     
                 }
