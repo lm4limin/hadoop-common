@@ -181,7 +181,7 @@ public class TestJobImpl {
     commitHandler.stop();
   }
 
-  
+  /*
    @Test(timeout=20000)
   public void testDynamicConfiguration() throws Exception {
       LOG.info("Running testDynamicConfiguration");
@@ -209,7 +209,7 @@ public class TestJobImpl {
     assertJobState(job, JobStateInternal.SUCCEEDED);
     dispatcher.stop();
     commitHandler.stop();
-  } 
+  } */
    
   @Test(timeout=20000)
   public void testCheckJobCompleteSuccess() throws Exception {
