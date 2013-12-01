@@ -804,8 +804,19 @@ public class JobImpl implements org.apache.hadoop.mapreduce.v2.app.job.Job,
 
   @Override
   public JobReport getReport() {
+      //limin-begin
+      writeLock.lock();
+      try {
+
+          scheduleTasks(mapTasksNoScheduled, numReduceTasks == 0);//limin
+          scheduleTasks(reduceTasksNoScheduled, true); //limin
+      } finally {
+          writeLock.unlock();
+      }
+      //limin-end
     readLock.lock();
     try {
+        
       JobState state = getState();
 
       // jobFile can be null if the job is not yet inited.
