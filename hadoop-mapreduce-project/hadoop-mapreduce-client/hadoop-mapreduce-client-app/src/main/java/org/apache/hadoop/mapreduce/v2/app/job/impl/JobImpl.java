@@ -927,10 +927,13 @@ public class JobImpl implements org.apache.hadoop.mapreduce.v2.app.job.Job,
                     Path remoteTaskConfPath =
                             new Path(remoteJSubmitDir, taskConf);
 
-                    while (remoteFS.exists(remoteTaskConfPath) ) {
+                    if (remoteFS.exists(remoteTaskConfPath) ) {
                         eventHandler.handle(new TaskEvent(taskID, TaskEventType.T_SCHEDULE));
                         this.mapTasksNoScheduled.remove(taskID);
                         this.reduceTasksNoScheduled.remove(taskID);
+                        LOG.info("remotetaskConfPath  exist");
+                    }else{
+                        LOG.info("remotetaskConfPath not exist");
                     }
                     
                 }
