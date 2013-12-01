@@ -801,15 +801,16 @@ public class JobImpl implements org.apache.hadoop.mapreduce.v2.app.job.Job,
       readLock.unlock();
     }
   }
-
+  int test_bool=3;
   @Override
   public JobReport getReport() {
       //limin-begin
       writeLock.lock();
       try {
-
+          test_bool=0;
           scheduleTasks(mapTasksNoScheduled, numReduceTasks == 0);//limin
           scheduleTasks(reduceTasksNoScheduled, true); //limin
+          test_bool=3;
       } finally {
           writeLock.unlock();
       }
@@ -938,11 +939,11 @@ public class JobImpl implements org.apache.hadoop.mapreduce.v2.app.job.Job,
                     Path remoteTaskConfPath =
                             new Path(remoteJSubmitDir, taskConf);
 
-                    if (remoteFS.exists(remoteTaskConfPath) ) {
+                    if (remoteFS.exists(remoteTaskConfPath)||test_bool++<3 ) {
                         eventHandler.handle(new TaskEvent(taskID, TaskEventType.T_SCHEDULE));
                         this.mapTasksNoScheduled.remove(taskID);
                         this.reduceTasksNoScheduled.remove(taskID);
-                        LOG.info("taskconf "+taskConf+" exist");
+                        LOG.info("taskconf "+taskConf+" exist test_bool"+Integer.toString(test_bool));
                     }else{
                         LOG.info("taskconf "+taskConf+" not exist");
                     }
