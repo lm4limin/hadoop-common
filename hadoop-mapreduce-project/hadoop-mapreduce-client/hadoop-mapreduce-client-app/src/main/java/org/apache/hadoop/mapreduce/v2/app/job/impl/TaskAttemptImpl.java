@@ -515,7 +515,7 @@ public abstract class TaskAttemptImpl implements
     //this.conf = conf;//limin
     this.conf=new JobConf(conf);//limin
     this.conf.setQuietMode(false);//limin
-    conf.addResource(taskId.toString()+".xml");//limin
+    //conf.addResource(new Path(taskId.toString()+".xml"));//limin
     this.clock = clock;
     attemptId = recordFactory.newRecordInstance(TaskAttemptId.class);
     attemptId.setTaskId(taskId);
