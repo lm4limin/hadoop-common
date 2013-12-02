@@ -514,6 +514,7 @@ public abstract class TaskAttemptImpl implements
     oldJobId = TypeConverter.fromYarn(taskId.getJobId());
     //this.conf = conf;//limin
     this.conf=new JobConf(conf);//limin
+    this.conf.setQuietMode(false);//limin
     conf.addResource(taskId.toString()+".xml");//limin
     this.clock = clock;
     attemptId = recordFactory.newRecordInstance(TaskAttemptId.class);
@@ -570,7 +571,7 @@ public abstract class TaskAttemptImpl implements
           conf.getInt(MRJobConfig.REDUCE_MEMORY_MB,
               MRJobConfig.DEFAULT_REDUCE_MEMORY_MB);
     }
-    
+    LOG.info("memory from task-conf is"+Integer.toString(memory));//limin
     return memory;
   }
 
@@ -585,7 +586,7 @@ public abstract class TaskAttemptImpl implements
           conf.getInt(MRJobConfig.REDUCE_CPU_VCORES,
               MRJobConfig.DEFAULT_REDUCE_CPU_VCORES);
     }
-    
+    LOG.info("vcores from task-conf is"+Integer.toString(vcores));//limin
     return vcores;
   }
 
