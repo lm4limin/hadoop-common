@@ -558,8 +558,58 @@ public abstract class TaskAttemptImpl implements
     //  instance variable.
     stateMachine = stateMachineFactory.make(this);
   }
+  
+  //limin-begin
+  private int getMemoryRequired(Configuration conf, TaskType taskType) {
+    int memory = 1024;
+    int tmp=1024;
+    if (taskType == TaskType.MAP)  {
+      memory =
+          conf.getInt(MRJobConfig.MAP_MEMORY_MB,
+              MRJobConfig.DEFAULT_MAP_MEMORY_MB);
+      tmp=conf.getInt(MRJobConfig.MAP_MEMORY_MB+"."+attemptId.getTaskId().toString()+".xml",
+              MRJobConfig.DEFAULT_MAP_MEMORY_MB);
+    } else if (taskType == TaskType.REDUCE) {
+      memory =
+          conf.getInt(MRJobConfig.REDUCE_MEMORY_MB,
+              MRJobConfig.DEFAULT_REDUCE_MEMORY_MB);
+      tmp=conf.getInt(MRJobConfig.REDUCE_MEMORY_MB+"."+attemptId.getTaskId().toString()+".xml",
+              MRJobConfig.DEFAULT_REDUCE_MEMORY_MB);
+    }
+    
+    if(tmp!=1024){
+        LOG.info("memory from task-conf is "+Integer.toString(tmp)+" "+attemptId.getTaskId().toString());//limin
+        return tmp;
+    }
+    return memory;
+  }
 
-
+  private int getCpuRequired(Configuration conf, TaskType taskType) {
+    int vcores = 1;
+    int tmp=1;
+    if (taskType == TaskType.MAP)  {
+      vcores =
+          conf.getInt(MRJobConfig.MAP_CPU_VCORES,
+              MRJobConfig.DEFAULT_MAP_CPU_VCORES);
+      tmp=conf.getInt(MRJobConfig.MAP_CPU_VCORES+"."+attemptId.getTaskId().toString()+".xml",
+              MRJobConfig.DEFAULT_MAP_CPU_VCORES);
+    } else if (taskType == TaskType.REDUCE) {
+      vcores =
+          conf.getInt(MRJobConfig.REDUCE_CPU_VCORES,
+              MRJobConfig.DEFAULT_REDUCE_CPU_VCORES);
+      tmp=conf.getInt(MRJobConfig.REDUCE_CPU_VCORES+"."+attemptId.getTaskId().toString()+".xml",
+              MRJobConfig.DEFAULT_REDUCE_CPU_VCORES);
+    }
+    
+    if(tmp!=1){
+        LOG.info("vcores from task-conf is "+Integer.toString(tmp)
+                +" "+attemptId.getTaskId().toString());//limin
+        return tmp;
+    }
+    return vcores;
+  }
+  //limin-end
+/*
   private int getMemoryRequired(Configuration conf, TaskType taskType) {
     int memory = 1024;
     if (taskType == TaskType.MAP)  {
@@ -571,7 +621,7 @@ public abstract class TaskAttemptImpl implements
           conf.getInt(MRJobConfig.REDUCE_MEMORY_MB,
               MRJobConfig.DEFAULT_REDUCE_MEMORY_MB);
     }
-    LOG.info("memory from task-conf is"+Integer.toString(memory));//limin
+    LOG.info("memory from task-conf is "+Integer.toString(memory));//limin
     return memory;
   }
 
@@ -586,9 +636,9 @@ public abstract class TaskAttemptImpl implements
           conf.getInt(MRJobConfig.REDUCE_CPU_VCORES,
               MRJobConfig.DEFAULT_REDUCE_CPU_VCORES);
     }
-    LOG.info("vcores from task-conf is"+Integer.toString(vcores));//limin
+    LOG.info("vcores from task-conf is "+Integer.toString(vcores));//limin
     return vcores;
-  }
+  }*/
 
   /**
    * Create a {@link LocalResource} record with all the given parameters.

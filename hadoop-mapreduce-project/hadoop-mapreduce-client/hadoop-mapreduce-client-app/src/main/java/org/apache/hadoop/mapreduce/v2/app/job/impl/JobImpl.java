@@ -943,9 +943,17 @@ public class JobImpl implements org.apache.hadoop.mapreduce.v2.app.job.Job,
                             new Path(path, oldJobId.toString());
                     Path remoteTaskConfPath =
                             new Path(remoteJSubmitDir, taskConf);
-
-                    //if (remoteFS.exists(remoteTaskConfPath)||test_bool++<3 ) {
-                      if (remoteFS.exists(remoteTaskConfPath)) {    
+                    
+                    if (remoteFS.exists(remoteTaskConfPath)||test_bool++<3 ) {
+                   //   if (remoteFS.exists(remoteTaskConfPath)) {    
+                        if(taskID.getTaskType()==TaskType.MAP){
+                            this.conf.setInt(MRJobConfig.MAP_MEMORY_MB+"."+taskID.toString()+".xml",1630);
+                            this.conf.setInt(MRJobConfig.MAP_CPU_VCORES+"."+taskID.toString()+".xml",3);
+                        }else{
+                            this.conf.setInt(MRJobConfig.REDUCE_MEMORY_MB+"."+taskID.toString()+".xml",1730);
+                            this.conf.setInt(MRJobConfig.REDUCE_CPU_VCORES+"."+taskID.toString()+".xml",4);
+                        }
+                        
                         eventHandler.handle(new TaskEvent(taskID, TaskEventType.T_SCHEDULE));                                                
                         tmpset.add(taskID);
                         LOG.info("taskconf "+taskConf+" exist test_bool"+Integer.toString(test_bool));
