@@ -797,9 +797,9 @@ public class TestJobImpl {
           //  confNameval.put(MRJobConfig.IO_SORT_FACTOR, Integer.toString(3));
           if(tid.getTaskType()==TaskType.MAP){
           confNameval.put(MRJobConfig.MAP_MEMORY_MB+"."+tid.toString()+".xml", Integer.toString(1250));
-          confNameval.put(MRJobConfig.MAP_CPU_VCORES+"."+tid.toString()+".xml", Integer.toString(4));
+          confNameval.put(MRJobConfig.MAP_CPU_VCORES+"."+tid.toString()+".xml", Integer.toString(3));
           }else{
-              confNameval.put(MRJobConfig.REDUCE_MEMORY_MB+"."+tid.toString()+".xml", Integer.toString(1250));
+              confNameval.put(MRJobConfig.REDUCE_MEMORY_MB+"."+tid.toString()+".xml", Integer.toString(1350));
                 confNameval.put(MRJobConfig.REDUCE_CPU_VCORES+"."+tid.toString()+".xml", Integer.toString(4));
           
           }
