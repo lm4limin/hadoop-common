@@ -1628,8 +1628,8 @@ public class JobImpl implements org.apache.hadoop.mapreduce.v2.app.job.Job,
       job.setupProgress = 1.0f;
       //job.scheduleTasks(job.mapTasks, job.numReduceTasks == 0);
      // job.scheduleTasks(job.reduceTasks, true);
-    job.scheduleTasks(job.mapTasksNoScheduled, job.numReduceTasks == 0);//limin
-      job.scheduleTasks(job.reduceTasksNoScheduled, true);//limin
+   // job.scheduleTasks(job.mapTasksNoScheduled, job.numReduceTasks == 0);//limin
+   //   job.scheduleTasks(job.reduceTasksNoScheduled, true);//limin
 
       // If we have no tasks, just transition to job completed
       if (job.numReduceTasks == 0 && job.numMapTasks == 0) {
