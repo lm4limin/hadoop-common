@@ -20,6 +20,7 @@ package org.apache.hadoop.mapreduce.v2.app.job.impl;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -715,9 +716,10 @@ public class JobImpl implements org.apache.hadoop.mapreduce.v2.app.job.Job,
   private TaskId getTaskId_from_string(String str,int appint){
               String tmp=str.substring(str.indexOf("task"),str.length()-4);
         String[] str_array=tmp.split("_");
-        for(int i=0;i<str_array.length;i++){
-            System.out.println(str_array[i]);
-        }
+        //for(int i=0;i<str_array.length;i++){
+            LOG.info(tmp+" "+Arrays.toString(str_array));
+            //System.out.println(str_array[i]);
+        //}
         long clusterTS=Long.parseLong(str_array[1]);//138**
         int jid=Integer.parseInt(str_array[2]);
         TaskType tt=str_array[3].equals("m")? TaskType.MAP:TaskType.REDUCE;
@@ -760,7 +762,7 @@ public class JobImpl implements org.apache.hadoop.mapreduce.v2.app.job.Job,
             scheduleTasks(tmpMapSet, numReduceTasks == 0);//limin
             scheduleTasks(tmpReduceSet, true); //limin
         } catch(Exception e){
-        
+            LOG.error(e);
         }     finally {
 //            writeLock.unlock();
         }
