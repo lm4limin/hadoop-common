@@ -711,19 +711,58 @@ public class JobImpl implements org.apache.hadoop.mapreduce.v2.app.job.Job,
   public boolean isUber() {
     return isUber;
   }
-  
+  //limin-begin
+  private TaskId getTaskId_from_string(String str,int appint){
+              String tmp=str.substring(str.indexOf("task"),str.length()-4);
+        String[] str_array=tmp.split("_");
+        for(int i=0;i<str_array.length;i++){
+            System.out.println(str_array[i]);
+        }
+        long clusterTS=Long.parseLong(str_array[1]);//138**
+        int jid=Integer.parseInt(str_array[2]);
+        TaskType tt=str_array[3].equals("m")? TaskType.MAP:TaskType.REDUCE;
+        int tid=Integer.parseInt(str_array[4]);
+        JobId jobid=MRBuilderUtils.newJobId(clusterTS, appint, jid) ;
+        TaskId taskid= MRBuilderUtils.newTaskId(jobId, tid, tt);
+      return taskid;
+  }
+  //limin-end
   //limin
     @Override
     public void setConfNamesValues(HashMap<String, String> confNameValues, String source) {
-        writeLock.lock();
+  //      writeLock.lock();
         try {
             //for (String name : confNameValues.keySet()) {
              //   conf.set(name, confNameValues.get(name), source);
             //}
-            scheduleTasks(mapTasksNoScheduled, numReduceTasks == 0);//limin
-            scheduleTasks(reduceTasksNoScheduled, true); //limin
-        } finally {
-            writeLock.unlock();
+            LOG.info("setConNamesValues called");
+            Set<TaskId> tmpMapSet = new LinkedHashSet<TaskId>();
+            Set<TaskId> tmpReduceSet = new LinkedHashSet<TaskId>();
+            int appidint=this.jobId.getAppId().getId();
+            for (String name : confNameValues.keySet()) {
+                conf.set(name, confNameValues.get(name), source);
+                TaskId taskid=this.getTaskId_from_string(name, appidint);
+                if(taskid.getTaskType()==TaskType.MAP){
+                    if(!this.mapTasksNoScheduled.contains(taskid)){
+                        throw new Exception();
+                    }else{
+                    tmpMapSet.add(taskid);}
+                }else if(taskid.getTaskType()==TaskType.REDUCE){
+                if(!this.reduceTasksNoScheduled.contains(taskid)){
+                        throw new Exception();
+                    }else{
+                    tmpReduceSet.add(taskid);}
+                }else{
+                            throw new Exception();
+                }
+                
+            }
+            scheduleTasks(tmpMapSet, numReduceTasks == 0);//limin
+            scheduleTasks(tmpReduceSet, true); //limin
+        } catch(Exception e){
+        
+        }     finally {
+//            writeLock.unlock();
         }
     }
   @Override
@@ -921,8 +960,9 @@ public class JobImpl implements org.apache.hadoop.mapreduce.v2.app.job.Job,
       readLock.unlock();
     }
   }
+  //limin-begin
   //note: the taskIDs should be either mapTasksNotScheduled or reduceTasksNotScheduled.
-    protected void scheduleTasks(Set<TaskId> taskIDs,//limin
+    protected void scheduleTasks_old(Set<TaskId> taskIDs,//limin
             boolean recoverTaskOutput) {
         try {
             if(taskIDs!=this.mapTasksNoScheduled&&taskIDs!=this.reduceTasksNoScheduled){
@@ -973,7 +1013,26 @@ public class JobImpl implements org.apache.hadoop.mapreduce.v2.app.job.Job,
             LOG.error(e);
         }
     }
-  protected void scheduleTasks_org(Set<TaskId> taskIDs,
+    protected void scheduleTasks(Set<TaskId> taskIDs,
+            boolean recoverTaskOutput) {
+        //Set<TaskId> tmpset = new LinkedHashSet<TaskId>();
+        for (TaskId taskID : taskIDs) {
+            TaskInfo taskInfo = completedTasksFromPreviousRun.remove(taskID);
+            if (taskInfo != null) {
+                eventHandler.handle(new TaskRecoverEvent(taskID, taskInfo,
+                        committer, recoverTaskOutput));
+            } else {
+                eventHandler.handle(new TaskEvent(taskID, TaskEventType.T_SCHEDULE));
+                
+            }
+        }
+        for (TaskId t : taskIDs) {          
+            this.mapTasksNoScheduled.remove(t);
+            this.reduceTasksNoScheduled.remove(t);
+        }
+    }
+  //limin-end
+    protected void scheduleTasks_org(Set<TaskId> taskIDs,
       boolean recoverTaskOutput) {
     for (TaskId taskID : taskIDs) {
       TaskInfo taskInfo = completedTasksFromPreviousRun.remove(taskID);
