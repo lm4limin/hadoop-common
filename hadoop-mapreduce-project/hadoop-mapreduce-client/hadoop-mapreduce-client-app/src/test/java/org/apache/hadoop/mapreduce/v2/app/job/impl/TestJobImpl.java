@@ -25,10 +25,7 @@ import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.HashMap;
+import java.util.*;
 import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
 
@@ -181,7 +178,34 @@ public class TestJobImpl {
     commitHandler.stop();
   }
 
-  
+   @Test(timeout=20000)
+  public void testGrayBox() throws Exception {
+      LOG.info("Running testDynamicConfiguration");
+    Configuration conf = new Configuration();
+ 
+    conf.set(MRJobConfig.MR_AM_STAGING_DIR, stagingDir);
+    AsyncDispatcher dispatcher = new AsyncDispatcher();
+    dispatcher.init(conf);
+    dispatcher.start();
+    CyclicBarrier syncBarrier = new CyclicBarrier(2);
+    OutputCommitter committer = new TestingOutputCommitter(syncBarrier, true);
+    CommitterEventHandler commitHandler =
+        createCommitterEventHandler(dispatcher, committer);
+    commitHandler.init(conf);
+    commitHandler.start();
+
+    JobImpl job = createRunningStubbedJob(conf, dispatcher, 3);
+    
+    completeJobTasksWithGrayBox(job);
+    
+    assertJobState(job, JobStateInternal.COMMITTING);
+
+    // let the committer complete and verify the job succeeds
+    syncBarrier.await();
+    assertJobState(job, JobStateInternal.SUCCEEDED);
+    dispatcher.stop();
+    commitHandler.stop();
+  }   
    @Test(timeout=20000)
   public void testDynamicConfiguration() throws Exception {
       LOG.info("Running testDynamicConfiguration");
@@ -763,6 +787,47 @@ public class TestJobImpl {
     LOG.info(job.conf.get(MRJobConfig.IO_SORT_MB)+" "+ job.conf.get(MRJobConfig.IO_SORT_FACTOR));
     
   }
+  private static void completeJobTasksWithGrayBox(JobImpl job) {
+     // ArrayList<HashMap<String,String>> list=new ArrayList<HashMap<String,String>>(3);
+      for(TaskId tid : job.tasks.keySet()){
+          HashMap<String,String> confNameval=new HashMap<String,String>();
+          //LOG.info("before set confnamevales" +job.conf.get(MRJobConfig.IO_SORT_MB)+" "+ job.conf.get(MRJobConfig.IO_SORT_FACTOR));
+          //  confNameval.put(MRJobConfig.IO_SORT_MB,Integer.toString(500));
+          //  confNameval.put(MRJobConfig.IO_SORT_FACTOR, Integer.toString(3));
+          if(tid.getTaskType()==TaskType.MAP){
+          confNameval.put(MRJobConfig.MAP_MEMORY_MB+"."+tid.toString()+".xml", Integer.toString(1250));
+          confNameval.put(MRJobConfig.MAP_CPU_VCORES+"."+tid.toString()+".xml", Integer.toString(4));
+          }else{
+              confNameval.put(MRJobConfig.REDUCE_MEMORY_MB+"."+tid.toString()+".xml", Integer.toString(1250));
+                confNameval.put(MRJobConfig.REDUCE_CPU_VCORES+"."+tid.toString()+".xml", Integer.toString(4));
+          
+          }
+            job.setConfNamesValues(confNameval,"tuner");
+      }
+    
+    
+    
+    
+    // complete the map tasks and the reduce tasks so we start committing
+    int numMaps = job.getTotalMaps();
+    for (int i = 0; i < numMaps; ++i) {
+      job.handle(new JobTaskEvent(
+          MRBuilderUtils.newTaskId(job.getID(), 1, TaskType.MAP),
+          TaskState.SUCCEEDED));
+      Assert.assertEquals(JobState.RUNNING, job.getState());
+    }
+    int numReduces = job.getTotalReduces();
+    for (int i = 0; i < numReduces; ++i) {
+      job.handle(new JobTaskEvent(
+          MRBuilderUtils.newTaskId(job.getID(), 1, TaskType.MAP),
+          TaskState.SUCCEEDED));
+      Assert.assertEquals(JobState.RUNNING, job.getState());
+    }
+    Assert.assertEquals(job.conf.get(MRJobConfig.IO_SORT_MB),Integer.toString(200));
+    Assert.assertEquals(job.conf.get(MRJobConfig.IO_SORT_FACTOR),Integer.toString(50));
+    LOG.info(job.conf.get(MRJobConfig.IO_SORT_MB)+" "+ job.conf.get(MRJobConfig.IO_SORT_FACTOR));
+    
+  }  
   private static void assertJobState(JobImpl job, JobStateInternal state) {
     int timeToWaitMsec = 5 * 1000;
     while (timeToWaitMsec > 0 && job.getInternalState() != state) {
