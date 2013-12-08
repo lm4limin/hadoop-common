@@ -210,7 +210,7 @@ public class TestJobImpl {
     dispatcher.stop();
     commitHandler.stop();
   }   
-   //@Ignore("not ready") 
+   @Ignore("not ready") 
    @Test(timeout=20000)
   public void testDynamicConfiguration() throws Exception {
       LOG.info("Running testDynamicConfiguration");
