@@ -183,10 +183,10 @@ public class TestJobImpl {
   }
 
    @Test(timeout=20000)
-  public void testGrayBox() throws Exception {
-      LOG.info("Running testDynamicConfiguration");
+  public void testGrayBoxConfiguration() throws Exception {
+      LOG.info("Running testGrayBoxConfiguration");
     Configuration conf = new Configuration();
- 
+    conf.set(MRConfig.ONLINE_TUNING,MRConfig.ONLINE_TUNING_GRAYBOX);
     conf.set(MRJobConfig.MR_AM_STAGING_DIR, stagingDir);
     AsyncDispatcher dispatcher = new AsyncDispatcher();
     dispatcher.init(conf);
