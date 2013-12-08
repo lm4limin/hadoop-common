@@ -46,12 +46,7 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.JobACLsManager;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.TaskCompletionEvent;
-import org.apache.hadoop.mapreduce.Counters;
-import org.apache.hadoop.mapreduce.JobACL;
-import org.apache.hadoop.mapreduce.JobContext;
-import org.apache.hadoop.mapreduce.MRJobConfig;
-import org.apache.hadoop.mapreduce.OutputCommitter;
-import org.apache.hadoop.mapreduce.TypeConverter;
+import org.apache.hadoop.mapreduce.*;
 import org.apache.hadoop.mapreduce.jobhistory.JobFinishedEvent;
 import org.apache.hadoop.mapreduce.jobhistory.JobHistoryEvent;
 import org.apache.hadoop.mapreduce.jobhistory.JobHistoryParser.TaskInfo;
@@ -730,40 +725,47 @@ public class JobImpl implements org.apache.hadoop.mapreduce.v2.app.job.Job,
   }
   //limin-end
   //limin
+
     @Override
     public void setConfNamesValues(HashMap<String, String> confNameValues, String source) {
-  //      writeLock.lock();
+        //      writeLock.lock();
         try {
             //for (String name : confNameValues.keySet()) {
-             //   conf.set(name, confNameValues.get(name), source);
+            //   conf.set(name, confNameValues.get(name), source);
             //}
+            if(this.conf.get(MRConfig.ONLINE_TUNING).equals(MRConfig.DEFUALT_ONLINE_TUNING)){
+                throw new Exception("should use online tuning graybox");
+            }
             LOG.info("setConNamesValues called");
             Set<TaskId> tmpMapSet = new LinkedHashSet<TaskId>();
             Set<TaskId> tmpReduceSet = new LinkedHashSet<TaskId>();
-            int appidint=this.jobId.getAppId().getId();
+            int appidint = this.jobId.getAppId().getId();
             for (String name : confNameValues.keySet()) {
+                LOG.info(name+" "+confNameValues.get(name));
                 conf.set(name, confNameValues.get(name), source);
-                TaskId taskid=this.getTaskId_from_string(name, appidint);
-                if(taskid.getTaskType()==TaskType.MAP){
-                    if(!this.mapTasksNoScheduled.contains(taskid)){
+                TaskId taskid = this.getTaskId_from_string(name, appidint);
+                if (taskid.getTaskType() == TaskType.MAP) {//it can be duplicated since each task have both this memory and cpu; 
+                    if (!this.mapTasksNoScheduled.contains(taskid)) {
                         throw new Exception();
-                    }else{
-                    tmpMapSet.add(taskid);}
-                }else if(taskid.getTaskType()==TaskType.REDUCE){
-                if(!this.reduceTasksNoScheduled.contains(taskid)){
+                    } else {
+                        tmpMapSet.add(taskid);
+                    }
+                } else if (taskid.getTaskType() == TaskType.REDUCE) {
+                    if (!this.reduceTasksNoScheduled.contains(taskid)) {
                         throw new Exception();
-                    }else{
-                    tmpReduceSet.add(taskid);}
-                }else{
-                            throw new Exception();
+                    } else {
+                        tmpReduceSet.add(taskid);
+                    }
+                } else {
+                    throw new Exception();
                 }
-                
+
             }
             scheduleTasks(tmpMapSet, numReduceTasks == 0);//limin
             scheduleTasks(tmpReduceSet, true); //limin
-        } catch(Exception e){
+        } catch (Exception e) {
             LOG.error(e);
-        }     finally {
+        } finally {
 //            writeLock.unlock();
         }
     }
@@ -842,11 +844,11 @@ public class JobImpl implements org.apache.hadoop.mapreduce.v2.app.job.Job,
       readLock.unlock();
     }
   }
-  int test_bool=3;
+  //int test_bool=3;//limin
   @Override
   public JobReport getReport() {
       //limin-begin
-      writeLock.lock();
+      /*writeLock.lock();
       try {
           test_bool=0;
           scheduleTasks(mapTasksNoScheduled, numReduceTasks == 0);//limin
@@ -854,7 +856,7 @@ public class JobImpl implements org.apache.hadoop.mapreduce.v2.app.job.Job,
           test_bool=3;
       } finally {
           writeLock.unlock();
-      }
+      }*/
       //limin-end
     readLock.lock();
     try {
@@ -1623,23 +1625,24 @@ public class JobImpl implements org.apache.hadoop.mapreduce.v2.app.job.Job,
     }
   } // end of InitTransition
 
-  private static class SetupCompletedTransition
-      implements SingleArcTransition<JobImpl, JobEvent> {
-    @Override
-    public void transition(JobImpl job, JobEvent event) {
-      job.setupProgress = 1.0f;
-      //job.scheduleTasks(job.mapTasks, job.numReduceTasks == 0);
-     // job.scheduleTasks(job.reduceTasks, true);
-   // job.scheduleTasks(job.mapTasksNoScheduled, job.numReduceTasks == 0);//limin
-   //   job.scheduleTasks(job.reduceTasksNoScheduled, true);//limin
+    private static class SetupCompletedTransition
+            implements SingleArcTransition<JobImpl, JobEvent> {
 
-      // If we have no tasks, just transition to job completed
-      if (job.numReduceTasks == 0 && job.numMapTasks == 0) {
-        job.eventHandler.handle(new JobEvent(job.jobId,
-            JobEventType.JOB_COMPLETED));
-      }
+        @Override
+        public void transition(JobImpl job, JobEvent event) {
+            job.setupProgress = 1.0f;
+            if (job.conf.get(MRConfig.ONLINE_TUNING,
+                    MRConfig.DEFUALT_ONLINE_TUNING).equals(MRConfig.DEFUALT_ONLINE_TUNING)) {//limin    
+                job.scheduleTasks(job.mapTasks, job.numReduceTasks == 0);
+                job.scheduleTasks(job.reduceTasks, true);
+            }
+            // If we have no tasks, just transition to job completed
+            if (job.numReduceTasks == 0 && job.numMapTasks == 0) {
+                job.eventHandler.handle(new JobEvent(job.jobId,
+                        JobEventType.JOB_COMPLETED));
+            }
+        }
     }
-  }
 
   private static class SetupFailedTransition
       implements SingleArcTransition<JobImpl, JobEvent> {
