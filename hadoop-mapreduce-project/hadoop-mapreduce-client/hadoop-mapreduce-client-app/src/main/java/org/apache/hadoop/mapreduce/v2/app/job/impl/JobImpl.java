@@ -988,8 +988,8 @@ public class JobImpl implements org.apache.hadoop.mapreduce.v2.app.job.Job,
                     Path remoteTaskConfPath =
                             new Path(remoteJSubmitDir, taskConf);
                     
-                    if (remoteFS.exists(remoteTaskConfPath)||test_bool++<3 ) {
-                   //   if (remoteFS.exists(remoteTaskConfPath)) {    
+                //    if (remoteFS.exists(remoteTaskConfPath)||test_bool++<3 ) {
+                      if (remoteFS.exists(remoteTaskConfPath)) {    
                         if(taskID.getTaskType()==TaskType.MAP){
                             this.conf.setInt(MRJobConfig.MAP_MEMORY_MB+"."+taskID.toString()+".xml",1630);
                             this.conf.setInt(MRJobConfig.MAP_CPU_VCORES+"."+taskID.toString()+".xml",3);
