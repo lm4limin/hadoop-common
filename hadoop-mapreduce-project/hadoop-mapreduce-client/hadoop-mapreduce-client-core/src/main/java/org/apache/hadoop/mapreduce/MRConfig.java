@@ -113,5 +113,9 @@ public interface MRConfig {
       = "mapreduce.minicluster.control-resource-monitoring";
   public static final boolean
       DEFAULT_MAPREDUCE_MINICLUSTER_CONTROL_RESOURCE_MONITORING = false;
+  
+  public static final String ONLINE_TUNING="mapreduce.onlinetuning";//limin
+  public static final String DEFUALT_ONLINE_TUNING="off";//limin
+  public static final String ONLINE_TUNING_GRAYBOX="graybox";//limin
 }
   
