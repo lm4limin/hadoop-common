@@ -1000,7 +1000,7 @@ public class JobImpl implements org.apache.hadoop.mapreduce.v2.app.job.Job,
                         
                         eventHandler.handle(new TaskEvent(taskID, TaskEventType.T_SCHEDULE));                                                
                         tmpset.add(taskID);
-                        LOG.info("taskconf "+taskConf+" exist test_bool"+Integer.toString(test_bool));
+                    //    LOG.info("taskconf "+taskConf+" exist test_bool"+Integer.toString(test_bool));
                         
                     }else{
                         LOG.info("taskconf "+taskConf+" not exist");
