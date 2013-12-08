@@ -116,6 +116,7 @@ public class TestJobImpl {
   public void testJobNoTasks() {
       LOG.info("Running testJobNoTasks");
     Configuration conf = new Configuration();
+    conf.set(stagingDir, stagingDir);
     conf.setInt(MRJobConfig.NUM_REDUCES, 0);
     conf.set(MRJobConfig.MR_AM_STAGING_DIR, stagingDir);
     conf.set(MRJobConfig.WORKFLOW_ID, "testId");
@@ -153,10 +154,12 @@ public class TestJobImpl {
     }
   }
 
-  @Ignore("not ready") @Test(timeout=20000)
+  //@Ignore("not ready") 
+  @Test(timeout=20000)
   public void testCommitJobFailsJob() throws Exception {
       LOG.info("Running testCommitJobFailsJob");
     Configuration conf = new Configuration();
+    conf.set(MRConfig.ONLINE_TUNING,MRConfig.DEFUALT_ONLINE_TUNING);
     conf.set(MRJobConfig.MR_AM_STAGING_DIR, stagingDir);
     AsyncDispatcher dispatcher = new AsyncDispatcher();
     dispatcher.init(conf);
@@ -207,11 +210,12 @@ public class TestJobImpl {
     dispatcher.stop();
     commitHandler.stop();
   }   
-   @Ignore("not ready") @Test(timeout=20000)
+   //@Ignore("not ready") 
+   @Test(timeout=20000)
   public void testDynamicConfiguration() throws Exception {
       LOG.info("Running testDynamicConfiguration");
     Configuration conf = new Configuration();
- 
+    conf.set(MRConfig.ONLINE_TUNING,MRConfig.DEFUALT_ONLINE_TUNING);
     conf.set(MRJobConfig.MR_AM_STAGING_DIR, stagingDir);
     AsyncDispatcher dispatcher = new AsyncDispatcher();
     dispatcher.init(conf);
@@ -236,10 +240,12 @@ public class TestJobImpl {
     commitHandler.stop();
   } 
    
-  @Ignore("not ready") @Test(timeout=20000)
+  //@Ignore("not ready") 
+  @Test(timeout=20000)
   public void testCheckJobCompleteSuccess() throws Exception {
       LOG.info("Running testCheckJobCompleteSuccess");
     Configuration conf = new Configuration();
+    conf.set(MRConfig.ONLINE_TUNING,MRConfig.DEFUALT_ONLINE_TUNING);
     conf.set(MRJobConfig.MR_AM_STAGING_DIR, stagingDir);
     AsyncDispatcher dispatcher = new AsyncDispatcher();
     dispatcher.init(conf);
@@ -299,9 +305,11 @@ public class TestJobImpl {
     commitHandler.stop();
   }
 
-  @Ignore("not ready") @Test(timeout=20000)
-  public void testRebootedDuringCommit() throws Exception {
+  //@Ignore("not ready")
+  @Test(timeout=20000)
+  public void testRebootedDuringCommit() throws Exception {      
     Configuration conf = new Configuration();
+    conf.set(MRConfig.ONLINE_TUNING,MRConfig.DEFUALT_ONLINE_TUNING);
     conf.set(MRJobConfig.MR_AM_STAGING_DIR, stagingDir);
     AsyncDispatcher dispatcher = new AsyncDispatcher();
     dispatcher.init(conf);
@@ -362,10 +370,12 @@ public class TestJobImpl {
     commitHandler.stop();
   }
 
-  @Ignore("not ready") @Test(timeout=20000)
+  //@Ignore("not ready") 
+  @Test(timeout=20000)
   public void testKilledDuringCommit() throws Exception {
       LOG.info("Running testKilledDuringCommit");
     Configuration conf = new Configuration();
+    conf.set(MRConfig.ONLINE_TUNING,MRConfig.DEFUALT_ONLINE_TUNING);
     conf.set(MRJobConfig.MR_AM_STAGING_DIR, stagingDir);
     AsyncDispatcher dispatcher = new AsyncDispatcher();
     dispatcher.init(conf);
@@ -388,10 +398,12 @@ public class TestJobImpl {
     commitHandler.stop();
   }
 
-   @Ignore("") //@Test(timeout=20000)
+   //@Ignore("") 
+   @Test(timeout=20000)
   public void testKilledDuringFailAbort() throws Exception {
       LOG.info("Running testKilledDuringFailAbort");
     Configuration conf = new Configuration();
+    conf.set(MRConfig.ONLINE_TUNING,MRConfig.DEFUALT_ONLINE_TUNING);
     conf.set(MRJobConfig.MR_AM_STAGING_DIR, stagingDir);
     AsyncDispatcher dispatcher = new AsyncDispatcher();
     dispatcher.init(conf);
