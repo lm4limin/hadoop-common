@@ -139,6 +139,7 @@ import org.apache.hadoop.yarn.util.RackResolver;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import java.util.Arrays;
+import org.apache.hadoop.mapreduce.*;
 
 /**
  * Implementation of TaskAttempt interface.
@@ -897,9 +898,15 @@ public abstract class TaskAttemptImpl implements
       // //////////// End of TaskConf setup
     
     // Set up the launch command
+    String a=remoteTask.getConf().get(MRConfig.ONLINE_TUNING,MRConfig.DEFUALT_ONLINE_TUNING);
+    String b=remoteTask.getConf().get(MRJobConfig.MAP_JAVA_OPTS+"."+remoteTask.getTaskID().getTaskID().toString()+".xml");
+    String c=remoteTask.getConf().get(MRJobConfig.REDUCE_JAVA_OPTS+"."+remoteTask.getTaskID().getTaskID().toString()+".xml");
     List<String> commands = MapReduceChildJVM.getVMCommand(
         taskAttemptListener.getAddress(), remoteTask, jvmID);
-     LOG.info("task-conf child java opt"+Arrays.toString(commands.toArray()));
+     LOG.info("task-conf child java opt"+Arrays.toString(commands.toArray())
+             +" onelinetuing mode "+a
+             +" map opt "+b
+             +" reduce opt "+c);
     // Duplicate the ByteBuffers for access by multiple containers.
     Map<String, ByteBuffer> myServiceData = new HashMap<String, ByteBuffer>();
     for (Entry<String, ByteBuffer> entry : commonContainerSpec
