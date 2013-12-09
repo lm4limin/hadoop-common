@@ -742,7 +742,7 @@ public class JobImpl implements org.apache.hadoop.mapreduce.v2.app.job.Job,
             int appidint = this.jobId.getAppId().getId();
             for (String name : confNameValues.keySet()) {
                 LOG.info(name+" "+confNameValues.get(name));
-                conf.set(name, confNameValues.get(name), source);
+                conf.set(name, confNameValues.get(name), source);//even with unnecessary values.e.g. map task with reduce.vcore values.
                 TaskId taskid = this.getTaskId_from_string(name, appidint);
                 if (taskid.getTaskType() == TaskType.MAP) {//it can be duplicated since each task have both this memory and cpu; 
                     if (!this.mapTasksNoScheduled.contains(taskid)) {

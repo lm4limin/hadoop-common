@@ -138,6 +138,7 @@ import org.apache.hadoop.yarn.util.RackResolver;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
+import java.util.Arrays;
 
 /**
  * Implementation of TaskAttempt interface.
@@ -560,6 +561,9 @@ public abstract class TaskAttemptImpl implements
   }
   
   //limin-begin
+  private int getJavaOpts(Configuration conf, TaskType taskType){
+      return 0;
+  }
   private int getMemoryRequired(Configuration conf, TaskType taskType) {
     int memory = 1024;
     int tmp=1024;
@@ -895,7 +899,7 @@ public abstract class TaskAttemptImpl implements
     // Set up the launch command
     List<String> commands = MapReduceChildJVM.getVMCommand(
         taskAttemptListener.getAddress(), remoteTask, jvmID);
-
+     LOG.info("task-conf child java opt"+Arrays.toString(commands.toArray()));
     // Duplicate the ByteBuffers for access by multiple containers.
     Map<String, ByteBuffer> myServiceData = new HashMap<String, ByteBuffer>();
     for (Entry<String, ByteBuffer> entry : commonContainerSpec
