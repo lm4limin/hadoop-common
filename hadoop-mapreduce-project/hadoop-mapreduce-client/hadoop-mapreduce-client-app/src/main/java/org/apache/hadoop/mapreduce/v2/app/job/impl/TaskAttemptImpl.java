@@ -562,9 +562,9 @@ public abstract class TaskAttemptImpl implements
   }
   
   //limin-begin
-  private int getJavaOpts(Configuration conf, TaskType taskType){
-      return 0;
-  }
+  //private int getJavaOpts(Configuration conf, TaskType taskType){
+  //    return 0;
+  //}
   private int getMemoryRequired(Configuration conf, TaskType taskType) {
     int memory = 1024;
     int tmp=1024;
