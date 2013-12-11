@@ -1023,7 +1023,7 @@ public class RMContainerAllocator extends RMContainerRequestor
                   assigned = maps.get(tId);
                   int mem = assigned.capability.getMemory();
                   int a_mem = allocated.getResource().getMemory();
-                  if (mem < a_mem && mem + 256 > a_mem
+                  if (mem <= a_mem && mem + 256 >= a_mem
                           && assigned.capability.getVirtualCores() == allocated.getResource().getVirtualCores()) {                      
                       maps.remove(tId);
                       this._maps_total_mem -= assigned.capability.getMemory();//limin
@@ -1068,7 +1068,7 @@ public class RMContainerAllocator extends RMContainerRequestor
               assigned = entry.getValue();
               int mem = assigned.capability.getMemory();
               int a_mem = allocated.getResource().getMemory();
-              if (mem < a_mem && mem + 256 > a_mem
+              if (mem <= a_mem && mem + 256 >= a_mem
                       && assigned.capability.getVirtualCores() == allocated.getResource().getVirtualCores()) {
                   reduces.remove(entry.getKey());
                   this._reduce_total_mem -= assigned.capability.getMemory();//limin
@@ -1109,7 +1109,7 @@ public class RMContainerAllocator extends RMContainerRequestor
                 assigned = maps.get(tId);
                 int mem = assigned.capability.getMemory();
                 int a_mem = allocated.getResource().getMemory();
-                if (mem < a_mem && mem + 256 > a_mem
+                if (mem <= a_mem && mem + 256 >= a_mem
                         && assigned.capability.getVirtualCores() == allocated.getResource().getVirtualCores()) {
                     maps.remove(tId);
                     this._maps_total_mem -= assigned.capability.getMemory();//limin
@@ -1147,7 +1147,7 @@ public class RMContainerAllocator extends RMContainerRequestor
                 assigned = maps.get(tId);
                 int mem = assigned.capability.getMemory();
                 int a_mem = allocated.getResource().getMemory();
-                if (mem < a_mem && mem + 256 > a_mem
+                if (mem <= a_mem && mem + 256 >= a_mem
                         && assigned.capability.getVirtualCores() == allocated.getResource().getVirtualCores()) {
                     maps.remove(tId);
 
@@ -1185,7 +1185,7 @@ public class RMContainerAllocator extends RMContainerRequestor
                 tId=pairs.getKey();
                 int mem = assigned.capability.getMemory();
                 int a_mem = allocated.getResource().getMemory();
-                if (mem < a_mem && mem + 256 > a_mem
+                if (mem <= a_mem && mem + 256 >= a_mem
                         && assigned.capability.getVirtualCores() == allocated.getResource().getVirtualCores()) {
                     maps.remove(tId);
                     this._maps_total_mem -= assigned.capability.getMemory();//limin
