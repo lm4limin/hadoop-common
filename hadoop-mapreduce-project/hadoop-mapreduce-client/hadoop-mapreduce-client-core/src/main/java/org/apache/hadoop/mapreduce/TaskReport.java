@@ -32,6 +32,7 @@ import org.apache.hadoop.io.WritableUtils;
 import org.apache.hadoop.mapred.TIPStatus;
 import org.apache.hadoop.mapred.TaskID;
 import org.apache.hadoop.util.StringInterner;
+import org.apache.hadoop.yarn.util.Times;
 
 /** A report on the state of a task. */
 @InterfaceAudience.Private
@@ -128,7 +129,9 @@ public class TaskReport implements Writable {
   public long getStartTime() {
     return startTime;
   }
-
+  public long getElapsedTime(){//limin
+      return  Times.elapsed(this.startTime, this.finishTime);
+  }
   /** 
    * set start time of the task. 
    */ 
