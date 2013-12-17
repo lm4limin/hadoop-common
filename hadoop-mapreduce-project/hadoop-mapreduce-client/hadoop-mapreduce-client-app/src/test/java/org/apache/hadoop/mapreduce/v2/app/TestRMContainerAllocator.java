@@ -301,6 +301,9 @@ public class TestRMContainerAllocator {
 
     Configuration conf = new Configuration();
     //MyResourceManager rm = new MyResourceManager(conf);
+   //     YarnConfiguration conf = new YarnConfiguration();
+   // conf.setClass(YarnConfiguration.RM_SCHEDULER, 
+    //    CapacityScheduler.class, ResourceScheduler.class);
     MyRM_CS rm = new MyRM_CS(conf);
     rm.start();
     DrainDispatcher dispatcher = (DrainDispatcher) rm.getRMContext()
@@ -1257,8 +1260,9 @@ public class TestRMContainerAllocator {
                 CapacitySchedulerConfiguration csConf = new CapacitySchedulerConfiguration();
                 setupQueueConfiguration(csConf);
                 YarnConfiguration conf = new YarnConfiguration(csConf);
-                conf.setClass(YarnConfiguration.RM_SCHEDULER,
-                        CapacityScheduler.class, ResourceScheduler.class);
+               // conf.setClass(YarnConfiguration.RM_SCHEDULER,
+                //        CapacityScheduler.class, ResourceScheduler.class);
+                setConf(conf);
                 reinitialize(conf, rmContext);
             } catch (IOException ie) {
                 LOG.info("add application failed with ", ie);
