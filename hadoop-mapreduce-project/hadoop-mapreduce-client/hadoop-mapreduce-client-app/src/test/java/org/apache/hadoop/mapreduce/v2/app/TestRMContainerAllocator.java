@@ -352,7 +352,8 @@ public class TestRMContainerAllocator {
         .getDispatcher();
 
     // Submit the application
-    RMApp app = rm.submitApp(1024);
+    //RMApp app = rm.submitApp(1024);
+    RMApp app = rm.submitApp(1024,"app1","user1",null,"b1");
     dispatcher.await();
 
     MockNM amNodeManager = rm.registerNode("amNM:1234", 2048);
