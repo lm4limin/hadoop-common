@@ -82,6 +82,7 @@ import org.apache.hadoop.yarn.api.records.ContainerState;
 import org.apache.hadoop.yarn.api.records.ContainerStatus;
 import org.apache.hadoop.yarn.api.records.Resource;
 import org.apache.hadoop.yarn.api.records.ResourceRequest;
+import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.apache.hadoop.yarn.event.Dispatcher;
 import org.apache.hadoop.yarn.event.DrainDispatcher;
 import org.apache.hadoop.yarn.event.Event;
@@ -97,6 +98,7 @@ import org.apache.hadoop.yarn.server.resourcemanager.rmapp.RMApp;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.Allocation;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.ResourceScheduler;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.CapacityScheduler;
+import org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.CapacitySchedulerConfiguration;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.event.SchedulerEvent;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.fifo.FifoScheduler;
 import org.apache.hadoop.yarn.util.Clock;
@@ -112,6 +114,10 @@ public class TestRMContainerAllocator {
   static final RecordFactory recordFactory = RecordFactoryProvider
       .getRecordFactory(null);
 
+  
+
+  
+  
   @After
   public void tearDown() {
     DefaultMetricsSystem.shutdown();
@@ -1227,41 +1233,84 @@ public class TestRMContainerAllocator {
           + " host not correct", "h3", assig.getContainer().getNodeId().getHost());
     }
   }
-  private static class MyCapacityScheduler extends CapacityScheduler {
+    private static class MyCapacityScheduler extends CapacityScheduler {
 
-    public MyCapacityScheduler(RMContext rmContext) {
-      super();
-      try {
-        Configuration conf = new Configuration();
-        reinitialize(conf, rmContext);
-      } catch (IOException ie) {
-        LOG.info("add application failed with ", ie);
-        assert (false);
-      }
+        private static final String A = CapacitySchedulerConfiguration.ROOT + ".a";
+        private static final String B = CapacitySchedulerConfiguration.ROOT + ".b";
+        private static final String A1 = A + ".a1";
+        private static final String A2 = A + ".a2";
+        private static final String B1 = B + ".b1";
+        private static final String B2 = B + ".b2";
+        private static final String B3 = B + ".b3";
+        private static float A_CAPACITY = 10.5f;
+        private static float B_CAPACITY = 89.5f;
+        private static float A1_CAPACITY = 30;
+        private static float A2_CAPACITY = 70;
+        private static float B1_CAPACITY = 79.2f;
+        private static float B2_CAPACITY = 0.8f;
+        private static float B3_CAPACITY = 20;
+
+        public MyCapacityScheduler(RMContext rmContext) {
+            super();
+            try {
+                //  Configuration conf = new Configuration();
+                CapacitySchedulerConfiguration csConf = new CapacitySchedulerConfiguration();
+                setupQueueConfiguration(csConf);
+                YarnConfiguration conf = new YarnConfiguration(csConf);
+                conf.setClass(YarnConfiguration.RM_SCHEDULER,
+                        CapacityScheduler.class, ResourceScheduler.class);
+                reinitialize(conf, rmContext);
+            } catch (IOException ie) {
+                LOG.info("add application failed with ", ie);
+                assert (false);
+            }
+        }
+
+        private void setupQueueConfiguration(CapacitySchedulerConfiguration conf) {
+
+            // Define top-level queues
+            conf.setQueues(CapacitySchedulerConfiguration.ROOT, new String[]{"a", "b"});
+
+            conf.setCapacity(A, A_CAPACITY);
+            conf.setCapacity(B, B_CAPACITY);
+
+            // Define 2nd-level queues
+            conf.setQueues(A, new String[]{"a1", "a2"});
+            conf.setCapacity(A1, A1_CAPACITY);
+            conf.setUserLimitFactor(A1, 100.0f);
+            conf.setCapacity(A2, A2_CAPACITY);
+            conf.setUserLimitFactor(A2, 100.0f);
+
+            conf.setQueues(B, new String[]{"b1", "b2", "b3"});
+            conf.setCapacity(B1, B1_CAPACITY);
+            conf.setUserLimitFactor(B1, 100.0f);
+            conf.setCapacity(B2, B2_CAPACITY);
+            conf.setUserLimitFactor(B2, 100.0f);
+            conf.setCapacity(B3, B3_CAPACITY);
+            conf.setUserLimitFactor(B3, 100.0f);
+
+            LOG.info("Setup top-level queues a and b");
+        }
+        List<ResourceRequest> lastAsk = null;
+
+        // override this to copy the objects otherwise FifoScheduler updates the
+        // numContainers in same objects as kept by RMContainerAllocator
+        @Override
+        public synchronized Allocation allocate(
+                ApplicationAttemptId applicationAttemptId, List<ResourceRequest> ask,
+                List<ContainerId> release,
+                List<String> blacklistAdditions, List<String> blacklistRemovals) {
+            List<ResourceRequest> askCopy = new ArrayList<ResourceRequest>();
+            for (ResourceRequest req : ask) {
+                ResourceRequest reqCopy = ResourceRequest.newInstance(req.getPriority(), req.getResourceName(), req.getCapability(), req.getNumContainers(), req.getRelaxLocality());
+                askCopy.add(reqCopy);
+            }
+            lastAsk = ask;
+            return super.allocate(
+                    applicationAttemptId, askCopy, release,
+                    blacklistAdditions, blacklistRemovals);
+        }
     }
-    
-    List<ResourceRequest> lastAsk = null;
-    
-    // override this to copy the objects otherwise FifoScheduler updates the
-    // numContainers in same objects as kept by RMContainerAllocator
-    @Override
-    public synchronized Allocation allocate(
-        ApplicationAttemptId applicationAttemptId, List<ResourceRequest> ask,
-        List<ContainerId> release, 
-        List<String> blacklistAdditions, List<String> blacklistRemovals) {
-      List<ResourceRequest> askCopy = new ArrayList<ResourceRequest>();
-      for (ResourceRequest req : ask) {
-        ResourceRequest reqCopy = ResourceRequest.newInstance(req
-            .getPriority(), req.getResourceName(), req.getCapability(), req
-            .getNumContainers(), req.getRelaxLocality());
-        askCopy.add(reqCopy);
-      }
-      lastAsk = ask;
-      return super.allocate(
-          applicationAttemptId, askCopy, release, 
-          blacklistAdditions, blacklistRemovals);
-    }
-  }
   private static class MyFifoScheduler extends FifoScheduler {
 
     public MyFifoScheduler(RMContext rmContext) {
