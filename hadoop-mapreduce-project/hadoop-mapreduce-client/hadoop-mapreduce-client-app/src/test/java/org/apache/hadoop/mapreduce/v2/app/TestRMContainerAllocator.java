@@ -116,13 +116,51 @@ public class TestRMContainerAllocator {
 
   
 
+        private static final String A = CapacitySchedulerConfiguration.ROOT + ".a";
+        private static final String B = CapacitySchedulerConfiguration.ROOT + ".b";
+        private static final String A1 = A + ".a1";
+        private static final String A2 = A + ".a2";
+        private static final String B1 = B + ".b1";
+        private static final String B2 = B + ".b2";
+        private static final String B3 = B + ".b3";
+        private static float A_CAPACITY = 10.5f;
+        private static float B_CAPACITY = 89.5f;
+        private static float A1_CAPACITY = 30;
+        private static float A2_CAPACITY = 70;
+        private static float B1_CAPACITY = 79.2f;
+        private static float B2_CAPACITY = 0.8f;
+        private static float B3_CAPACITY = 20;
   
   
   @After
   public void tearDown() {
     DefaultMetricsSystem.shutdown();
   }
+        private void setupQueueConfiguration(CapacitySchedulerConfiguration conf) {
 
+            // Define top-level queues
+            conf.setQueues(CapacitySchedulerConfiguration.ROOT, new String[]{"a", "b"});
+
+            conf.setCapacity(A, A_CAPACITY);
+            conf.setCapacity(B, B_CAPACITY);
+
+            // Define 2nd-level queues
+            conf.setQueues(A, new String[]{"a1", "a2"});
+            conf.setCapacity(A1, A1_CAPACITY);
+            conf.setUserLimitFactor(A1, 100.0f);
+            conf.setCapacity(A2, A2_CAPACITY);
+            conf.setUserLimitFactor(A2, 100.0f);
+
+            conf.setQueues(B, new String[]{"b1", "b2", "b3"});
+            conf.setCapacity(B1, B1_CAPACITY);
+            conf.setUserLimitFactor(B1, 100.0f);
+            conf.setCapacity(B2, B2_CAPACITY);
+            conf.setUserLimitFactor(B2, 100.0f);
+            conf.setCapacity(B3, B3_CAPACITY);
+            conf.setUserLimitFactor(B3, 100.0f);
+
+            LOG.info("Setup top-level queues a and b");
+        }
   @Test
   public void testSimple() throws Exception {
 
@@ -299,11 +337,15 @@ public class TestRMContainerAllocator {
 
     LOG.info("Running testResource");
 
-    Configuration conf = new Configuration();
+  //  Configuration conf = new Configuration();
     //MyResourceManager rm = new MyResourceManager(conf);
    //     YarnConfiguration conf = new YarnConfiguration();
    // conf.setClass(YarnConfiguration.RM_SCHEDULER, 
     //    CapacityScheduler.class, ResourceScheduler.class);
+                 CapacitySchedulerConfiguration csConf = new CapacitySchedulerConfiguration();
+                setupQueueConfiguration(csConf);
+                YarnConfiguration conf = new YarnConfiguration(csConf);
+                
     MyRM_CS rm = new MyRM_CS(conf);
     rm.start();
     DrainDispatcher dispatcher = (DrainDispatcher) rm.getRMContext()
@@ -472,7 +514,7 @@ public class TestRMContainerAllocator {
       return (MyFifoScheduler) scheduler;
     }
   }
-  private static class MyRM_CS extends MockRM {
+  private  class MyRM_CS extends MockRM {
     
     public MyRM_CS(Configuration conf) {
       super(conf);
@@ -1236,22 +1278,8 @@ public class TestRMContainerAllocator {
           + " host not correct", "h3", assig.getContainer().getNodeId().getHost());
     }
   }
-    private static class MyCapacityScheduler extends CapacityScheduler {
+    private  class MyCapacityScheduler extends CapacityScheduler {
 
-        private static final String A = CapacitySchedulerConfiguration.ROOT + ".a";
-        private static final String B = CapacitySchedulerConfiguration.ROOT + ".b";
-        private static final String A1 = A + ".a1";
-        private static final String A2 = A + ".a2";
-        private static final String B1 = B + ".b1";
-        private static final String B2 = B + ".b2";
-        private static final String B3 = B + ".b3";
-        private static float A_CAPACITY = 10.5f;
-        private static float B_CAPACITY = 89.5f;
-        private static float A1_CAPACITY = 30;
-        private static float A2_CAPACITY = 70;
-        private static float B1_CAPACITY = 79.2f;
-        private static float B2_CAPACITY = 0.8f;
-        private static float B3_CAPACITY = 20;
 
         public MyCapacityScheduler(RMContext rmContext) {
             super();
@@ -1270,31 +1298,7 @@ public class TestRMContainerAllocator {
             }
         }
 
-        private void setupQueueConfiguration(CapacitySchedulerConfiguration conf) {
 
-            // Define top-level queues
-            conf.setQueues(CapacitySchedulerConfiguration.ROOT, new String[]{"a", "b"});
-
-            conf.setCapacity(A, A_CAPACITY);
-            conf.setCapacity(B, B_CAPACITY);
-
-            // Define 2nd-level queues
-            conf.setQueues(A, new String[]{"a1", "a2"});
-            conf.setCapacity(A1, A1_CAPACITY);
-            conf.setUserLimitFactor(A1, 100.0f);
-            conf.setCapacity(A2, A2_CAPACITY);
-            conf.setUserLimitFactor(A2, 100.0f);
-
-            conf.setQueues(B, new String[]{"b1", "b2", "b3"});
-            conf.setCapacity(B1, B1_CAPACITY);
-            conf.setUserLimitFactor(B1, 100.0f);
-            conf.setCapacity(B2, B2_CAPACITY);
-            conf.setUserLimitFactor(B2, 100.0f);
-            conf.setCapacity(B3, B3_CAPACITY);
-            conf.setUserLimitFactor(B3, 100.0f);
-
-            LOG.info("Setup top-level queues a and b");
-        }
         List<ResourceRequest> lastAsk = null;
 
         // override this to copy the objects otherwise FifoScheduler updates the
