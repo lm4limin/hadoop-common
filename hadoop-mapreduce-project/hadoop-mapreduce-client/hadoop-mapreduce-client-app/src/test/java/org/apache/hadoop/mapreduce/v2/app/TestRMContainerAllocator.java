@@ -96,6 +96,7 @@ import org.apache.hadoop.yarn.server.resourcemanager.RMContext;
 import org.apache.hadoop.yarn.server.resourcemanager.rmapp.RMApp;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.Allocation;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.ResourceScheduler;
+import org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.CapacityScheduler;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.event.SchedulerEvent;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.fifo.FifoScheduler;
 import org.apache.hadoop.yarn.util.Clock;
@@ -293,7 +294,8 @@ public class TestRMContainerAllocator {
     LOG.info("Running testResource");
 
     Configuration conf = new Configuration();
-    MyResourceManager rm = new MyResourceManager(conf);
+    //MyResourceManager rm = new MyResourceManager(conf);
+    MyRM_CS rm = new MyRM_CS(conf);
     rm.start();
     DrainDispatcher dispatcher = (DrainDispatcher) rm.getRMContext()
         .getDispatcher();
@@ -459,6 +461,36 @@ public class TestRMContainerAllocator {
     
     MyFifoScheduler getMyFifoScheduler() {
       return (MyFifoScheduler) scheduler;
+    }
+  }
+  private static class MyRM_CS extends MockRM {
+    
+    public MyRM_CS(Configuration conf) {
+      super(conf);
+    }
+
+    @Override
+    protected Dispatcher createDispatcher() {
+      return new DrainDispatcher();
+    }
+
+    @Override
+    protected EventHandler<SchedulerEvent> createSchedulerEventDispatcher() {
+      // Dispatch inline for test sanity
+      return new EventHandler<SchedulerEvent>() {
+        @Override
+        public void handle(SchedulerEvent event) {
+          scheduler.handle(event);
+        }
+      };
+    }
+    @Override
+    protected ResourceScheduler createScheduler() {
+      return new MyCapacityScheduler(this.getRMContext());
+    }
+    
+    MyCapacityScheduler getMyCapacityScheduler() {
+      return (MyCapacityScheduler) scheduler;
     }
   }
 
@@ -1195,7 +1227,41 @@ public class TestRMContainerAllocator {
           + " host not correct", "h3", assig.getContainer().getNodeId().getHost());
     }
   }
-  
+  private static class MyCapacityScheduler extends CapacityScheduler {
+
+    public MyCapacityScheduler(RMContext rmContext) {
+      super();
+      try {
+        Configuration conf = new Configuration();
+        reinitialize(conf, rmContext);
+      } catch (IOException ie) {
+        LOG.info("add application failed with ", ie);
+        assert (false);
+      }
+    }
+    
+    List<ResourceRequest> lastAsk = null;
+    
+    // override this to copy the objects otherwise FifoScheduler updates the
+    // numContainers in same objects as kept by RMContainerAllocator
+    @Override
+    public synchronized Allocation allocate(
+        ApplicationAttemptId applicationAttemptId, List<ResourceRequest> ask,
+        List<ContainerId> release, 
+        List<String> blacklistAdditions, List<String> blacklistRemovals) {
+      List<ResourceRequest> askCopy = new ArrayList<ResourceRequest>();
+      for (ResourceRequest req : ask) {
+        ResourceRequest reqCopy = ResourceRequest.newInstance(req
+            .getPriority(), req.getResourceName(), req.getCapability(), req
+            .getNumContainers(), req.getRelaxLocality());
+        askCopy.add(reqCopy);
+      }
+      lastAsk = ask;
+      return super.allocate(
+          applicationAttemptId, askCopy, release, 
+          blacklistAdditions, blacklistRemovals);
+    }
+  }
   private static class MyFifoScheduler extends FifoScheduler {
 
     public MyFifoScheduler(RMContext rmContext) {
@@ -1321,7 +1387,8 @@ public class TestRMContainerAllocator {
       = new ArrayList<TaskAttemptKillEvent>();
     static final List<JobUpdatedNodesEvent> jobUpdatedNodeEvents 
     = new ArrayList<JobUpdatedNodesEvent>();
-    private MyResourceManager rm;
+    //private MyResourceManager rm;//limin
+    private MockRM rm;
 
     private static AppContext createAppContext(
         ApplicationAttemptId appAttemptId, Job job) {
@@ -1378,7 +1445,13 @@ public class TestRMContainerAllocator {
       super.init(conf);
       super.start();
     }
-
+    public MyContainerAllocator(MyRM_CS rm, Configuration conf,
+        ApplicationAttemptId appAttemptId, Job job) {
+      super(createMockClientService(), createAppContext(appAttemptId, job));
+      this.rm = rm;
+      super.init(conf);
+      super.start();
+    }
     public MyContainerAllocator(MyResourceManager rm, Configuration conf,
         ApplicationAttemptId appAttemptId, Job job, Clock clock) {
       super(createMockClientService(),
