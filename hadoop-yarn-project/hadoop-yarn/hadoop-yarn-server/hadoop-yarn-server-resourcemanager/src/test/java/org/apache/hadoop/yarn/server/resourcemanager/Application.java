@@ -52,6 +52,7 @@ import org.apache.hadoop.yarn.factories.RecordFactory;
 import org.apache.hadoop.yarn.factory.providers.RecordFactoryProvider;
 import org.apache.hadoop.yarn.server.resourcemanager.Task.State;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.NodeType;
+import org.apache.hadoop.yarn.util.Records;
 import org.apache.hadoop.yarn.util.resource.Resources;
 
 @Private
@@ -134,6 +135,9 @@ public class Application {
     context.setQueue(this.queue);
     SubmitApplicationRequest request = recordFactory
         .newRecordInstance(SubmitApplicationRequest.class);
+    
+       final Resource capability =recordFactory.newRecordInstance(Resource.class);//limin
+    capability.setMemory(1024);
     request.setApplicationSubmissionContext(context);
     resourceManager.getClientRMService().submitApplication(request);
   }
