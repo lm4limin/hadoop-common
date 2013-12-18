@@ -99,7 +99,8 @@ public class FiCaSchedulerApp extends SchedulerApplication {
   final Map<Priority, Map<NodeId, RMContainer>> reservedContainers = 
       new HashMap<Priority, Map<NodeId, RMContainer>>();
 
-  private boolean isStopped = false;
+  //private boolean isStopped = false;
+  protected boolean isStopped = false;
 
   private final Set<ContainerId> containersToPreempt =
     new HashSet<ContainerId>();

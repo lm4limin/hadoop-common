@@ -130,6 +130,15 @@ public class FiCaSchedulerAppWithCapacity extends FiCaSchedulerApp {
         Map<Resource,ResourceRequest> hm=getResourceRequestCap(priority, ResourceRequest.ANY);
         return (int)FiCaSchedulerAppWithCapacity.getNumContainers(hm);
   }
+  @Override
+  public synchronized void updateResourceRequests(
+      List<ResourceRequest> requests, 
+      List<String> blacklistAdditions, List<String> blacklistRemovals) {
+    if (!isStopped) {
+      this.appSchedulingInfoWithCapacity.updateResourceRequests(requests, 
+          blacklistAdditions, blacklistRemovals);
+    }
+  }    
     @Override
     synchronized public void showRequests() {
         if (LOG.isDebugEnabled()) {
