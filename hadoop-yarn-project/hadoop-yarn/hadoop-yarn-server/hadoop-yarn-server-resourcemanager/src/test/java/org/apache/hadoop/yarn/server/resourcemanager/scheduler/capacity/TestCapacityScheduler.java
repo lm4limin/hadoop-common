@@ -146,7 +146,7 @@ public class TestCapacityScheduler {
             .getRMContext());
   }  
 
-//  @Test
+  @Test
   public void testCapacityScheduler() throws Exception {
 
     LOG.info("--- START: testCapacityScheduler ---");
