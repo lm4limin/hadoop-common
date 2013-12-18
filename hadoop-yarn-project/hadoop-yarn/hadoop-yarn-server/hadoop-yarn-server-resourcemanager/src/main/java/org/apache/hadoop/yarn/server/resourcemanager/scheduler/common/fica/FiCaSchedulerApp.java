@@ -84,7 +84,9 @@ public class FiCaSchedulerApp extends SchedulerApplication {
   private final AppSchedulingInfo appSchedulingInfo;
   private final Queue queue;
 
-  private final Resource currentConsumption = recordFactory
+  //private final Resource currentConsumption = recordFactory
+ //     .newRecordInstance(Resource.class);
+  protected final Resource currentConsumption = recordFactory
       .newRecordInstance(Resource.class);
   private Resource resourceLimit = recordFactory
       .newRecordInstance(Resource.class);
@@ -124,6 +126,7 @@ public class FiCaSchedulerApp extends SchedulerApplication {
     this.appSchedulingInfo = 
         new AppSchedulingInfo(applicationAttemptId, user, queue,  
             activeUsersManager);
+
     this.queue = queue;
   }
 

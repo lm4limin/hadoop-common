@@ -122,12 +122,12 @@ public class LeafQueue implements CSQueue {
   private final RecordFactory recordFactory = 
     RecordFactoryProvider.getRecordFactory(null);
 
-  private CapacitySchedulerContext scheduler;
-  
+  //private CapacitySchedulerContext scheduler;
+  protected CapacitySchedulerContext scheduler;
   private final ActiveUsersManager activeUsersManager;
   
-  private final ResourceCalculator resourceCalculator;
-  
+  //private final ResourceCalculator resourceCalculator;
+  protected final ResourceCalculator resourceCalculator;
   public LeafQueue(CapacitySchedulerContext cs, 
       String queueName, CSQueue parent, CSQueue old) {
     this.scheduler = cs;
@@ -785,8 +785,8 @@ public class LeafQueue implements CSQueue {
         " #queue-active-applications: " + getNumActiveApplications()
         );
   }
-  
-  private synchronized FiCaSchedulerApp getApplication(
+  protected synchronized FiCaSchedulerApp getApplication(
+//  private synchronized FiCaSchedulerApp getApplication(
       ApplicationAttemptId applicationAttemptId) {
     return applicationsMap.get(applicationAttemptId);
   }
@@ -795,7 +795,7 @@ public class LeafQueue implements CSQueue {
       new CSAssignment(Resources.createResource(0, 0), NodeType.NODE_LOCAL);
   
   private static final CSAssignment SKIP_ASSIGNMENT = new CSAssignment(true);
-  
+ // protected static final CSAssignment SKIP_ASSIGNMENT = new CSAssignment(true);
   @Override
   public synchronized CSAssignment 
   assignContainers(Resource clusterResource, FiCaSchedulerNode node) {
@@ -914,7 +914,8 @@ public class LeafQueue implements CSQueue {
 
   }
 
-  private synchronized CSAssignment 
+  //private synchronized CSAssignment 
+protected synchronized CSAssignment           
   assignReservedContainer(FiCaSchedulerApp application, 
       FiCaSchedulerNode node, RMContainer rmContainer, Resource clusterResource) {
     // Do we still need this reservation?
@@ -933,7 +934,8 @@ public class LeafQueue implements CSQueue {
     return new CSAssignment(Resources.none(), NodeType.NODE_LOCAL);
   }
 
-  private synchronized boolean assignToQueue(Resource clusterResource, 
+  //private synchronized boolean assignToQueue(Resource clusterResource, 
+    protected synchronized boolean assignToQueue(Resource clusterResource,       
       Resource required) {
     // Check how of the cluster's absolute capacity we are currently using...
     float potentialNewCapacity = 
@@ -957,7 +959,8 @@ public class LeafQueue implements CSQueue {
   }
 
   @Lock({LeafQueue.class, FiCaSchedulerApp.class})
-  private Resource computeUserLimitAndSetHeadroom(
+  protected Resource computeUserLimitAndSetHeadroom(
+          //private Resource computeUserLimitAndSetHeadroom(
       FiCaSchedulerApp application, Resource clusterResource, Resource required) {
     
     String user = application.getUser();
@@ -1070,8 +1073,9 @@ public class LeafQueue implements CSQueue {
     return limit;
   }
   
-  private synchronized boolean assignToUser(Resource clusterResource,
-      String userName, Resource limit) {
+  //private synchronized boolean assignToUser(Resource clusterResource,
+  protected synchronized boolean assignToUser(Resource clusterResource,
+          String userName, Resource limit) {
 
     User user = getUser(userName);
     
@@ -1175,7 +1179,8 @@ public class LeafQueue implements CSQueue {
     return SKIP_ASSIGNMENT;
   }
 
-  private Resource assignNodeLocalContainers(
+  //private Resource assignNodeLocalContainers(
+   protected Resource assignNodeLocalContainers(
       Resource clusterResource, ResourceRequest nodeLocalResourceRequest, 
       FiCaSchedulerNode node, FiCaSchedulerApp application, 
       Priority priority, RMContainer reservedContainer) {
@@ -1187,8 +1192,8 @@ public class LeafQueue implements CSQueue {
     
     return Resources.none();
   }
-
-  private Resource assignRackLocalContainers(
+ protected Resource assignRackLocalContainers(
+  //private Resource assignRackLocalContainers(
       Resource clusterResource, ResourceRequest rackLocalResourceRequest,  
       FiCaSchedulerNode node, FiCaSchedulerApp application, Priority priority,
       RMContainer reservedContainer) {
@@ -1200,8 +1205,8 @@ public class LeafQueue implements CSQueue {
     
     return Resources.none();
   }
-
-  private Resource assignOffSwitchContainers(
+    protected Resource assignOffSwitchContainers(
+//  private Resource assignOffSwitchContainers(
       Resource clusterResource, ResourceRequest offSwitchResourceRequest,
       FiCaSchedulerNode node, FiCaSchedulerApp application, Priority priority, 
       RMContainer reservedContainer) {

@@ -59,7 +59,7 @@ public class AppSchedulingInfo {
 
   final Set<Priority> priorities = new TreeSet<Priority>(
       new org.apache.hadoop.yarn.server.resourcemanager.resource.Priority.Comparator());
-  final Map<Priority, Map<String, ResourceRequest>> requests = 
+  private final Map<Priority, Map<String, ResourceRequest>> requests = 
     new HashMap<Priority, Map<String, ResourceRequest>>();
   final Set<String> blacklist = new HashSet<String>();
   
@@ -335,8 +335,8 @@ public class AppSchedulingInfo {
     decrementOutstanding(offSwitchRequest);
   }
 
-  synchronized private void decrementOutstanding(
-      ResourceRequest offSwitchRequest) {
+  //synchronized private void decrementOutstanding(ResourceRequest offSwitchRequest) {
+synchronized protected void decrementOutstanding(ResourceRequest offSwitchRequest) {      
     int numOffSwitchContainers = offSwitchRequest.getNumContainers() - 1;
 
     // Do not remove ANY
@@ -363,7 +363,8 @@ public class AppSchedulingInfo {
     }
   }
   
-  synchronized private void allocate(Container container) {
+  //synchronized private void allocate(Container container) {
+synchronized protected void allocate(Container container) {      
     // Update consumption and track allocations
     //TODO: fixme sharad
     /* try {
@@ -396,5 +397,11 @@ public class AppSchedulingInfo {
 
   public synchronized void setQueue(Queue queue) {
     this.queue = queue;
+  }
+  protected synchronized void activateApplication(){
+      activeUsersManager.activateApplication(user, applicationId);
+  }
+  protected synchronized void deactivateApplication(){
+      activeUsersManager.deactivateApplication(user, applicationId);
   }
 }
