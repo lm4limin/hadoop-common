@@ -288,7 +288,7 @@ public class Application {
     System.out.println("----------" + resourceManager.getRMContext().getRMApps()
         .get(applicationId).getRMAppAttempt(applicationAttemptId));
     
-     List<Container> containers = null;
+     List<Container> containers = new ArrayList<Container>();
      // TODO: Fix
 //       resourceManager.getRMContext().getRMApps()
 //        .get(applicationId).getRMAppAttempt(applicationAttemptId)
