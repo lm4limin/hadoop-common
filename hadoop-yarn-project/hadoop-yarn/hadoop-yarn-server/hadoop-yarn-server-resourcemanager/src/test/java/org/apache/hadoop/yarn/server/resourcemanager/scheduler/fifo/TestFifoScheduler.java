@@ -208,7 +208,7 @@ public class TestFifoScheduler {
     Assert.assertEquals(3, info.getLiveContainers().size());
   }
   
-//  @Test
+  @Test
   public void testFifoScheduler() throws Exception {
 
     LOG.info("--- START: testFifoScheduler ---");
