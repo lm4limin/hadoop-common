@@ -89,8 +89,8 @@ public class CapacityScheduler
              Configurable {
 
   private static final Log LOG = LogFactory.getLog(CapacityScheduler.class);
-  private static final String str_withcapacity="true";//limin
-//  private static final String str_withcapacity="false";//limin
+  //private static final String str_withcapacity="true";//limin
+  private static final String str_withcapacity="false";//limin
   private CSQueue root;
 
   private final static List<Container> EMPTY_CONTAINER_LIST = 
