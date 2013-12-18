@@ -35,6 +35,7 @@ import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.apache.hadoop.yarn.exceptions.YarnException;
 import org.apache.hadoop.yarn.exceptions.YarnRuntimeException;
 import org.apache.hadoop.yarn.server.resourcemanager.rmnode.RMNode;
+import org.apache.hadoop.yarn.server.resourcemanager.scheduler.event.NodeAddedSchedulerEvent;
 import org.apache.hadoop.yarn.util.resource.Resources;
 import org.junit.After;
 import org.junit.Before;
@@ -62,10 +63,19 @@ public class TestResourceManager {
       registerNode(String hostName, int containerManagerPort, int httpPort,
           String rackName, Resource capability) throws IOException,
           YarnException {
-    return new org.apache.hadoop.yarn.server.resourcemanager.NodeManager(
+    /*return new org.apache.hadoop.yarn.server.resourcemanager.NodeManager(
         hostName, containerManagerPort, httpPort, rackName, capability,
         resourceManager.getResourceTrackerService(), resourceManager
-            .getRMContext());
+            .getRMContext());*/
+                org.apache.hadoop.yarn.server.resourcemanager.NodeManager nm =
+        new org.apache.hadoop.yarn.server.resourcemanager.NodeManager(
+            hostName, containerManagerPort, httpPort, rackName, capability,
+            resourceManager);
+    NodeAddedSchedulerEvent nodeAddEvent1 = 
+        new NodeAddedSchedulerEvent(resourceManager.getRMContext()
+            .getRMNodes().get(nm.getNodeId()));
+    resourceManager.getResourceScheduler().handle(nodeAddEvent1);
+    return nm;
   }
 
 //  @Test
