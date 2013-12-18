@@ -87,6 +87,7 @@ public class TestCapacityScheduler {
   
   @Before
   public void setUp() throws Exception {
+      LOG.info("--- START: setUp tests ---");
     resourceManager = new ResourceManager();
     CapacitySchedulerConfiguration csConf 
        = new CapacitySchedulerConfiguration();
