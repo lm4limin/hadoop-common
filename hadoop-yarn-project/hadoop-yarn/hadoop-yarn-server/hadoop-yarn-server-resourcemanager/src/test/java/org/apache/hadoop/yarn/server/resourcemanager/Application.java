@@ -19,7 +19,6 @@
 package org.apache.hadoop.yarn.server.resourcemanager;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -34,21 +33,31 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.classification.InterfaceAudience.Private;
-import org.apache.hadoop.io.DataOutputBuffer;
 import org.apache.hadoop.net.NetworkTopology;
-import org.apache.hadoop.security.Credentials;
-import org.apache.hadoop.security.UserGroupInformation;
+import org.apache.hadoop.yarn.api.protocolrecords.GetNewApplicationRequest;
+import org.apache.hadoop.yarn.api.protocolrecords.GetNewApplicationResponse;
 import org.apache.hadoop.yarn.api.protocolrecords.StartContainerRequest;
 import org.apache.hadoop.yarn.api.protocolrecords.StartContainersRequest;
 import org.apache.hadoop.yarn.api.protocolrecords.StopContainersRequest;
 import org.apache.hadoop.yarn.api.protocolrecords.SubmitApplicationRequest;
-import org.apache.hadoop.yarn.api.records.*;
+import org.apache.hadoop.yarn.api.records.ApplicationAttemptId;
+import org.apache.hadoop.yarn.api.records.ApplicationId;
+import org.apache.hadoop.yarn.api.records.ApplicationSubmissionContext;
+import org.apache.hadoop.yarn.api.records.Container;
+import org.apache.hadoop.yarn.api.records.ContainerId;
+import org.apache.hadoop.yarn.api.records.ContainerLaunchContext;
+import org.apache.hadoop.yarn.api.records.Priority;
+import org.apache.hadoop.yarn.api.records.Resource;
+import org.apache.hadoop.yarn.api.records.ResourceRequest;
+import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.apache.hadoop.yarn.exceptions.YarnException;
 import org.apache.hadoop.yarn.factories.RecordFactory;
 import org.apache.hadoop.yarn.factory.providers.RecordFactoryProvider;
 import org.apache.hadoop.yarn.server.resourcemanager.Task.State;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.Allocation;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.NodeType;
+import org.apache.hadoop.yarn.server.resourcemanager.scheduler.ResourceScheduler;
+import org.apache.hadoop.yarn.server.resourcemanager.scheduler.event.AppAddedSchedulerEvent;
 import org.apache.hadoop.yarn.util.Records;
 import org.apache.hadoop.yarn.util.resource.Resources;
 
@@ -87,16 +96,23 @@ public class Application {
   
   Resource used = recordFactory.newRecordInstance(Resource.class);
   
-  public Application(String user, ResourceManager resourceManager) {
+  public Application(String user, ResourceManager resourceManager) 
+      throws YarnException {
     this(user, "default", resourceManager);
   }
   
-  public Application(String user, String queue, ResourceManager resourceManager) {
+  public Application(String user, String queue, ResourceManager resourceManager) 
+      throws YarnException {
     this.user = user;
     this.queue = queue;
     this.resourceManager = resourceManager;
-    this.applicationId =
-      this.resourceManager.getClientRMService().getNewApplicationId();
+    // register an application
+    GetNewApplicationRequest request =
+            Records.newRecord(GetNewApplicationRequest.class);
+    GetNewApplicationResponse newApp = 
+        this.resourceManager.getClientRMService().getNewApplication(request);
+    this.applicationId = newApp.getApplicationId();
+  
     this.applicationAttemptId =
         ApplicationAttemptId.newInstance(this.applicationId,
           this.numAttempts.getAndIncrement());
@@ -112,6 +128,10 @@ public class Application {
 
   public ApplicationId getApplicationId() {
     return applicationId;
+  }
+  
+  public ApplicationAttemptId getApplicationAttemptId() {
+    return applicationAttemptId;
   }
 
   public static String resolve(String hostName) {
@@ -130,28 +150,25 @@ public class Application {
     ApplicationSubmissionContext context = recordFactory.newRecordInstance(ApplicationSubmissionContext.class);
     context.setApplicationId(this.applicationId);
     context.setQueue(this.queue);
+    
+    // Set up the container launch context for the application master
+    ContainerLaunchContext amContainer
+        = Records.newRecord(ContainerLaunchContext.class);
+    context.setAMContainerSpec(amContainer);
+    context.setResource(Resources.createResource(
+        YarnConfiguration.DEFAULT_RM_SCHEDULER_MINIMUM_ALLOCATION_MB));
+    
     SubmitApplicationRequest request = recordFactory
         .newRecordInstance(SubmitApplicationRequest.class);
-    
-       final Resource capability =recordFactory.newRecordInstance(Resource.class);//limin
-    capability.setMemory(1024);
-    context.setResource(capability);
-    
-    
-        ContainerLaunchContext clc = recordFactory.newRecordInstance(ContainerLaunchContext.class);
-        Map<ApplicationAccessType, String> acls=null;
-            clc.setApplicationACLs(acls);
-            Credentials ts=null;
-    if (ts != null && UserGroupInformation.isSecurityEnabled()) {
-      DataOutputBuffer dob = new DataOutputBuffer();
-      ts.writeTokenStorageToStream(dob);
-      ByteBuffer securityTokens = ByteBuffer.wrap(dob.getData(), 0, dob.getLength());
-      clc.setTokens(securityTokens);
-    }
-    context.setAMContainerSpec(clc);
-    
     request.setApplicationSubmissionContext(context);
+    final ResourceScheduler scheduler = resourceManager.getResourceScheduler();
+    
     resourceManager.getClientRMService().submitApplication(request);
+    
+    // Notify scheduler
+    AppAddedSchedulerEvent appAddedEvent1 = new AppAddedSchedulerEvent(
+            this.applicationAttemptId, this.queue, this.user);
+    scheduler.handle(appAddedEvent1);
   }
   
   public synchronized void addResourceRequestSpec(
@@ -270,7 +287,8 @@ public class Application {
         + " #asks=" + ask.size());
     }
   }
-    public synchronized List<Container> getResources() throws IOException {
+  
+  public synchronized List<Container> getResources() throws IOException {
     if(LOG.isDebugEnabled()) {
       LOG.debug("getResources begin:" + " application=" + applicationId
         + " #ask=" + ask.size());
@@ -300,40 +318,6 @@ public class Application {
     
     return containers;
   }
-  /*public synchronized List<Container> getResources() throws IOException {
-    if(LOG.isDebugEnabled()) {
-      LOG.debug("getResources begin:" + " application=" + applicationId
-        + " #ask=" + ask.size());
-
-      for (ResourceRequest request : ask) {
-        LOG.debug("getResources:" + " application=" + applicationId
-          + " ask-request=" + request);
-      }
-    }
-    
-    // Get resources from the ResourceManager
-    resourceManager.getResourceScheduler().allocate(applicationAttemptId,
-        new ArrayList<ResourceRequest>(ask), new ArrayList<ContainerId>(), null, null);
-    System.out.println("-=======" + applicationAttemptId);
-    System.out.println("----------" + resourceManager.getRMContext().getRMApps()
-        .get(applicationId).getRMAppAttempt(applicationAttemptId));
-    
-     List<Container> containers = new ArrayList<Container>();//limin
-     // TODO: Fix
-//       resourceManager.getRMContext().getRMApps()
-//        .get(applicationId).getRMAppAttempt(applicationAttemptId)
-//        .pullNewlyAllocatedContainers();
-
-    // Clear state for next interaction with ResourceManager
-    ask.clear();
-    
-    if(LOG.isDebugEnabled()) {
-      LOG.debug("getResources() for " + applicationId + ":"
-        + " ask=" + ask.size() + " recieved=" + containers.size());
-    }
-    
-    return containers;
-  }*/
   
   public synchronized void assign(List<Container> containers) 
   throws IOException, YarnException {
