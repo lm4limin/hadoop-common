@@ -95,7 +95,9 @@ public class TestCapacityScheduler {
     conf.setClass(YarnConfiguration.RM_SCHEDULER, 
         CapacityScheduler.class, ResourceScheduler.class);
     resourceManager.init(conf);
-    resourceManager.start();//limin
+    //resourceManager.start();//limin
+    resourceManager.getRMContainerTokenSecretManager().rollMasterKey();
+    resourceManager.getRMNMTokenSecretManager().rollMasterKey();
     ((AsyncDispatcher)resourceManager.getRMContext().getDispatcher()).start();
   }
 
@@ -141,10 +143,19 @@ public class TestCapacityScheduler {
       registerNode(String hostName, int containerManagerPort, int httpPort,
           String rackName, Resource capability)
           throws IOException, YarnException {
-    return new org.apache.hadoop.yarn.server.resourcemanager.NodeManager(
+    /*return new org.apache.hadoop.yarn.server.resourcemanager.NodeManager(
         hostName, containerManagerPort, httpPort, rackName, capability,
         resourceManager.getResourceTrackerService(), resourceManager
-            .getRMContext());
+            .getRMContext());*/
+          org.apache.hadoop.yarn.server.resourcemanager.NodeManager nm =
+        new org.apache.hadoop.yarn.server.resourcemanager.NodeManager(
+            hostName, containerManagerPort, httpPort, rackName, capability,
+            resourceManager);
+    NodeAddedSchedulerEvent nodeAddEvent1 = 
+        new NodeAddedSchedulerEvent(resourceManager.getRMContext()
+            .getRMNodes().get(nm.getNodeId()));
+    resourceManager.getResourceScheduler().handle(nodeAddEvent1);
+    return nm;
   }  
 
   @Test
