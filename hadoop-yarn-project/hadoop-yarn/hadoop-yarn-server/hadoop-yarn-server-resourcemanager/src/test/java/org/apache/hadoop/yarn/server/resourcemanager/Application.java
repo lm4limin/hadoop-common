@@ -138,6 +138,7 @@ public class Application {
     
        final Resource capability =recordFactory.newRecordInstance(Resource.class);//limin
     capability.setMemory(1024);
+    context.setResource(capability);
     request.setApplicationSubmissionContext(context);
     resourceManager.getClientRMService().submitApplication(request);
   }
