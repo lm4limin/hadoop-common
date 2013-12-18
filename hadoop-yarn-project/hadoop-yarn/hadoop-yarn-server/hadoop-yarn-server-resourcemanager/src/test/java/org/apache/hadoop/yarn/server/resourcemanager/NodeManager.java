@@ -81,6 +81,31 @@ public class NodeManager implements ContainerManagementProtocol {
   final Map<Container, ContainerStatus> containerStatusMap =
       new HashMap<Container, ContainerStatus>();
 
+  final private ResourceManager resourceManager;
+  
+    public NodeManager(String hostName, int containerManagerPort, int httpPort,
+      String rackName, Resource capability,
+      ResourceManager resourceManager)
+      throws IOException, YarnException {
+    this.containerManagerAddress = hostName + ":" + containerManagerPort;
+    this.nodeHttpAddress = hostName + ":" + httpPort;
+    this.rackName = rackName;
+    this.resourceTrackerService = resourceManager.getResourceTrackerService();
+    this.capability = capability;
+    Resources.addTo(available, capability);
+    this.nodeId = NodeId.newInstance(hostName, containerManagerPort);
+    RegisterNodeManagerRequest request = recordFactory
+        .newRecordInstance(RegisterNodeManagerRequest.class);
+    request.setHttpPort(httpPort);
+    request.setResource(capability);
+    request.setNodeId(this.nodeId);
+ //   request.setNMVersion(YarnVersionInfo.getVersion());
+    resourceTrackerService.registerNodeManager(request);
+    this.resourceManager = resourceManager;
+    resourceManager.getResourceScheduler().getNodeReport(this.nodeId);
+    this.schedulerNode=null;
+  }
+    
   public NodeManager(String hostName, int containerManagerPort, int httpPort,
       String rackName, Resource capability,
       ResourceTrackerService resourceTrackerService, RMContext rmContext)
@@ -108,6 +133,7 @@ public class NodeManager implements ContainerManagementProtocol {
        schedulerNode.getAvailableResource().getMemory());
     Assert.assertEquals(capability.getVirtualCores(), 
         schedulerNode.getAvailableResource().getVirtualCores());
+    this.resourceManager=null;
   }
   
   public String getHostName() {
