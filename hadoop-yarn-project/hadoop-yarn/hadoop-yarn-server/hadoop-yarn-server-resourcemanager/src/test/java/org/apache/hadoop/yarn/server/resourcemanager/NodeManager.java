@@ -56,8 +56,8 @@ import org.apache.hadoop.yarn.server.api.protocolrecords.NodeHeartbeatResponse;
 import org.apache.hadoop.yarn.server.api.protocolrecords.RegisterNodeManagerRequest;
 import org.apache.hadoop.yarn.server.api.records.NodeHealthStatus;
 import org.apache.hadoop.yarn.server.api.records.NodeStatus;
-import org.apache.hadoop.yarn.server.resourcemanager.scheduler.common.fica.FiCaSchedulerNode;
 import org.apache.hadoop.yarn.server.utils.BuilderUtils;
+import org.apache.hadoop.yarn.util.YarnVersionInfo;
 import org.apache.hadoop.yarn.util.resource.Resources;
 
 @Private
@@ -70,20 +70,18 @@ public class NodeManager implements ContainerManagementProtocol {
   final private String rackName;
   final private NodeId nodeId;
   final private Resource capability;
+  final private ResourceManager resourceManager;
   Resource available = recordFactory.newRecordInstance(Resource.class);
   Resource used = recordFactory.newRecordInstance(Resource.class);
 
   final ResourceTrackerService resourceTrackerService;
-  final FiCaSchedulerNode schedulerNode;
   final Map<ApplicationId, List<Container>> containers = 
     new HashMap<ApplicationId, List<Container>>();
   
   final Map<Container, ContainerStatus> containerStatusMap =
       new HashMap<Container, ContainerStatus>();
-
-  final private ResourceManager resourceManager;
   
-    public NodeManager(String hostName, int containerManagerPort, int httpPort,
+  public NodeManager(String hostName, int containerManagerPort, int httpPort,
       String rackName, Resource capability,
       ResourceManager resourceManager)
       throws IOException, YarnException {
@@ -99,41 +97,10 @@ public class NodeManager implements ContainerManagementProtocol {
     request.setHttpPort(httpPort);
     request.setResource(capability);
     request.setNodeId(this.nodeId);
- //   request.setNMVersion(YarnVersionInfo.getVersion());
+   // request.setNMVersion(YarnVersionInfo.getVersion());
     resourceTrackerService.registerNodeManager(request);
     this.resourceManager = resourceManager;
     resourceManager.getResourceScheduler().getNodeReport(this.nodeId);
-    this.schedulerNode=null;
-  }
-    
-  public NodeManager(String hostName, int containerManagerPort, int httpPort,
-      String rackName, Resource capability,
-      ResourceTrackerService resourceTrackerService, RMContext rmContext)
-      throws IOException, YarnException {
-    this.containerManagerAddress = hostName + ":" + containerManagerPort;
-    this.nodeHttpAddress = hostName + ":" + httpPort;
-    this.rackName = rackName;
-    this.resourceTrackerService = resourceTrackerService;
-    this.capability = capability;
-    Resources.addTo(available, capability);
-
-    this.nodeId = NodeId.newInstance(hostName, containerManagerPort);
-    RegisterNodeManagerRequest request = recordFactory
-        .newRecordInstance(RegisterNodeManagerRequest.class);
-    request.setHttpPort(httpPort);
-    request.setNodeId(this.nodeId);
-    request.setResource(capability);
-    request.setNodeId(this.nodeId);
-    resourceTrackerService.registerNodeManager(request);
-    this.schedulerNode = new FiCaSchedulerNode(rmContext.getRMNodes().get(
-        this.nodeId));
-   
-    // Sanity check
-    Assert.assertEquals(capability.getMemory(), 
-       schedulerNode.getAvailableResource().getMemory());
-    Assert.assertEquals(capability.getVirtualCores(), 
-        schedulerNode.getAvailableResource().getVirtualCores());
-    this.resourceManager=null;
   }
   
   public String getHostName() {
@@ -245,9 +212,11 @@ public class NodeManager implements ContainerManagementProtocol {
   synchronized public void checkResourceUsage() {
     LOG.info("Checking resource usage for " + containerManagerAddress);
     Assert.assertEquals(available.getMemory(), 
-        schedulerNode.getAvailableResource().getMemory());
+        resourceManager.getResourceScheduler().getNodeReport(
+            this.nodeId).getAvailableResource().getMemory());
     Assert.assertEquals(used.getMemory(), 
-        schedulerNode.getUsedResource().getMemory());
+        resourceManager.getResourceScheduler().getNodeReport(
+            this.nodeId).getUsedResource().getMemory());
   }
   
   @Override
@@ -257,9 +226,9 @@ public class NodeManager implements ContainerManagementProtocol {
       String applicationId =
           String.valueOf(containerID.getApplicationAttemptId()
             .getApplicationId().getId());
-
       // Mark the container as COMPLETE
-      List<Container> applicationContainers = containers.get(applicationId);
+      List<Container> applicationContainers = containers.get(containerID.getApplicationAttemptId()
+              .getApplicationId());
       for (Container c : applicationContainers) {
         if (c.getId().compareTo(containerID) == 0) {
           ContainerStatus containerStatus = containerStatusMap.get(c);
