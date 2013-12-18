@@ -304,6 +304,7 @@ public class TestCapacityScheduler {
   
   @Test
   public void testMaximumCapacitySetup() {
+      LOG.info("--- START: testMaximumCapacitySetup ---");
     float delta = 0.0000001f;
     CapacitySchedulerConfiguration conf = new CapacitySchedulerConfiguration();
     assertEquals(CapacitySchedulerConfiguration.MAXIMUM_CAPACITY_VALUE,conf.getMaximumCapacity(A),delta);
@@ -316,6 +317,7 @@ public class TestCapacityScheduler {
   
   @Test
   public void testRefreshQueues() throws Exception {
+      LOG.info("--- START: testRefreshQueues---");
     CapacityScheduler cs = new CapacityScheduler();
     CapacitySchedulerConfiguration conf = new CapacitySchedulerConfiguration();
     setupQueueConfiguration(conf);
@@ -410,6 +412,7 @@ public class TestCapacityScheduler {
    */
   @Test(expected=IOException.class)
   public void testParseQueue() throws IOException {
+      LOG.info("--- START: testParseQueue ---");
     CapacityScheduler cs = new CapacityScheduler();
     cs.setConf(new YarnConfiguration());
 
@@ -427,6 +430,7 @@ public class TestCapacityScheduler {
 
   @Test
   public void testReconnectedNode() throws Exception {
+      LOG.info("--- START: testReconnectedNode ---");
     CapacitySchedulerConfiguration csConf =
         new CapacitySchedulerConfiguration();
     setupQueueConfiguration(csConf);
@@ -455,6 +459,7 @@ public class TestCapacityScheduler {
 
   @Test
   public void testRefreshQueuesWithNewQueue() throws Exception {
+      LOG.info("--- START: testRefreshQueuesWithNewQueue ---");
     CapacityScheduler cs = new CapacityScheduler();
     CapacitySchedulerConfiguration conf = new CapacitySchedulerConfiguration();
     setupQueueConfiguration(conf);
