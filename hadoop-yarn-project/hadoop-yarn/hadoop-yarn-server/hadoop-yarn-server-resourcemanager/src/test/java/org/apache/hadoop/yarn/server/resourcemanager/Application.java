@@ -47,6 +47,7 @@ import org.apache.hadoop.yarn.exceptions.YarnException;
 import org.apache.hadoop.yarn.factories.RecordFactory;
 import org.apache.hadoop.yarn.factory.providers.RecordFactoryProvider;
 import org.apache.hadoop.yarn.server.resourcemanager.Task.State;
+import org.apache.hadoop.yarn.server.resourcemanager.scheduler.Allocation;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.NodeType;
 import org.apache.hadoop.yarn.util.Records;
 import org.apache.hadoop.yarn.util.resource.Resources;
@@ -269,8 +270,37 @@ public class Application {
         + " #asks=" + ask.size());
     }
   }
-  
-  public synchronized List<Container> getResources() throws IOException {
+    public synchronized List<Container> getResources() throws IOException {
+    if(LOG.isDebugEnabled()) {
+      LOG.debug("getResources begin:" + " application=" + applicationId
+        + " #ask=" + ask.size());
+
+      for (ResourceRequest request : ask) {
+        LOG.debug("getResources:" + " application=" + applicationId
+          + " ask-request=" + request);
+      }
+    }
+    
+    // Get resources from the ResourceManager
+    Allocation allocation = resourceManager.getResourceScheduler().allocate(
+        applicationAttemptId, new ArrayList<ResourceRequest>(ask),
+        new ArrayList<ContainerId>(), null, null);
+    System.out.println("-=======" + applicationAttemptId);
+    System.out.println("----------" + resourceManager.getRMContext().getRMApps()
+        .get(applicationId).getRMAppAttempt(applicationAttemptId));
+    List<Container> containers = allocation.getContainers();
+
+    // Clear state for next interaction with ResourceManager
+    ask.clear();
+    
+    if(LOG.isDebugEnabled()) {
+      LOG.debug("getResources() for " + applicationId + ":"
+        + " ask=" + ask.size() + " recieved=" + containers.size());
+    }
+    
+    return containers;
+  }
+  /*public synchronized List<Container> getResources() throws IOException {
     if(LOG.isDebugEnabled()) {
       LOG.debug("getResources begin:" + " application=" + applicationId
         + " #ask=" + ask.size());
@@ -288,7 +318,7 @@ public class Application {
     System.out.println("----------" + resourceManager.getRMContext().getRMApps()
         .get(applicationId).getRMAppAttempt(applicationAttemptId));
     
-     List<Container> containers = new ArrayList<Container>();
+     List<Container> containers = new ArrayList<Container>();//limin
      // TODO: Fix
 //       resourceManager.getRMContext().getRMApps()
 //        .get(applicationId).getRMAppAttempt(applicationAttemptId)
@@ -303,7 +333,7 @@ public class Application {
     }
     
     return containers;
-  }
+  }*/
   
   public synchronized void assign(List<Container> containers) 
   throws IOException, YarnException {
