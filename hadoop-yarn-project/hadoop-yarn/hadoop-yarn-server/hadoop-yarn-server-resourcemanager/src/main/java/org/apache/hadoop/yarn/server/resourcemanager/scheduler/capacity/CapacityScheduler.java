@@ -67,6 +67,7 @@ import org.apache.hadoop.yarn.server.resourcemanager.scheduler.SchedulerAppRepor
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.SchedulerNodeReport;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.SchedulerUtils;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.common.fica.FiCaSchedulerApp;
+import org.apache.hadoop.yarn.server.resourcemanager.scheduler.common.fica.FiCaSchedulerAppWithCapacity;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.common.fica.FiCaSchedulerNode;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.event.AppAddedSchedulerEvent;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.event.AppRemovedSchedulerEvent;
@@ -88,7 +89,7 @@ public class CapacityScheduler
              Configurable {
 
   private static final Log LOG = LogFactory.getLog(CapacityScheduler.class);
-
+  private static final String str_withcapacity="true";//limin
   private CSQueue root;
 
   private final static List<Container> EMPTY_CONTAINER_LIST = 
@@ -371,8 +372,15 @@ public class CapacityScheduler
         throw new IllegalStateException(
             "Queue configuration missing child queue names for " + queueName);
       }
-      queue = 
+      
+      if(CapacityScheduler.str_withcapacity.equals("true")){
+        queue = 
+            new LeafQueueWithCapacity(csContext, queueName, parent,oldQueues.get(queueName));
+      }else{
+          queue = 
           new LeafQueue(csContext, queueName, parent,oldQueues.get(queueName));
+      }
+      
       
       // Used only for unit tests
       queue = hook.hook(queue);
@@ -428,12 +436,18 @@ public class CapacityScheduler
           new RMAppAttemptRejectedEvent(applicationAttemptId, message));
       return;
     }
-
+    //limin
+    FiCaSchedulerApp SchedulerApp;
+    if(CapacityScheduler.str_withcapacity.equals("true")){
+     SchedulerApp = 
+        new FiCaSchedulerAppWithCapacity(applicationAttemptId, user, queue, 
+            queue.getActiveUsersManager(), rmContext);
+    }else{
     // TODO: Fix store
-    FiCaSchedulerApp SchedulerApp = 
+     SchedulerApp = 
         new FiCaSchedulerApp(applicationAttemptId, user, queue, 
             queue.getActiveUsersManager(), rmContext);
-
+    }
     // Submit to the queue
     try {
       queue.submitApplication(SchedulerApp, user, queueName);
