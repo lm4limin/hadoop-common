@@ -95,6 +95,7 @@ public class TestCapacityScheduler {
     conf.setClass(YarnConfiguration.RM_SCHEDULER, 
         CapacityScheduler.class, ResourceScheduler.class);
     resourceManager.init(conf);
+    resourceManager.start();//limin
     ((AsyncDispatcher)resourceManager.getRMContext().getDispatcher()).start();
   }
 
@@ -148,7 +149,7 @@ public class TestCapacityScheduler {
 
   @Test
   public void testCapacityScheduler() throws Exception {
-
+  
     LOG.info("--- START: testCapacityScheduler ---");
         
     // Register node1
