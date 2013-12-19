@@ -1351,6 +1351,7 @@ public class TestLeafQueue {
   
   @Test
   public void testApplicationPriorityScheduling() throws Exception {
+      LOG.info("--- START: testApplicationPriorityScheduling ---");
     // Manipulate queue 'a'
     LeafQueue a = stubLeafQueue((LeafQueue)queues.get(A));
 
