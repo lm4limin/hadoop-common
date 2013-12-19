@@ -107,11 +107,11 @@ public class AppSchedulingInfoWithCapacity extends AppSchedulingInfo{
             Map<Resource, ResourceRequest> hm = asksCap.get(resourceName);
             if (hm == null) {
                 hm = new HashMap<Resource, ResourceRequest>();
+                asksCap.put(resourceName, hm);
             }  else  if (updatePendingResources) {
                 //lastRequest = asksCap.get(resourceName).values().iterator().next();//todo:doublecheck
                 lastRequest = asksCap.get(resourceName).get(request.getCapability());
-            }
-            asksCap.put(resourceName, hm);
+            }            
             hm.put(request.getCapability(), request);
             
 
