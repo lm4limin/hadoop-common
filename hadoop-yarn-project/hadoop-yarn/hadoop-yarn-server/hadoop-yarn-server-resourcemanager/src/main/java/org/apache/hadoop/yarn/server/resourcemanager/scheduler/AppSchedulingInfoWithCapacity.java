@@ -103,18 +103,20 @@ public class AppSchedulingInfoWithCapacity extends AppSchedulingInfo{
                 asksCap = new HashMap<String, Map<Resource, ResourceRequest>>();
                 this.priorities.add(priority);
                 this.requestsCap.put(priority, asksCap);
-            } else if (updatePendingResources) {
-                //lastRequest = asksCap.get(resourceName).values().iterator().next();//todo:doublecheck
-                lastRequest = asksCap.get(resourceName).get(request.getCapability());
-            }
-
+            } 
             Map<Resource, ResourceRequest> hm = asksCap.get(resourceName);
             if (hm == null) {
                 hm = new HashMap<Resource, ResourceRequest>();
+            }  else  if (updatePendingResources) {
+                //lastRequest = asksCap.get(resourceName).values().iterator().next();//todo:doublecheck
+                lastRequest = asksCap.get(resourceName).get(request.getCapability());
             }
             asksCap.put(resourceName, hm);
             hm.put(request.getCapability(), request);
+            
 
+
+            
 
             if (updatePendingResources) {
                 // Similarly, deactivate application?
