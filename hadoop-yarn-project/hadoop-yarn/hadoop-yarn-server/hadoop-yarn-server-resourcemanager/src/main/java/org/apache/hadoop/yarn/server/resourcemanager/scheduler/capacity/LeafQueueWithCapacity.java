@@ -320,4 +320,24 @@ public class LeafQueueWithCapacity extends LeafQueue{
         return NULL_ASSIGNMENT;
 
     }
+    @Override
+    protected synchronized CSAssignment           
+  assignReservedContainer(FiCaSchedulerApp app, 
+      FiCaSchedulerNode node, RMContainer rmContainer, Resource clusterResource) {
+    // Do we still need this reservation?
+        FiCaSchedulerAppWithCapacity application=(FiCaSchedulerAppWithCapacity) app;
+    Priority priority = rmContainer.getReservedPriority();
+    if (application.getTotalRequiredResources(priority) == 0) {
+      // Release
+      return new CSAssignment(application, rmContainer);
+    }
+
+    // Try to assign if we have sufficient resources
+    assignContainersOnNode(clusterResource, node, application, priority, 
+        rmContainer);
+    
+    // Doesn't matter... since it's already charged for at time of reservation
+    // "re-reservation" is *free*
+    return new CSAssignment(Resources.none(), NodeType.NODE_LOCAL);
+  }
 }
