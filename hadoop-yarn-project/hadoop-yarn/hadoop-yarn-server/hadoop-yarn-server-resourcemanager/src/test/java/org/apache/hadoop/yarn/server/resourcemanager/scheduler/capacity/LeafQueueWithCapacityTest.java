@@ -895,7 +895,7 @@ public class LeafQueueWithCapacityTest {
 
     @Test
     public void testReservation() throws Exception {
-        LOG.info("--- START: testCapacityScheduler ---");
+        LOG.info("--- START: testReservation ---");
         // Manipulate queue 'a'
         LeafQueue a = stubLeafQueue((LeafQueue) queues.get(A));
         //unset maxCapacity
@@ -1364,7 +1364,7 @@ public class LeafQueueWithCapacityTest {
 
     @Test
     public void testApplicationPriorityScheduling() throws Exception {
-        LOG.info("--- START: testCapacityScheduler ---");
+        LOG.info("--- START: testApplicationPriorityScheduling ---");
         // Manipulate queue 'a'
         LeafQueue a = stubLeafQueue((LeafQueue) queues.get(A));
 
