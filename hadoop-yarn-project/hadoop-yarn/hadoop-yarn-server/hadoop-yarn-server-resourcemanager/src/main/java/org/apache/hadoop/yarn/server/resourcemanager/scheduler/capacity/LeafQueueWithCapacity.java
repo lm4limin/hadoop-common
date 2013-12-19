@@ -234,7 +234,8 @@ public class LeafQueueWithCapacity extends LeafQueue{
                 // Schedule in priority order
                 for (Priority priority : application.getPriorities()) {
                     // Required resource
-                    Map<Resource, ResourceRequest> hm_required = application.getResourceRequestCap(priority, ResourceRequest.ANY);
+                    Map<Resource, ResourceRequest> hm_required = 
+                            application.getResourceRequestCap(priority, ResourceRequest.ANY);
                     if (hm_required == null) {
                         continue;
                     }
