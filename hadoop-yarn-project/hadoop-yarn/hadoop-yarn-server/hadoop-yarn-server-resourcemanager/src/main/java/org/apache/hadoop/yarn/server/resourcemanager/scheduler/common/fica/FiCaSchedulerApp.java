@@ -384,9 +384,9 @@ public class FiCaSchedulerApp extends SchedulerApplication {
   }
 
   public synchronized int getNumReservedContainers(Priority priority) {
-    Map<NodeId, RMContainer> reservedContainers = 
+    Map<NodeId, RMContainer> reservedContainers_l = 
         this.reservedContainers.get(priority);
-    return (reservedContainers == null) ? 0 : reservedContainers.size();
+    return (reservedContainers_l == null) ? 0 : reservedContainers_l.size();
   }
   
   /**
