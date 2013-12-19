@@ -45,6 +45,7 @@ import junit.framework.Assert;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.mapreduce.MRConfig;
 import org.apache.hadoop.mapreduce.MRJobConfig;
 import org.apache.hadoop.mapreduce.v2.api.records.JobId;
 import org.apache.hadoop.mapreduce.v2.api.records.JobState;
@@ -576,6 +577,7 @@ public class TestRMContainerAllocator {
       protected Dispatcher createDispatcher() {
         return new DrainDispatcher();
       }
+            @Override
       protected ContainerAllocator createContainerAllocator(
           ClientService clientService, AppContext context) {
         return new MyContainerAllocator(rm, appAttemptId, context);
@@ -583,10 +585,12 @@ public class TestRMContainerAllocator {
     };
 
     Assert.assertEquals(0.0, rmApp.getProgress(), 0.0);
-
+    conf.set(MRConfig.ONLINE_TUNING,
+                    MRConfig.DEFUALT_ONLINE_TUNING);
     mrApp.submit(conf);
     Job job = mrApp.getContext().getAllJobs().entrySet().iterator().next()
         .getValue();
+     
 
     DrainDispatcher amDispatcher = (DrainDispatcher) mrApp.getDispatcher();
 
@@ -1597,6 +1601,7 @@ public class TestRMContainerAllocator {
 
   @Test
   public void testReduceScheduling() throws Exception {
+      LOG.info("Running testReduceScheduling");
     int totalMaps = 10;
     int succeededMaps = 1;
     int scheduledMaps = 10;
