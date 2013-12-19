@@ -138,11 +138,10 @@ public class LeafQueueWithCapacity extends LeafQueue{
         }
         return SKIP_ASSIGNMENT;
     }
-   // @Override
-
-    boolean canAssign(FiCaSchedulerAppWithCapacity application, Priority priority,
+   @Override
+    boolean canAssign(FiCaSchedulerApp app, Priority priority,
             FiCaSchedulerNode node, NodeType type, RMContainer reservedContainer) {
-
+       FiCaSchedulerAppWithCapacity application= (FiCaSchedulerAppWithCapacity)app;
         // Clearly we need containers for this application...
         //  FiCaSchedulerAppWithCapacity applicationCap=(FiCaSchedulerAppWithCapacity)application;
         if (type == NodeType.OFF_SWITCH) {
