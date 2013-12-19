@@ -298,14 +298,14 @@ static LeafQueue stubLeafQueue(LeafQueue queue) {
     final ApplicationAttemptId appAttemptId_0 = 
         TestUtils.getMockApplicationAttemptId(0, 0); 
     FiCaSchedulerApp app_0 = 
-        new FiCaSchedulerApp(appAttemptId_0, user_0, a, 
+        new FiCaSchedulerAppWithCapacity(appAttemptId_0, user_0, a, 
             mock(ActiveUsersManager.class), rmContext);
     a.submitApplication(app_0, user_0, B);
 
     final ApplicationAttemptId appAttemptId_1 = 
         TestUtils.getMockApplicationAttemptId(1, 0); 
     FiCaSchedulerApp app_1 = 
-        new FiCaSchedulerApp(appAttemptId_1, user_0, a, 
+        new FiCaSchedulerAppWithCapacity(appAttemptId_1, user_0, a, 
             mock(ActiveUsersManager.class), rmContext);
     a.submitApplication(app_1, user_0, B);  // same user
 
