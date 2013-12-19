@@ -340,4 +340,35 @@ public class LeafQueueWithCapacity extends LeafQueue{
     // "re-reservation" is *free*
     return new CSAssignment(Resources.none(), NodeType.NODE_LOCAL);
   }
+    @Override
+    boolean needContainers(FiCaSchedulerApp app, Priority priority, Resource required) {
+        FiCaSchedulerAppWithCapacity application=(FiCaSchedulerAppWithCapacity) app;
+    int requiredContainers = application.getTotalRequiredResources(priority);
+    int reservedContainers = application.getNumReservedContainers(priority);
+    int starvation = 0;
+    if (reservedContainers > 0) {
+      float nodeFactor = 
+          Resources.ratio(
+              resourceCalculator, required, getMaximumAllocation()
+              );
+      
+      // Use percentage of node required to bias against large containers...
+      // Protect against corner case where you need the whole node with
+      // Math.min(nodeFactor, minimumAllocationFactor)
+      starvation = 
+          (int)((application.getReReservations(priority) / (float)reservedContainers) * 
+                (1.0f - (Math.min(nodeFactor, getMinimumAllocationFactor())))
+               );
+      
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("needsContainers:" +
+            " app.#re-reserve=" + application.getReReservations(priority) + 
+            " reserved=" + reservedContainers + 
+            " nodeFactor=" + nodeFactor + 
+            " minAllocFactor=" + getMinimumAllocationFactor() +
+            " starvation=" + starvation);
+      }
+    }
+    return (((starvation + requiredContainers) - reservedContainers) > 0);
+  }
 }
