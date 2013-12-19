@@ -188,7 +188,8 @@ public class AppSchedulingInfoWithCapacity extends AppSchedulingInfo{
    * @param allocatedContainers
    *          resources allocated to the application
    */
-  synchronized private void allocateNodeLocal( 
+  @Override
+  synchronized protected void allocateNodeLocal( 
       SchedulerNode node, Priority priority, 
       ResourceRequest nodeLocalRequest, Container container) {
     // Update consumption and track allocations
@@ -217,7 +218,8 @@ public class AppSchedulingInfoWithCapacity extends AppSchedulingInfo{
    * @param allocatedContainers
    *          resources allocated to the application
    */
-  synchronized private void allocateRackLocal(
+  @Override
+  synchronized protected void allocateRackLocal(
       SchedulerNode node, Priority priority,
       ResourceRequest rackLocalRequest, Container container) {
 
@@ -240,7 +242,8 @@ public class AppSchedulingInfoWithCapacity extends AppSchedulingInfo{
    * @param allocatedContainers
    *          resources allocated to the application
    */
-  synchronized private void allocateOffSwitch(
+  @Override
+  synchronized protected void allocateOffSwitch(
       SchedulerNode node, Priority priority,
       ResourceRequest offSwitchRequest, Container container) {
 
