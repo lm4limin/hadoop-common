@@ -101,6 +101,7 @@ public class AppSchedulingInfoWithCapacity extends AppSchedulingInfo{
             if (asksCap == null) {
                 //asks = new HashMap<String, ResourceRequest>();
                 asksCap = new HashMap<String, Map<Resource, ResourceRequest>>();
+                this.priorities.add(priority);
                 this.requestsCap.put(priority, asksCap);
             } else if (updatePendingResources) {
                 //lastRequest = asksCap.get(resourceName).values().iterator().next();//todo:doublecheck
