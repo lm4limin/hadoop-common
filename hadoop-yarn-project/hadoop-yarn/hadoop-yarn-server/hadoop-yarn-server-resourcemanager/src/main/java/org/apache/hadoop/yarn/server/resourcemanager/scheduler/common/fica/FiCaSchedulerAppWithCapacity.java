@@ -74,12 +74,58 @@ public class FiCaSchedulerAppWithCapacity extends FiCaSchedulerApp {
             String user, Queue queue, ActiveUsersManager activeUsersManager,
             RMContext rmContext) {
         super(applicationAttemptId, user, queue, activeUsersManager, rmContext);
-        this.appSchedulingInfoWithCapacity =
+        //this.appSchedulingInfoWithCapacity =
+                this.appSchedulingInfo =this.appSchedulingInfoWithCapacity=
                 new AppSchedulingInfoWithCapacity(applicationAttemptId, user, queue,
                 activeUsersManager);
-
+                
 
     }
+    
+    /*
+    @Override
+      public synchronized void stop(RMAppAttemptState rmAppAttemptFinalState) {
+    // Cleanup all scheduling information
+    this.isStopped = true;
+    this.appSchedulingInfoWithCapacity.stop(rmAppAttemptFinalState);
+  }
+      @Override
+  public boolean isPending() {
+    return this.appSchedulingInfoWithCapacity.isPending();
+  }
+
+
+@Override
+  public String getQueueName() {
+    return this.appSchedulingInfoWithCapacity.getQueueName();
+  }
+    @Override
+  public boolean isBlacklisted(String resourceName) {
+    return this.appSchedulingInfoWithCapacity.isBlacklisted(resourceName);
+  }
+  @Override    
+  public int getNewContainerId() {
+    return this.appSchedulingInfoWithCapacity.getNewContainerId();
+  }
+  @Override  
+  public Collection<Priority> getPriorities() {
+    return this.appSchedulingInfoWithCapacity.getPriorities();
+  }    
+  @Override  
+  public ApplicationId getApplicationId() {
+    return this.appSchedulingInfoWithCapacity.getApplicationId();
+  }
+
+  @Override
+  public ApplicationAttemptId getApplicationAttemptId() {
+    return this.appSchedulingInfoWithCapacity.getApplicationAttemptId();
+  }
+@Override
+  public String getUser() {
+    return this.appSchedulingInfoWithCapacity.getUser();
+  }    */
+
+
     public Map<Resource, ResourceRequest> getResourceRequestCap(Priority priority, String resourceName) {
         return this.appSchedulingInfoWithCapacity.getResourceRequestCap(priority, resourceName);
     }

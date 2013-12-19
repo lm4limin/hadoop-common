@@ -81,7 +81,8 @@ public class FiCaSchedulerApp extends SchedulerApplication {
   private final RecordFactory recordFactory = RecordFactoryProvider
       .getRecordFactory(null);
 
-  private final AppSchedulingInfo appSchedulingInfo;
+  //private final AppSchedulingInfo appSchedulingInfo;
+  protected  AppSchedulingInfo appSchedulingInfo;
   private final Queue queue;
 
   //private final Resource currentConsumption = recordFactory
