@@ -234,11 +234,13 @@ public class LeafQueueWithCapacity extends LeafQueue{
                 // Schedule in priority order
                 for (Priority priority : application.getPriorities()) {
                     // Required resource
-                    Map<Resource, ResourceRequest> hm_required = 
+
+                    Map<Resource, ResourceRequest> hm_required =
                             application.getResourceRequestCap(priority, ResourceRequest.ANY);
                     if (hm_required == null) {
                         continue;
                     }
+                    boolean isbreak = false;
                     for (Resource required : hm_required.keySet()) {
                         if (!needContainers(application, priority, required)) {
                             continue;
@@ -261,6 +263,7 @@ public class LeafQueueWithCapacity extends LeafQueue{
                         // Check user limit
                         if (!assignToUser(
                                 clusterResource, application.getUser(), userLimit)) {
+                            isbreak = true;
                             break;
                         }
 
@@ -299,12 +302,13 @@ public class LeafQueueWithCapacity extends LeafQueue{
                             return assignment;
                         } else {
                             // Do not assign out of order w.r.t priorities
+                            isbreak = true;
                             break;
                         }
                     }
-                    //Resource required =
-                    //       application.getResourceRequest(
-                    //       priority, ResourceRequest.ANY).getCapability();
+                    if (isbreak) {
+                        break;
+                    }
 
                     // Do we need containers at this 'priority'?
 

@@ -796,123 +796,123 @@ public class LeafQueue implements CSQueue {
   
   private static final CSAssignment SKIP_ASSIGNMENT = new CSAssignment(true);
  // protected static final CSAssignment SKIP_ASSIGNMENT = new CSAssignment(true);
-  @Override
-  public synchronized CSAssignment 
-  assignContainers(Resource clusterResource, FiCaSchedulerNode node) {
 
-    if(LOG.isDebugEnabled()) {
-      LOG.debug("assignContainers: node=" + node.getHostName()
-        + " #applications=" + activeApplications.size());
-    }
-    
-    // Check for reserved resources
-    RMContainer reservedContainer = node.getReservedContainer();
-    if (reservedContainer != null) {
-      FiCaSchedulerApp application = 
-          getApplication(reservedContainer.getApplicationAttemptId());
-      synchronized (application) {
-        return assignReservedContainer(application, node, reservedContainer,
-          clusterResource);
-      }
-    }
-    
-    // Try to assign containers to applications in order
-    for (FiCaSchedulerApp application : activeApplications) {
-      
-      if(LOG.isDebugEnabled()) {
-        LOG.debug("pre-assignContainers for application "
-        + application.getApplicationId());
-        application.showRequests();
-      }
+    @Override
+    public synchronized CSAssignment assignContainers(Resource clusterResource, FiCaSchedulerNode node) {
 
-      synchronized (application) {
-        // Check if this resource is on the blacklist
-        if (FiCaSchedulerUtils.isBlacklisted(application, node, LOG)) {
-          continue;
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("assignContainers: node=" + node.getHostName()
+                    + " #applications=" + activeApplications.size());
         }
-        
-        // Schedule in priority order
-        for (Priority priority : application.getPriorities()) {
-          // Required resource
-          Resource required = 
-              application.getResourceRequest(
-                  priority, ResourceRequest.ANY).getCapability();
 
-          // Do we need containers at this 'priority'?
-          if (!needContainers(application, priority, required)) {
-            continue;
-          }
-
-          // Compute user-limit & set headroom
-          // Note: We compute both user-limit & headroom with the highest 
-          //       priority request as the target. 
-          //       This works since we never assign lower priority requests
-          //       before all higher priority ones are serviced.
-          Resource userLimit = 
-              computeUserLimitAndSetHeadroom(application, clusterResource, 
-                  required);          
-          
-          // Check queue max-capacity limit
-          if (!assignToQueue(clusterResource, required)) {
-            return NULL_ASSIGNMENT;
-          }
-
-          // Check user limit
-          if (!assignToUser(
-              clusterResource, application.getUser(), userLimit)) {
-            break; 
-          }
-
-          // Inform the application it is about to get a scheduling opportunity
-          application.addSchedulingOpportunity(priority);
-          
-          // Try to schedule
-          CSAssignment assignment =  
-            assignContainersOnNode(clusterResource, node, application, priority, 
-                null);
-
-          // Did the application skip this node?
-          if (assignment.getSkipped()) {
-            // Don't count 'skipped nodes' as a scheduling opportunity!
-            application.subtractSchedulingOpportunity(priority);
-            continue;
-          }
-          
-          // Did we schedule or reserve a container?
-          Resource assigned = assignment.getResource();
-          if (Resources.greaterThan(
-              resourceCalculator, clusterResource, assigned, Resources.none())) {
-
-            // Book-keeping 
-            // Note: Update headroom to account for current allocation too...
-            allocateResource(clusterResource, application, assigned);
-            
-            // Don't reset scheduling opportunities for non-local assignments
-            // otherwise the app will be delayed for each non-local assignment.
-            // This helps apps with many off-cluster requests schedule faster.
-            if (assignment.getType() != NodeType.OFF_SWITCH) {
-              application.resetSchedulingOpportunities(priority);
+        // Check for reserved resources
+        RMContainer reservedContainer = node.getReservedContainer();
+        if (reservedContainer != null) {
+            FiCaSchedulerApp application =
+                    getApplication(reservedContainer.getApplicationAttemptId());
+            synchronized (application) {
+                return assignReservedContainer(application, node, reservedContainer,
+                        clusterResource);
             }
-            
-            // Done
-            return assignment;
-          } else {
-            // Do not assign out of order w.r.t priorities
-            break;
-          }
         }
-      }
 
-      if(LOG.isDebugEnabled()) {
-        LOG.debug("post-assignContainers for application "
-          + application.getApplicationId());
-      }
-      application.showRequests();
+        // Try to assign containers to applications in order
+        for (FiCaSchedulerApp application : activeApplications) {
+
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("pre-assignContainers for application "
+                        + application.getApplicationId());
+                application.showRequests();
+            }
+
+            synchronized (application) {
+                // Check if this resource is on the blacklist
+                if (FiCaSchedulerUtils.isBlacklisted(application, node, LOG)) {
+                    continue;
+                }
+
+                // Schedule in priority order
+                for (Priority priority : application.getPriorities()) {
+                    // Required resource
+                    Resource required =
+                            application.getResourceRequest(
+                            priority, ResourceRequest.ANY).getCapability();
+
+                    // Do we need containers at this 'priority'?
+                    if (!needContainers(application, priority, required)) {
+                        continue;
+                    }
+
+                    // Compute user-limit & set headroom
+                    // Note: We compute both user-limit & headroom with the highest 
+                    //       priority request as the target. 
+                    //       This works since we never assign lower priority requests
+                    //       before all higher priority ones are serviced.
+                    Resource userLimit =
+                            computeUserLimitAndSetHeadroom(application, clusterResource,
+                            required);
+
+                    // Check queue max-capacity limit
+                    if (!assignToQueue(clusterResource, required)) {
+                        return NULL_ASSIGNMENT;
+                    }
+
+                    // Check user limit
+                    if (!assignToUser(
+                            clusterResource, application.getUser(), userLimit)) {
+                        break;
+                    }
+
+                    // Inform the application it is about to get a scheduling opportunity
+                    application.addSchedulingOpportunity(priority);
+
+                    // Try to schedule
+                    CSAssignment assignment =
+                            assignContainersOnNode(clusterResource, node, application, priority,
+                            null);
+
+                    // Did the application skip this node?
+                    if (assignment.getSkipped()) {
+                        // Don't count 'skipped nodes' as a scheduling opportunity!
+                        application.subtractSchedulingOpportunity(priority);
+                        continue;
+                    }
+
+                    // Did we schedule or reserve a container?
+                    Resource assigned = assignment.getResource();
+                    if (Resources.greaterThan(
+                            resourceCalculator, clusterResource, assigned, Resources.none())) {
+
+                        // Book-keeping 
+                        // Note: Update headroom to account for current allocation too...
+                        allocateResource(clusterResource, application, assigned);
+
+                        // Don't reset scheduling opportunities for non-local assignments
+                        // otherwise the app will be delayed for each non-local assignment.
+                        // This helps apps with many off-cluster requests schedule faster.
+                        if (assignment.getType() != NodeType.OFF_SWITCH) {
+                            application.resetSchedulingOpportunities(priority);
+                        }
+
+                        // Done
+                        return assignment;
+                    } else {
+                        // Do not assign out of order w.r.t priorities
+                        break;
+                    }
+                }
+            }
+
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("post-assignContainers for application "
+                        + application.getApplicationId());
+            }
+            application.showRequests();
+        }
+
+        return NULL_ASSIGNMENT;
+
     }
-  
-    return NULL_ASSIGNMENT;
-
-  }
 
   //private synchronized CSAssignment 
 protected synchronized CSAssignment           
