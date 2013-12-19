@@ -122,12 +122,12 @@ public class AppSchedulingInfo {
    * @param blacklistRemovals resources to be removed from the blacklist
    */
   synchronized public void updateResourceRequests(
-      List<ResourceRequest> requests,
+      List<ResourceRequest> requests_out,
       List<String> blacklistAdditions, List<String> blacklistRemovals) {
     QueueMetrics metrics = queue.getMetrics();
     
     // Update resource requests
-    for (ResourceRequest request : requests) {
+    for (ResourceRequest request : requests_out) {
       Priority priority = request.getPriority();
       String resourceName = request.getResourceName();
       boolean updatePendingResources = false;
