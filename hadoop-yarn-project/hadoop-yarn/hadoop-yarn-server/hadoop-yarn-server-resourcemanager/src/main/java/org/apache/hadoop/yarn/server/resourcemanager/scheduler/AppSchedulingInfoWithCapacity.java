@@ -256,7 +256,8 @@ public class AppSchedulingInfoWithCapacity extends AppSchedulingInfo{
 
 
   //if any container number !=0; do not deactivate the application; 
-    synchronized private void checkForDeactivation() {
+  @Override
+    synchronized protected void checkForDeactivation() {
         boolean deactivate = true;
         for (Priority priority : getPriorities()) {
             Map<Resource, ResourceRequest> hm_request = getResourceRequestCap(priority, ResourceRequest.ANY);

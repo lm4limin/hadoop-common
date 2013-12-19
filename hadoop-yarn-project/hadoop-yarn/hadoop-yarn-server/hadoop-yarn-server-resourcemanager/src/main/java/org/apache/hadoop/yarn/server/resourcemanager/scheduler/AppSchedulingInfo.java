@@ -353,7 +353,7 @@ synchronized protected void decrementOutstanding(ResourceRequest offSwitchReques
     }
   }
   
-  synchronized private void checkForDeactivation() {
+  synchronized protected void checkForDeactivation() {
     boolean deactivate = true;
     for (Priority priority : getPriorities()) {
       ResourceRequest request = getResourceRequest(priority, ResourceRequest.ANY);
