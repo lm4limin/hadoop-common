@@ -465,14 +465,20 @@ public class RMContainerAllocator extends RMContainerRequestor
     } else {
       completedMapPercent = 1;
     }
-    
-    int netScheduledMapMem = this.scheduledRequests._maps_total_mem
-            +this.assignedRequests._map_total_mem;//limin
-       // (scheduledMaps + assignedMaps) * mapResourceReqt;
+    int netScheduledMapMem=0;
+    int netScheduledReduceMem=0;
+    if(this.scheduledRequests!=null&&this.assignedRequests!=null){
+         netScheduledMapMem = this.scheduledRequests.getMapTotalMem()
+            +this.assignedRequests.getMapTotalMem();//limin
+         netScheduledReduceMem = this.scheduledRequests.getReduceTotalMem()//limin
+            +this.assignedRequests.getReduceTotalMem();
+    }else{
+    netScheduledMapMem =  (scheduledMaps + assignedMaps) * mapResourceReqt;
+    netScheduledReduceMem = (scheduledReduces + assignedReduces) * reduceResourceReqt;
+    }
+     
 
-    int netScheduledReduceMem = this.scheduledRequests._reduce_total_mem//limin
-            +this.assignedRequests._reduce_total_mem;
-        //(scheduledReduces + assignedReduces) * reduceResourceReqt;
+     
 
     int finalMapMemLimit = 0;
     int finalReduceMemLimit = 0;
@@ -503,8 +509,14 @@ public class RMContainerAllocator extends RMContainerRequestor
         " netScheduledMapMem:" + netScheduledMapMem +
         " netScheduledReduceMem:" + netScheduledReduceMem);
     
-    int rampUp = (finalReduceMemLimit - netScheduledReduceMem)/this.scheduledRequests.get_min_mem(PRIORITY_REDUCE);//todo: doublecheck
-        //(finalReduceMemLimit - netScheduledReduceMem) / reduceResourceReqt;//limin
+    int rampUp=0;
+    if(this.scheduledRequests!=null){
+        rampUp = (finalReduceMemLimit - netScheduledReduceMem)
+            /this.scheduledRequests.get_min_mem(PRIORITY_REDUCE);//todo: doublecheck
+    }else{
+        rampUp = (finalReduceMemLimit - netScheduledReduceMem) / reduceResourceReqt;//limin
+    }
+     
     
     if (rampUp > 0) {
       rampUp = Math.min(rampUp, numPendingReduces);
@@ -700,7 +712,12 @@ public class RMContainerAllocator extends RMContainerRequestor
        assignedRequests._reduce_total_mem;//limin
     
   }
-  
+  /*private ScheduledRequests getScheduledRequests(){
+      return this.scheduledRequests;
+  }
+  private AssignedRequests getAssignedRequests(){
+      return this.assignedRequests;
+  }*/
   private class ScheduledRequests {
     
     private final LinkedList<TaskAttemptId> earlierFailedMaps = 
@@ -717,7 +734,12 @@ public class RMContainerAllocator extends RMContainerRequestor
     private final LinkedHashMap<TaskAttemptId, ContainerRequest> reduces = 
       new LinkedHashMap<TaskAttemptId, ContainerRequest>();
     private int _reduce_total_mem=0;//limin
-    
+    int getMapTotalMem(){
+        return this._maps_total_mem;
+    }
+    int getReduceTotalMem(){
+        return this._reduce_total_mem;
+    }
     boolean remove(TaskAttemptId tId) {
       ContainerRequest req = null;
       if (tId.getTaskId().getTaskType().equals(TaskType.MAP)) {
@@ -1302,7 +1324,13 @@ public class RMContainerAllocator extends RMContainerRequestor
     private int _reduce_total_mem=0;//limin
     private final Set<TaskAttemptId> preemptionWaitingReduces = 
       new HashSet<TaskAttemptId>();
-    
+    int getMapTotalMem(){
+        return this._map_total_mem;
+    }
+    int getReduceTotalMem(){
+        return this._reduce_total_mem;
+    }
+
     void add(Container container, TaskAttemptId tId) {
       LOG.info("Assigned container " + container.getId().toString() + " to " + tId);
       containerToAttemptMap.put(container.getId(), tId);
