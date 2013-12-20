@@ -18,6 +18,7 @@
 
 package org.apache.hadoop.mapreduce.v2.app;
 
+import org.apache.hadoop.service.AbstractService;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -456,12 +457,13 @@ public class MRApp extends MRAppMaster {
     return new MockContainerLauncher();
   }
 
-  protected class MockContainerLauncher implements ContainerLauncher {
+  protected class MockContainerLauncher extends AbstractService implements ContainerLauncher {
 
     //We are running locally so set the shuffle port to -1 
     int shufflePort = -1;
 
     public MockContainerLauncher() {
+        super(MockContainerLauncher.class.getName());
     }
 
     @Override
