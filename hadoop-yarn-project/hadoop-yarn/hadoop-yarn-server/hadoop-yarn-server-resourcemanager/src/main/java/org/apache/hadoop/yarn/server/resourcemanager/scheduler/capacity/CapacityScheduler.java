@@ -89,7 +89,8 @@ public class CapacityScheduler
              Configurable {
 
   private static final Log LOG = LogFactory.getLog(CapacityScheduler.class);
-  private static final String str_withcapacity="true";//limin
+  private static  String str_withcapacity="true";//limin
+  
  // private static final String str_withcapacity="false";//limin
   private CSQueue root;
 
@@ -124,6 +125,10 @@ public class CapacityScheduler
   
   private void validateConf(Configuration conf) {
     // validate scheduler memory allocation setting
+      //limin
+     CapacityScheduler.str_withcapacity=conf.get(YarnConfiguration.RM_SCHEDULER_CAPACITYSCHEDYLER_SUPPORT,
+             YarnConfiguration.DEFAULT_RM_SCHEDULER_CAPACITYSCHEDYLER_SUPPORT);
+     LOG.info("capacity scheduler suppport for differnt cap on the same node "+CapacityScheduler.str_withcapacity);
     int minMem = conf.getInt(
       YarnConfiguration.RM_SCHEDULER_MINIMUM_ALLOCATION_MB,
       YarnConfiguration.DEFAULT_RM_SCHEDULER_MINIMUM_ALLOCATION_MB);
