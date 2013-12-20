@@ -299,6 +299,11 @@ public class LeafQueueWithCapacity extends LeafQueue{
                             }
 
                             // Done
+                            if (LOG.isDebugEnabled()) {
+                                LOG.debug("post-assignContainers for application "
+                                        + application.getApplicationId());
+                                application.showRequests();
+                            }
                             return assignment;
                         } else {
                             // Do not assign out of order w.r.t priorities
@@ -318,8 +323,9 @@ public class LeafQueueWithCapacity extends LeafQueue{
             if (LOG.isDebugEnabled()) {
                 LOG.debug("post-assignContainers for application "
                         + application.getApplicationId());
+                application.showRequests();
             }
-            application.showRequests();
+            
         }
 
         return NULL_ASSIGNMENT;
