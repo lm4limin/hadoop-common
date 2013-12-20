@@ -1357,7 +1357,8 @@ protected synchronized CSAssignment
       // Inform the application
       RMContainer allocatedContainer = 
           application.allocate(type, node, priority, request, container);
-
+      
+      
       // Does the application need this resource?
       if (allocatedContainer == null) {
         return Resources.none();
@@ -1376,7 +1377,9 @@ protected synchronized CSAssignment
           " absoluteUsedCapacity=" + getAbsoluteUsedCapacity() +
           " used=" + usedResources + 
           " cluster=" + clusterResource);
-
+        if(LOG.isDebugEnabled()){
+            application.showRequests();
+        }
       return container.getResource();
     } else {
       // Reserve by 'charging' in advance...
