@@ -115,6 +115,7 @@ public class TestCapacityScheduler {
     Configuration conf = new YarnConfiguration();
     conf.setInt(YarnConfiguration.RM_SCHEDULER_MINIMUM_ALLOCATION_MB, 2048);
     conf.setInt(YarnConfiguration.RM_SCHEDULER_MAXIMUM_ALLOCATION_MB, 1024);
+    ((CapacityScheduler)scheduler).setConf(conf);//limin
     try {
       scheduler.reinitialize(conf, null);
       fail("Exception is expected because the min memory allocation is" +
