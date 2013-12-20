@@ -188,15 +188,15 @@ public class FiCaSchedulerAppWithCapacity extends FiCaSchedulerApp {
     @Override
     synchronized public void showRequests() {
         if (LOG.isDebugEnabled()) {
-            for (Priority priority : getPriorities()) {                
+            LOG.debug("showRequests:" + " application=" + getApplicationId()
+                    + " headRoom=" + getHeadroom()
+                    + " currentConsumption=" + currentConsumption.getMemory());
+            for (Priority priority : getPriorities()) {
                 Map<String, Map<Resource, ResourceRequest>> hm_requests = getResourceRequestsCap(priority);
                 if (hm_requests != null) {
-                    LOG.debug("showRequests:" + " application=" + getApplicationId()
-                            + " headRoom=" + getHeadroom()
-                            + " currentConsumption=" + currentConsumption.getMemory());
                     for (String resourcename : hm_requests.keySet()) {
-                        Map<Resource, ResourceRequest> hm_request=hm_requests.get(resourcename);
-                        LOG.debug("resource "+resourcename);
+                        Map<Resource, ResourceRequest> hm_request = hm_requests.get(resourcename);
+                        LOG.debug("resource " + resourcename);
                         if (hm_request != null) {
                             for (ResourceRequest request : hm_request.values()) {
                                 LOG.debug("showRequests:" + " application=" + getApplicationId()
