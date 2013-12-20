@@ -112,8 +112,13 @@ public class YarnConfiguration extends Configuration {
     DEFAULT_RM_SCHEDULER_PORT;
 
   /** Miniumum request grant-able by the RM scheduler. */
+  public static final String RM_SCHEDULER_CAPACITYSCHEDYLER_SUPPORT=YARN_PREFIX
+          +"capacityscheduler.differentcap.support"; //limin
+  public static final String DEFAULT_RM_SCHEDULER_CAPACITYSCHEDYLER_SUPPORT="false";
+  public static final String RM_SCHEDULER_CAPACITYSCHEDYLER_SUPPORT_YES="true";
+  
   public static final String RM_SCHEDULER_MINIMUM_ALLOCATION_MB =
-    YARN_PREFIX + "scheduler.minimum-allocation-mb";
+    RM_PREFIX + "scheduler.minimum-allocation-mb";
   public static final int DEFAULT_RM_SCHEDULER_MINIMUM_ALLOCATION_MB = 1024;
   public static final String RM_SCHEDULER_MINIMUM_ALLOCATION_VCORES =
       YARN_PREFIX + "scheduler.minimum-allocation-vcores";
