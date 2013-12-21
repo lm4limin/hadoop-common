@@ -1368,7 +1368,7 @@ protected synchronized CSAssignment
       node.allocateContainer(application.getApplicationId(), 
           allocatedContainer);
 
-      LOG.info("assignedContainer" +
+      LOG.info("AssignedContainer" +
           " application=" + application.getApplicationId() +
           " container=" + container + 
           " containerId=" + container.getId() + 
@@ -1385,7 +1385,7 @@ protected synchronized CSAssignment
       // Reserve by 'charging' in advance...
       reserve(application, priority, node, rmContainer, container);
 
-      LOG.info("Reserved container " + 
+      LOG.info("AssignedContainer: Reserved container, not assigned " + 
           " application=" + application.getApplicationId() +
           " resource=" + request.getCapability() + 
           " queue=" + this.toString() + 
@@ -1393,7 +1393,9 @@ protected synchronized CSAssignment
           " absoluteUsedCapacity=" + getAbsoluteUsedCapacity() +
           " used=" + usedResources + 
           " cluster=" + clusterResource);
-
+      if(LOG.isDebugEnabled()){
+            application.showRequests();
+        }
       return request.getCapability();
     }
   }
