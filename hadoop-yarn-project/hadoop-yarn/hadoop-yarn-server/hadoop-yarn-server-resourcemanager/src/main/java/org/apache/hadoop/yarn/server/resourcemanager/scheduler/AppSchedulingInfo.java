@@ -137,6 +137,7 @@ public class AppSchedulingInfo {
         if (LOG.isDebugEnabled()) {
           LOG.debug("update:" + " application=" + applicationId + " request="
               + request);
+          
         }
         updatePendingResources = true;
         
