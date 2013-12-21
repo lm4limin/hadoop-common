@@ -811,6 +811,10 @@ public class LeafQueue implements CSQueue {
             FiCaSchedulerApp application =
                     getApplication(reservedContainer.getApplicationAttemptId());
             synchronized (application) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("assignContainers:  reserve container"
+                            + application.getApplicationId());
+                }
                 return assignReservedContainer(application, node, reservedContainer,
                         clusterResource);
             }
@@ -854,6 +858,10 @@ public class LeafQueue implements CSQueue {
 
                     // Check queue max-capacity limit
                     if (!assignToQueue(clusterResource, required)) {
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug("post-assignContainers  exceed queue max-capacity limit"
+                                    + application.getApplicationId());                            
+                        }
                         return NULL_ASSIGNMENT;
                     }
 
@@ -905,8 +913,8 @@ public class LeafQueue implements CSQueue {
                         // Do not assign out of order w.r.t priorities
                         break;
                     }
-                }
-            }
+                }//end for
+            }//end synch app
 
             if (LOG.isDebugEnabled()) {
                 LOG.debug("post-assignContainers for application "
