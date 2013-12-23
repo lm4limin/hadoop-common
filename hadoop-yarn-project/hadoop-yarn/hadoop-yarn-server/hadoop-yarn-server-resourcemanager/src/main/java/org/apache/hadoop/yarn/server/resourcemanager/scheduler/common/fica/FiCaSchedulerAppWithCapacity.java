@@ -129,6 +129,9 @@ public class FiCaSchedulerAppWithCapacity extends FiCaSchedulerApp {
     public Map<Resource, ResourceRequest> getResourceRequestCap(Priority priority, String resourceName) {
         return this.appSchedulingInfoWithCapacity.getResourceRequestCap(priority, resourceName);
     }
+    public ResourceRequest getSingleResourceRequestCap(Priority priority,String resourceName,Resource resource){
+        return this.appSchedulingInfoWithCapacity.getSingleResourceRequestCap(priority, resourceName, resource);
+    }
       public Map<String, Map<Resource, ResourceRequest>> getResourceRequestsCap(Priority priority) {
     return this.appSchedulingInfoWithCapacity.getResourceRequestsCap(priority);
   }

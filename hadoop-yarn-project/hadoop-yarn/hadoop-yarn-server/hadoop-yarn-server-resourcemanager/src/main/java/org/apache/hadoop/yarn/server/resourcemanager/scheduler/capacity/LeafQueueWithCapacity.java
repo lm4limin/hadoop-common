@@ -138,41 +138,85 @@ public class LeafQueueWithCapacity extends LeafQueue{
         }
         return SKIP_ASSIGNMENT;
     }
-   @Override
+    
+      //private Resource assignNodeLocalContainers(
+    @Override
+    protected Resource assignNodeLocalContainers(
+            Resource clusterResource, ResourceRequest nodeLocalResourceRequest,
+            FiCaSchedulerNode node, FiCaSchedulerApp application,
+            Priority priority, RMContainer reservedContainer) {
+        if (canAssign(application, priority, node, NodeType.NODE_LOCAL,
+                reservedContainer)) {
+            FiCaSchedulerAppWithCapacity app = (FiCaSchedulerAppWithCapacity) application;
+            int num = nodeLocalResourceRequest.getNumContainers();
+
+            ResourceRequest rackreq=app.getSingleResourceRequestCap(priority, node.getRackName(), nodeLocalResourceRequest.getCapability());
+            int num1 = (rackreq==null)?0:rackreq.getNumContainers();
+            if (num1 < num) {
+                return Resources.none();
+            }
+            ResourceRequest offswitchreq=app.getSingleResourceRequestCap(priority, ResourceRequest.ANY, nodeLocalResourceRequest.getCapability());
+            int num2 = (offswitchreq==null)? 0:offswitchreq.getNumContainers();
+            if (num2 < num) {
+                return Resources.none();
+            }
+            return super.assignContainer(clusterResource, node, application, priority,
+                    nodeLocalResourceRequest, NodeType.NODE_LOCAL, reservedContainer);
+        }
+
+        return Resources.none();
+    }
+    @Override
+    protected Resource assignRackLocalContainers(
+            //private Resource assignRackLocalContainers(
+            Resource clusterResource, ResourceRequest rackLocalResourceRequest,
+            FiCaSchedulerNode node, FiCaSchedulerApp application, Priority priority,
+            RMContainer reservedContainer) {
+        if (canAssign(application, priority, node, NodeType.RACK_LOCAL,
+                reservedContainer)) {
+            FiCaSchedulerAppWithCapacity app = (FiCaSchedulerAppWithCapacity) application;
+            int num = rackLocalResourceRequest.getNumContainers();
+            ResourceRequest offswitchreq = app.getSingleResourceRequestCap(priority, ResourceRequest.ANY, rackLocalResourceRequest.getCapability());
+            int num2 = (offswitchreq == null) ? 0 : offswitchreq.getNumContainers();
+            if (num2 < num) {
+                return Resources.none();
+            }
+            return assignContainer(clusterResource, node, application, priority,
+                    rackLocalResourceRequest, NodeType.RACK_LOCAL, reservedContainer);
+        }
+
+        return Resources.none();
+    }
+ 
+    @Override
     boolean canAssign(FiCaSchedulerApp app, Priority priority,
             FiCaSchedulerNode node, NodeType type, RMContainer reservedContainer) {
-       FiCaSchedulerAppWithCapacity application= (FiCaSchedulerAppWithCapacity)app;
+
+        FiCaSchedulerAppWithCapacity application = (FiCaSchedulerAppWithCapacity) app;
+        long requiredContainers_off,requiredContainers_rack,requiredContainers_node;
         // Clearly we need containers for this application...
-        //  FiCaSchedulerAppWithCapacity applicationCap=(FiCaSchedulerAppWithCapacity)application;
-        if (type == NodeType.OFF_SWITCH) {
+        if (type == NodeType.OFF_SWITCH) {            
             if (reservedContainer != null) {
                 return true;
             }
-
             // 'Delay' off-switch
             Map<Resource, ResourceRequest> offSwitchRequest =
                     application.getResourceRequestCap(priority, ResourceRequest.ANY);
             long missedOpportunities = application.getSchedulingOpportunities(priority);
-            long requiredContainers = 0;//offSwitchRequest.getNumContainers(); 
-            if (offSwitchRequest != null) {
-                for (ResourceRequest req : offSwitchRequest.values()) {
-                    requiredContainers += req.getNumContainers();
-                }
-            }
+            requiredContainers_off = FiCaSchedulerAppWithCapacity.getNumContainers(offSwitchRequest);//offSwitchRequest.getNumContainers(); 
             float localityWaitFactor =
                     application.getLocalityWaitFactor(priority,
                     scheduler.getNumClusterNodes());
 
-            return ((requiredContainers * localityWaitFactor) < missedOpportunities);
+            return ((requiredContainers_off * localityWaitFactor) < missedOpportunities);
         }
 
         // Check if we need containers on this rack 
         Map<Resource, ResourceRequest> hm_rackLocalRequest =
                 application.getResourceRequestCap(priority, node.getRackName());
-        //ResourceRequest rackLocalRequest =
-         //       application.getResourceRequest(priority, node.getRackName());
+        requiredContainers_rack=FiCaSchedulerAppWithCapacity.getNumContainers(hm_rackLocalRequest) ;
         if (hm_rackLocalRequest == null
-                || FiCaSchedulerAppWithCapacity.getNumContainers(hm_rackLocalRequest) <= 0) {
+                || requiredContainers_rack<= 0) {
             return false;
         }
 
@@ -187,10 +231,12 @@ public class LeafQueueWithCapacity extends LeafQueue{
         // Check if we need containers on this host
         if (type == NodeType.NODE_LOCAL) {
             // Now check if we need containers on this host...
-            Map<Resource,ResourceRequest> hm_nodeLocalRequest =
+            Map<Resource, ResourceRequest> hm_nodeLocalRequest =
                     application.getResourceRequestCap(priority, node.getHostName());
             if (hm_nodeLocalRequest != null) {
-                return FiCaSchedulerAppWithCapacity.getNumContainers(hm_rackLocalRequest)>0;                
+                boolean res = true;
+                //limin**
+                return FiCaSchedulerAppWithCapacity.getNumContainers(hm_nodeLocalRequest) > 0;
             }
         }
 

@@ -170,6 +170,11 @@ public class AppSchedulingInfoWithCapacity extends AppSchedulingInfo{
     Map<String, Map<Resource,ResourceRequest>> nodeRequests = requestsCap.get(priority);
     return (nodeRequests == null) ? null : nodeRequests.get(resourceName);
   }
+  synchronized public ResourceRequest getSingleResourceRequestCap(Priority priority,String resourceName,Resource resource){
+      Map<String, Map<Resource,ResourceRequest>> nodeRequests = requestsCap.get(priority);
+     Map<Resource,ResourceRequest> hm=(nodeRequests == null) ? null : nodeRequests.get(resourceName);
+     return (hm==null)? null:hm.get(resource);
+  }
   
   public synchronized List<Resource> getResourceCap(Priority priority) {
     List<Resource> res=new ArrayList<Resource>();

@@ -1317,7 +1317,8 @@ protected synchronized CSAssignment
         application.getUser(), container.getResource());
   }
 
-  private Resource assignContainer(Resource clusterResource, FiCaSchedulerNode node, 
+  //private Resource assignContainer(Resource clusterResource, FiCaSchedulerNode node, 
+    protected Resource assignContainer(Resource clusterResource, FiCaSchedulerNode node, 
       FiCaSchedulerApp application, Priority priority, 
       ResourceRequest request, NodeType type, RMContainer rmContainer) {
     if (LOG.isDebugEnabled()) {
