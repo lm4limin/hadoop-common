@@ -121,6 +121,8 @@ public class LeafQueueWithCapacityTest {
         final String newRoot = "root" + System.currentTimeMillis();
         setupQueueConfiguration(csConf, newRoot);
         YarnConfiguration conf = new YarnConfiguration();
+                conf.set(YarnConfiguration.RM_SCHEDULER_CAPACITYSCHEDYLER_SUPPORT,
+             YarnConfiguration.RM_SCHEDULER_CAPACITYSCHEDYLER_SUPPORT_YES);
         cs.setConf(conf);
 
         csContext = mock(CapacitySchedulerContext.class);
