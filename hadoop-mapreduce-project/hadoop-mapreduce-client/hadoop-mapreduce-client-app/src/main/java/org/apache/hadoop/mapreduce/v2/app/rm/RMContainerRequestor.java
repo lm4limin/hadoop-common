@@ -334,7 +334,8 @@ public abstract class RMContainerRequestor extends RMCommunicator {
     if (LOG.isDebugEnabled()) {
       LOG.debug("addResourceRequest:" + " applicationId="
           + applicationId.getId() + " priority=" + priority.getPriority()
-          + " resourceName=" + resourceName + " numContainers="
+          + " resourceName=" + resourceName + " capacity=" + remoteRequest.getCapability().toString()
+              + " numContainers="
           + remoteRequest.getNumContainers() + " #asks=" + ask.size());
     }
   }
@@ -359,7 +360,8 @@ public abstract class RMContainerRequestor extends RMCommunicator {
     if (LOG.isDebugEnabled()) {
       LOG.debug("BEFORE decResourceRequest:" + " applicationId="
           + applicationId.getId() + " priority=" + priority.getPriority()
-          + " resourceName=" + resourceName + " numContainers="
+          + " resourceName=" + resourceName + " capacity=" + remoteRequest.getCapability().toString()
+              + " numContainers="
           + remoteRequest.getNumContainers() + " #asks=" + ask.size());
     }
 
@@ -386,7 +388,8 @@ public abstract class RMContainerRequestor extends RMCommunicator {
     if (LOG.isDebugEnabled()) {
       LOG.info("AFTER decResourceRequest:" + " applicationId="
           + applicationId.getId() + " priority=" + priority.getPriority()
-          + " resourceName=" + resourceName + " numContainers="
+          + " resourceName=" + resourceName + " capacity=" + remoteRequest.getCapability().toString()
+              +" numContainers="
           + remoteRequest.getNumContainers() + " #asks=" + ask.size());
     }
   }

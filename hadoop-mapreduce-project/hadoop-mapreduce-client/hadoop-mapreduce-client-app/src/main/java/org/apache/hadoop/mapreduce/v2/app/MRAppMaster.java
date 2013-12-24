@@ -134,6 +134,7 @@ import org.apache.hadoop.yarn.util.ConverterUtils;
 import org.apache.hadoop.yarn.util.SystemClock;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.apache.hadoop.mapreduce.v2.app.rm.*;
 
 /**
  * The Map-Reduce Application Master.
@@ -782,9 +783,19 @@ public class MRAppMaster extends CompositeService {
             this.clientService, this.context, nmHost, nmPort, nmHttpPort
             , containerID);
       } else {
-        this.containerAllocator = new RMContainerAllocator(
-            this.clientService, this.context);
-      }
+          //limin
+            Configuration conf = getConfig();
+            String mode=conf.get(YarnConfiguration.RM_SCHEDULER_CAPACITYSCHEDYLER_SUPPORT,
+                    YarnConfiguration.DEFAULT_RM_SCHEDULER_CAPACITYSCHEDYLER_SUPPORT);
+            if (mode.equals(YarnConfiguration.RM_SCHEDULER_CAPACITYSCHEDYLER_SUPPORT_YES)) {
+                this.containerAllocator = new RMContainerAllocatorWithCap(
+                        this.clientService, this.context);
+                LOG.info("MRAppMaster suppport for different cap on the same node "+mode);
+            } else {
+                this.containerAllocator = new RMContainerAllocator(
+                        this.clientService, this.context);
+            }
+        }
       ((Service)this.containerAllocator).init(getConfig());
       ((Service)this.containerAllocator).start();
       super.serviceStart();

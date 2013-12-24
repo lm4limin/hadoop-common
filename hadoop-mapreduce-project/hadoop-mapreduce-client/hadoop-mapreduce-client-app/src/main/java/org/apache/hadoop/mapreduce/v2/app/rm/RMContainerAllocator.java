@@ -137,8 +137,8 @@ public class RMContainerAllocator extends RMContainerRequestor
   private int lastCompletedTasks = 0;
   
   private boolean recalculateReduceSchedule = false;
-  private int mapResourceReqt=Integer.MAX_VALUE;//memory
-  private int reduceResourceReqt=Integer.MAX_VALUE;//memory
+  private int mapResourceReqt;//memory
+  private int reduceResourceReqt;//memory
   
   private boolean reduceStarted = false;
   private float maxReduceRampupLimit = 0;
@@ -291,49 +291,46 @@ public class RMContainerAllocator extends RMContainerRequestor
       int supportedMaxContainerCapability =
           getMaxContainerCapability().getMemory();
       if (reqEvent.getAttemptID().getTaskId().getTaskType().equals(TaskType.MAP)) {
-       // if (mapResourceReqt == 0) {//limin
-          int  tmp_mapResourceReqt = reqEvent.getCapability().getMemory();
-       //   mapResourceReqt=mapResourceReqt<tmp_mapResourceReqt?mapResourceReqt:tmp_mapResourceReqt;
+        if (mapResourceReqt == 0) {
+          mapResourceReqt = reqEvent.getCapability().getMemory();
           eventHandler.handle(new JobHistoryEvent(jobId, 
               new NormalizedResourceEvent(org.apache.hadoop.mapreduce.TaskType.MAP,
-              tmp_mapResourceReqt)));
-          LOG.info("mapResourceReqt:"+tmp_mapResourceReqt);
-          if (tmp_mapResourceReqt > supportedMaxContainerCapability) {
+              mapResourceReqt)));
+          LOG.info("mapResourceReqt:"+mapResourceReqt);
+          if (mapResourceReqt > supportedMaxContainerCapability) {
             String diagMsg = "MAP capability required is more than the supported " +
             "max container capability in the cluster. Killing the Job. mapResourceReqt: " + 
-            tmp_mapResourceReqt + " maxContainerCapability:" + supportedMaxContainerCapability;
+            mapResourceReqt + " maxContainerCapability:" + supportedMaxContainerCapability;
             LOG.info(diagMsg);
             eventHandler.handle(new JobDiagnosticsUpdateEvent(
                 jobId, diagMsg));
             eventHandler.handle(new JobEvent(jobId, JobEventType.JOB_KILL));
           }
-       // }//limin
+        }
         //set the rounded off memory
-      //  reqEvent.getCapability().setMemory(mapResourceReqt);//limin, comment out this
+        reqEvent.getCapability().setMemory(mapResourceReqt);
         scheduledRequests.addMap(reqEvent);//maps are immediately scheduled
       } else {
-     //   if (reduceResourceReqt == 0) {//limin
-          
-          int tmp_reduceResourceReqt = reqEvent.getCapability().getMemory();
-         // reduceResourceReqt =reduceResourceReqt <tmp_reduceResourceReqt?reduceResourceReqt:tmp_reduceResourceReqt;
+        if (reduceResourceReqt == 0) {
+          reduceResourceReqt = reqEvent.getCapability().getMemory();
           eventHandler.handle(new JobHistoryEvent(jobId, 
               new NormalizedResourceEvent(
                   org.apache.hadoop.mapreduce.TaskType.REDUCE,
-              tmp_reduceResourceReqt)));
-          LOG.info("reduceResourceReqt:"+tmp_reduceResourceReqt);
-          if (tmp_reduceResourceReqt > supportedMaxContainerCapability) {
+              reduceResourceReqt)));
+          LOG.info("reduceResourceReqt:"+reduceResourceReqt);
+          if (reduceResourceReqt > supportedMaxContainerCapability) {
             String diagMsg = "REDUCE capability required is more than the " +
             		"supported max container capability in the cluster. Killing the " +
-            		"Job. reduceResourceReqt: " + tmp_reduceResourceReqt +
+            		"Job. reduceResourceReqt: " + reduceResourceReqt +
             		" maxContainerCapability:" + supportedMaxContainerCapability;
             LOG.info(diagMsg);
             eventHandler.handle(new JobDiagnosticsUpdateEvent(
                 jobId, diagMsg));
             eventHandler.handle(new JobEvent(jobId, JobEventType.JOB_KILL));
           }
-      //  }//limin
+        }
         //set the rounded off memory
-      //  reqEvent.getCapability().setMemory(reduceResourceReqt);//limin
+        reqEvent.getCapability().setMemory(reduceResourceReqt);
         if (reqEvent.getEarlierAttemptFailed()) {
           //add to the front of queue for fail fast
           pendingReduces.addFirst(new ContainerRequest(reqEvent, PRIORITY_REDUCE));
@@ -465,20 +462,12 @@ public class RMContainerAllocator extends RMContainerRequestor
     } else {
       completedMapPercent = 1;
     }
-    int netScheduledMapMem=0;
-    int netScheduledReduceMem=0;
-    if(this.scheduledRequests!=null&&this.assignedRequests!=null){
-         netScheduledMapMem = this.scheduledRequests.getMapTotalMem()
-            +this.assignedRequests.getMapTotalMem();//limin
-         netScheduledReduceMem = this.scheduledRequests.getReduceTotalMem()//limin
-            +this.assignedRequests.getReduceTotalMem();
-    }else{
-    netScheduledMapMem =  (scheduledMaps + assignedMaps) * mapResourceReqt;
-    netScheduledReduceMem = (scheduledReduces + assignedReduces) * reduceResourceReqt;
-    }
-     
+    
+    int netScheduledMapMem = 
+        (scheduledMaps + assignedMaps) * mapResourceReqt;
 
-     
+    int netScheduledReduceMem = 
+        (scheduledReduces + assignedReduces) * reduceResourceReqt;
 
     int finalMapMemLimit = 0;
     int finalReduceMemLimit = 0;
@@ -509,14 +498,8 @@ public class RMContainerAllocator extends RMContainerRequestor
         " netScheduledMapMem:" + netScheduledMapMem +
         " netScheduledReduceMem:" + netScheduledReduceMem);
     
-    int rampUp=0;
-    if(this.scheduledRequests!=null){
-        rampUp = (finalReduceMemLimit - netScheduledReduceMem)
-            /this.scheduledRequests.get_min_mem(PRIORITY_REDUCE);//todo: doublecheck
-    }else{
-        rampUp = (finalReduceMemLimit - netScheduledReduceMem) / reduceResourceReqt;//limin
-    }
-     
+    int rampUp = 
+        (finalReduceMemLimit - netScheduledReduceMem) / reduceResourceReqt;
     
     if (rampUp > 0) {
       rampUp = Math.min(rampUp, numPendingReduces);
@@ -706,18 +689,10 @@ public class RMContainerAllocator extends RMContainerRequestor
   @Private
   public int getMemLimit() {
     int headRoom = getAvailableResources() != null ? getAvailableResources().getMemory() : 0;
-    int org= headRoom + assignedRequests.maps.size() * mapResourceReqt + 
-       assignedRequests.reduces.size() * reduceResourceReqt;//limin
-    return headRoom + assignedRequests._map_total_mem + 
-       assignedRequests._reduce_total_mem;//limin
-    
+    return headRoom + assignedRequests.maps.size() * mapResourceReqt + 
+       assignedRequests.reduces.size() * reduceResourceReqt;
   }
-  /*private ScheduledRequests getScheduledRequests(){
-      return this.scheduledRequests;
-  }
-  private AssignedRequests getAssignedRequests(){
-      return this.assignedRequests;
-  }*/
+  
   private class ScheduledRequests {
     
     private final LinkedList<TaskAttemptId> earlierFailedMaps = 
@@ -730,24 +705,16 @@ public class RMContainerAllocator extends RMContainerRequestor
       new HashMap<String, LinkedList<TaskAttemptId>>();
     private final Map<TaskAttemptId, ContainerRequest> maps = 
       new LinkedHashMap<TaskAttemptId, ContainerRequest>();
-    private int _maps_total_mem=0;//limin
+    
     private final LinkedHashMap<TaskAttemptId, ContainerRequest> reduces = 
       new LinkedHashMap<TaskAttemptId, ContainerRequest>();
-    private int _reduce_total_mem=0;//limin
-    int getMapTotalMem(){
-        return this._maps_total_mem;
-    }
-    int getReduceTotalMem(){
-        return this._reduce_total_mem;
-    }
+    
     boolean remove(TaskAttemptId tId) {
       ContainerRequest req = null;
       if (tId.getTaskId().getTaskType().equals(TaskType.MAP)) {
         req = maps.remove(tId);
-        this._maps_total_mem-=req.capability.getMemory();//limin
       } else {
         req = reduces.remove(tId);
-        this._reduce_total_mem-=req.capability.getMemory();//limin
       }
       
       if (req == null) {
@@ -762,8 +729,7 @@ public class RMContainerAllocator extends RMContainerRequestor
       Iterator<Entry<TaskAttemptId, ContainerRequest>> it = reduces.entrySet().iterator();
       if (it.hasNext()) {
         Entry<TaskAttemptId, ContainerRequest> entry = it.next();
-        this._reduce_total_mem-=entry.getValue().capability.getMemory();//limin
-        it.remove();        
+        it.remove();
         decContainerReq(entry.getValue());
         return entry.getValue();
       }
@@ -803,27 +769,11 @@ public class RMContainerAllocator extends RMContainerRequestor
        request = new ContainerRequest(event, PRIORITY_MAP);
       }
       maps.put(event.getAttemptID(), request);
-      this._maps_total_mem+=event.getCapability().getMemory();//limin
       addContainerReq(request);
     }
-      int get_min_mem(Priority priority) {
-          int res = Integer.MAX_VALUE;
-          Iterator it = null;
-          if (PRIORITY_FAST_FAIL_MAP.equals(priority) || PRIORITY_MAP.equals(priority)) {
-              it = maps.entrySet().iterator();
-          } else {
-              it = reduces.entrySet().iterator();
-          }
-          while (it.hasNext()) {
-              Map.Entry<TaskAttemptId, ContainerRequest> pairs = (Map.Entry) it.next();
-              int tmp = pairs.getValue().capability.getMemory();
-              res = res < tmp ? res : tmp;
-          }
-          return res;
-      }
+    
     
     void addReduce(ContainerRequest req) {
-        this._reduce_total_mem+=req.capability.getMemory();//limin
       reduces.put(req.attemptID, req);
       addContainerReq(req);
     }
@@ -849,24 +799,22 @@ public class RMContainerAllocator extends RMContainerRequestor
         int allocatedMemory = allocated.getResource().getMemory();
         if (PRIORITY_FAST_FAIL_MAP.equals(priority) 
             || PRIORITY_MAP.equals(priority)) {
-            int mem=this.get_min_mem(priority);
-          if (allocatedMemory < mem//mapResourceReqt
+          if (allocatedMemory < mapResourceReqt
               || maps.isEmpty()) {
             LOG.info("Cannot assign container " + allocated 
                 + " for a map as either "
-                + " container memory less than required " + mem//mapResourceReqt
+                + " container memory less than required " + mapResourceReqt
                 + " or no pending map tasks - maps.isEmpty=" 
                 + maps.isEmpty()); 
             isAssignable = false; 
           }
         } 
         else if (PRIORITY_REDUCE.equals(priority)) {
-            int mem=this.get_min_mem(priority);
-          if (allocatedMemory < mem//reduceResourceReqt
+          if (allocatedMemory < reduceResourceReqt
               || reduces.isEmpty()) {
             LOG.info("Cannot assign container " + allocated 
                 + " for a reduce as either "
-                + " container memory less than required " + mem//reduceResourceReqt
+                + " container memory less than required " + reduceResourceReqt
                 + " or no pending reduce tasks - reduces.isEmpty=" 
                 + reduces.isEmpty()); 
             isAssignable = false;
@@ -907,11 +855,9 @@ public class RMContainerAllocator extends RMContainerRequestor
             if (toBeReplacedReq.attemptID.getTaskId().getTaskType() ==
                 TaskType.MAP) {
               maps.put(newReq.attemptID, newReq);
-              this._maps_total_mem+=newReq.capability.getMemory();//limin
             }
             else {
               reduces.put(newReq.attemptID, newReq);
-              this._reduce_total_mem+=newReq.capability.getMemory();//limin
             }
             addContainerReq(newReq);
           }
@@ -1016,60 +962,30 @@ public class RMContainerAllocator extends RMContainerRequestor
           TaskAttemptId tId = list.removeLast();
           if (maps.containsKey(tId)) {
             toBeReplaced = maps.remove(tId);
-            this._maps_total_mem-=toBeReplaced.capability.getMemory();//limin
           }
         }
         else {
           TaskAttemptId tId = maps.keySet().iterator().next();
           toBeReplaced = maps.remove(tId);          
-          this._maps_total_mem-=toBeReplaced.capability.getMemory();//limin
         }        
       }
       else if (PRIORITY_REDUCE.equals(priority)) {
         TaskAttemptId tId = reduces.keySet().iterator().next();
         toBeReplaced = reduces.remove(tId);    
-        this._reduce_total_mem-=toBeReplaced.capability.getMemory();//limin
       }
       LOG.info("Found replacement: " + toBeReplaced);
       return toBeReplaced;
     }
     
-    //find the attempt that satisfy the container requirement;  
-      @SuppressWarnings("unchecked")
-      private ContainerRequest assignToFailedMap(Container allocated) {
-          //try to assign to earlierFailedMaps if present
-          ContainerRequest assigned = null;
-          while (assigned == null && earlierFailedMaps.size() > 0) {
-              TaskAttemptId tId = earlierFailedMaps.removeFirst();       //todo:double check        
-              if (maps.containsKey(tId)) {
-                  assigned = maps.get(tId);
-                  int mem = assigned.capability.getMemory();
-                  int a_mem = allocated.getResource().getMemory();
-                  if (mem <= a_mem && mem + 256 >= a_mem
-                          && assigned.capability.getVirtualCores() == allocated.getResource().getVirtualCores()) {                      
-                      maps.remove(tId);
-                      this._maps_total_mem -= assigned.capability.getMemory();//limin
-                      JobCounterUpdateEvent jce =
-                              new JobCounterUpdateEvent(assigned.attemptID.getTaskId().getJobId());
-                      jce.addCounterUpdate(JobCounter.OTHER_LOCAL_MAPS, 1);
-                      eventHandler.handle(jce);
-                      LOG.info("Assigned from earlierFailedMaps");
-                      break;
-                  }
-
-              }
-          }
-      return assigned;
-    }    
+    
     @SuppressWarnings("unchecked")
-    private ContainerRequest assignToFailedMap_org(Container allocated) {
+    private ContainerRequest assignToFailedMap(Container allocated) {
       //try to assign to earlierFailedMaps if present
       ContainerRequest assigned = null;
       while (assigned == null && earlierFailedMaps.size() > 0) {
         TaskAttemptId tId = earlierFailedMaps.removeFirst();      
         if (maps.containsKey(tId)) {
           assigned = maps.remove(tId);
-          this._maps_total_mem-=assigned.capability.getMemory();//limin
           JobCounterUpdateEvent jce =
             new JobCounterUpdateEvent(assigned.attemptID.getTaskId().getJobId());
           jce.addCounterUpdate(JobCounter.OTHER_LOCAL_MAPS, 1);
@@ -1080,153 +996,20 @@ public class RMContainerAllocator extends RMContainerRequestor
       }
       return assigned;
     }
-
-      private ContainerRequest assignToReduce(Container allocated) {
-          ContainerRequest assigned = null;
-          //try to assign to reduces if present
-          Iterator it = reduces.entrySet().iterator();
-          while (assigned == null && it.hasNext()) {
-              Map.Entry<TaskAttemptId, ContainerRequest> entry = (Map.Entry) it.next();
-              assigned = entry.getValue();
-              int mem = assigned.capability.getMemory();
-              int a_mem = allocated.getResource().getMemory();
-              if (mem <= a_mem && mem + 256 >= a_mem
-                      && assigned.capability.getVirtualCores() == allocated.getResource().getVirtualCores()) {
-                  reduces.remove(entry.getKey());
-                  this._reduce_total_mem -= assigned.capability.getMemory();//limin
-              }
-          }
-          return assigned;
-      }
-    private ContainerRequest assignToReduce_org(Container allocated) {
+    
+    private ContainerRequest assignToReduce(Container allocated) {
       ContainerRequest assigned = null;
       //try to assign to reduces if present
       if (assigned == null && reduces.size() > 0) {
         TaskAttemptId tId = reduces.keySet().iterator().next();
         assigned = reduces.remove(tId);
-        this._reduce_total_mem-=assigned.capability.getMemory();//limin
         LOG.info("Assigned to reduce");
       }
       return assigned;
     }
+    
     @SuppressWarnings("unchecked")
     private void assignMapsWithLocality(List<Container> allocatedContainers) {
-      // try to assign to all nodes first to match node local
-      Iterator<Container> it = allocatedContainers.iterator();
-      while(it.hasNext() && maps.size() > 0){
-        Container allocated = it.next();        
-        Priority priority = allocated.getPriority();
-        assert PRIORITY_MAP.equals(priority);
-        // "if (maps.containsKey(tId))" below should be almost always true.
-        // hence this while loop would almost always have O(1) complexity
-        String host = allocated.getNodeId().getHost();
-        LinkedList<TaskAttemptId> list = mapsHostMapping.get(host);
-        while (list != null && list.size() > 0) {
-          if (LOG.isDebugEnabled()) {
-            LOG.debug("Host matched to the request list " + host);
-          }
-          TaskAttemptId tId = list.removeFirst();//todo: double check
-            if (maps.containsKey(tId)) {
-                ContainerRequest assigned;//= maps.remove(tId);
-                assigned = maps.get(tId);
-                int mem = assigned.capability.getMemory();
-                int a_mem = allocated.getResource().getMemory();
-                if (mem <= a_mem && mem + 256 >= a_mem
-                        && assigned.capability.getVirtualCores() == allocated.getResource().getVirtualCores()) {
-                    maps.remove(tId);
-                    this._maps_total_mem -= assigned.capability.getMemory();//limin
-                    containerAssigned(allocated, assigned);
-                    it.remove();
-                    JobCounterUpdateEvent jce =
-                            new JobCounterUpdateEvent(assigned.attemptID.getTaskId().getJobId());
-                    jce.addCounterUpdate(JobCounter.DATA_LOCAL_MAPS, 1);
-                    eventHandler.handle(jce);
-                    hostLocalAssigned++;
-                }                                          
-            if (LOG.isDebugEnabled()) {
-              LOG.debug("Assigned based on host match " + host);
-            }
-            break;
-          }
-        }
-      }
-      
-      // try to match all rack local
-      it = allocatedContainers.iterator();
-      while(it.hasNext() && maps.size() > 0){
-        Container allocated = it.next();
-        Priority priority = allocated.getPriority();
-        assert PRIORITY_MAP.equals(priority);
-        // "if (maps.containsKey(tId))" below should be almost always true.
-        // hence this while loop would almost always have O(1) complexity
-        String host = allocated.getNodeId().getHost();
-        String rack = RackResolver.resolve(host).getNetworkLocation();
-        LinkedList<TaskAttemptId> list = mapsRackMapping.get(rack);
-        while (list != null && list.size() > 0) {
-          TaskAttemptId tId = list.removeFirst();
-            if (maps.containsKey(tId)) {
-                ContainerRequest assigned;//= maps.remove(tId);
-                assigned = maps.get(tId);
-                int mem = assigned.capability.getMemory();
-                int a_mem = allocated.getResource().getMemory();
-                if (mem <= a_mem && mem + 256 >= a_mem
-                        && assigned.capability.getVirtualCores() == allocated.getResource().getVirtualCores()) {
-                    maps.remove(tId);
-
-                    this._maps_total_mem -= assigned.capability.getMemory();//limin
-                    containerAssigned(allocated, assigned);
-                    it.remove();
-                    JobCounterUpdateEvent jce =
-                            new JobCounterUpdateEvent(assigned.attemptID.getTaskId().getJobId());
-                    jce.addCounterUpdate(JobCounter.RACK_LOCAL_MAPS, 1);
-                    eventHandler.handle(jce);
-                    rackLocalAssigned++;
-                }
-
-
-            if (LOG.isDebugEnabled()) {
-              LOG.debug("Assigned based on rack match " + rack);
-            }
-            break;
-          }
-        }
-      }
-      
-      // assign remaining
-        it = allocatedContainers.iterator();
-        while (it.hasNext() && maps.size() > 0) {
-            Container allocated = it.next();
-            Priority priority = allocated.getPriority();
-            assert PRIORITY_MAP.equals(priority);
-            TaskAttemptId tId;// = maps.keySet().iterator().next();
-            ContainerRequest assigned=null;// = maps.remove(tId);
-            Iterator itm = maps.entrySet().iterator();
-            while (assigned == null && itm.hasNext()) {//find a task; 
-                 Map.Entry<TaskAttemptId,ContainerRequest> pairs = (Map.Entry)itm.next();
-                assigned = pairs.getValue();//maps.get(tId);
-                tId=pairs.getKey();
-                int mem = assigned.capability.getMemory();
-                int a_mem = allocated.getResource().getMemory();
-                if (mem <= a_mem && mem + 256 >= a_mem
-                        && assigned.capability.getVirtualCores() == allocated.getResource().getVirtualCores()) {
-                    maps.remove(tId);
-                    this._maps_total_mem -= assigned.capability.getMemory();//limin
-                    containerAssigned(allocated, assigned);
-                    it.remove();
-                    JobCounterUpdateEvent jce =
-                            new JobCounterUpdateEvent(assigned.attemptID.getTaskId().getJobId());
-                    jce.addCounterUpdate(JobCounter.OTHER_LOCAL_MAPS, 1);
-                    eventHandler.handle(jce);
-                    break;
-                }                
-            }
-        if (LOG.isDebugEnabled()) {
-          LOG.debug("Assigned based on * match");
-        }
-      }
-    }    
-    @SuppressWarnings("unchecked")
-    private void assignMapsWithLocality_org(List<Container> allocatedContainers) {
       // try to assign to all nodes first to match node local
       Iterator<Container> it = allocatedContainers.iterator();
       while(it.hasNext() && maps.size() > 0){
@@ -1244,7 +1027,6 @@ public class RMContainerAllocator extends RMContainerRequestor
           TaskAttemptId tId = list.removeFirst();
           if (maps.containsKey(tId)) {
             ContainerRequest assigned = maps.remove(tId);
-            this._maps_total_mem-=assigned.capability.getMemory();//limin
             containerAssigned(allocated, assigned);
             it.remove();
             JobCounterUpdateEvent jce =
@@ -1275,7 +1057,6 @@ public class RMContainerAllocator extends RMContainerRequestor
           TaskAttemptId tId = list.removeFirst();
           if (maps.containsKey(tId)) {
             ContainerRequest assigned = maps.remove(tId);
-            this._maps_total_mem-=assigned.capability.getMemory();//limin
             containerAssigned(allocated, assigned);
             it.remove();
             JobCounterUpdateEvent jce =
@@ -1299,7 +1080,6 @@ public class RMContainerAllocator extends RMContainerRequestor
         assert PRIORITY_MAP.equals(priority);
         TaskAttemptId tId = maps.keySet().iterator().next();
         ContainerRequest assigned = maps.remove(tId);
-        this._maps_total_mem-=assigned.capability.getMemory();//limin
         containerAssigned(allocated, assigned);
         it.remove();
         JobCounterUpdateEvent jce =
@@ -1318,28 +1098,18 @@ public class RMContainerAllocator extends RMContainerRequestor
       new HashMap<ContainerId, TaskAttemptId>();
     private final LinkedHashMap<TaskAttemptId, Container> maps = 
       new LinkedHashMap<TaskAttemptId, Container>();
-    private int _map_total_mem=0;//limin
     private final LinkedHashMap<TaskAttemptId, Container> reduces = 
       new LinkedHashMap<TaskAttemptId, Container>();
-    private int _reduce_total_mem=0;//limin
     private final Set<TaskAttemptId> preemptionWaitingReduces = 
       new HashSet<TaskAttemptId>();
-    int getMapTotalMem(){
-        return this._map_total_mem;
-    }
-    int getReduceTotalMem(){
-        return this._reduce_total_mem;
-    }
-
+    
     void add(Container container, TaskAttemptId tId) {
       LOG.info("Assigned container " + container.getId().toString() + " to " + tId);
       containerToAttemptMap.put(container.getId(), tId);
       if (tId.getTaskId().getTaskType().equals(TaskType.MAP)) {
         maps.put(tId, container);
-        this._map_total_mem+=container.getResource().getMemory();//limin
       } else {
         reduces.put(tId, container);
-        this._reduce_total_mem+=container.getResource().getMemory();//limin
       }
     }
 
@@ -1369,13 +1139,9 @@ public class RMContainerAllocator extends RMContainerRequestor
     boolean remove(TaskAttemptId tId) {
       ContainerId containerId = null;
       if (tId.getTaskId().getTaskType().equals(TaskType.MAP)) {
-          Container cid=maps.remove(tId);//limin
-        containerId = cid.getId();
-        this._map_total_mem-=cid.getResource().getMemory();//limin
+        containerId = maps.remove(tId).getId();
       } else {
-          Container cid=reduces.remove(tId);//limin
-        containerId = cid.getId();
-        this._reduce_total_mem-=cid.getResource().getMemory();
+        containerId = reduces.remove(tId).getId();
         if (containerId != null) {
           boolean preempted = preemptionWaitingReduces.remove(tId);
           if (preempted) {
