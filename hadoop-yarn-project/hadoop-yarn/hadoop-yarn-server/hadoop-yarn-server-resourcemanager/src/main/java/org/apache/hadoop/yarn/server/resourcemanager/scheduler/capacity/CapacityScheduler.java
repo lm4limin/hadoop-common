@@ -128,7 +128,7 @@ public class CapacityScheduler
       //limin
      CapacityScheduler.str_withcapacity=conf.get(YarnConfiguration.RM_SCHEDULER_CAPACITYSCHEDYLER_SUPPORT,
              YarnConfiguration.DEFAULT_RM_SCHEDULER_CAPACITYSCHEDYLER_SUPPORT);
-     LOG.info("capacity scheduler suppport for differnt cap on the same node "+CapacityScheduler.str_withcapacity);
+     LOG.info("capacity scheduler suppport for different cap on the same node "+CapacityScheduler.str_withcapacity);
     int minMem = conf.getInt(
       YarnConfiguration.RM_SCHEDULER_MINIMUM_ALLOCATION_MB,
       YarnConfiguration.DEFAULT_RM_SCHEDULER_MINIMUM_ALLOCATION_MB);
