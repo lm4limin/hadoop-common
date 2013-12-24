@@ -76,10 +76,11 @@ import com.google.common.annotations.VisibleForTesting;
 /**
  * Allocates the container from the ResourceManager scheduler.
  */
-public class RMContainerAllocatorWithCap extends RMContainerAllocator {
-
-    static final Log LOG = LogFactory.getLog(RMContainerAllocatorWithCap.class);
-    public static final float DEFAULT_COMPLETED_MAPS_PERCENT_FOR_REDUCE_SLOWSTART = 0.05f;
+//public class RMContainerAllocatorWithCap extends RMContainerAllocator {
+public class RMContainerAllocatorWithCap extends RMContainerRequestor
+    implements ContainerAllocator  {
+    private static final Log LOG = LogFactory.getLog(RMContainerAllocatorWithCap.class);
+      public static final   float DEFAULT_COMPLETED_MAPS_PERCENT_FOR_REDUCE_SLOWSTART = 0.05f;
     private static final Priority PRIORITY_FAST_FAIL_MAP;
     private static final Priority PRIORITY_REDUCE;
     private static final Priority PRIORITY_MAP;
@@ -237,12 +238,12 @@ public class RMContainerAllocatorWithCap extends RMContainerAllocator {
         scheduleStats.log("Final Stats: ");
     }
 
-    @Override
+   
     public boolean getIsReduceStarted() {
         return reduceStarted;
     }
 
-    @Override
+
     public void setIsReduceStarted(boolean reduceStarted) {
         this.reduceStarted = reduceStarted;
     }
@@ -265,7 +266,7 @@ public class RMContainerAllocatorWithCap extends RMContainerAllocator {
         }
     }
 
-    @Override
+
     @SuppressWarnings({"unchecked"})
     protected synchronized void handleEvent(ContainerAllocatorEvent event) {
         recalculateReduceSchedule = true;
@@ -395,7 +396,6 @@ public class RMContainerAllocatorWithCap extends RMContainerAllocator {
     }
 
     @Private
-    @Override
     public void scheduleReduces(
             int totalMaps, int completedMaps,
             int scheduledMaps, int scheduledReduces,
@@ -508,7 +508,6 @@ public class RMContainerAllocatorWithCap extends RMContainerAllocator {
     }
 
     @Private
-    @Override
     public void scheduleAllReduces() {
         for (ContainerRequest req : pendingReduces) {
             scheduledRequests.addReduce(req);
@@ -517,7 +516,6 @@ public class RMContainerAllocatorWithCap extends RMContainerAllocator {
     }
 
     @Private
-    @Override
     public void rampUpReduces(int rampUp) {
         //more reduce to be scheduled
         for (int i = 0; i < rampUp; i++) {
@@ -527,7 +525,6 @@ public class RMContainerAllocatorWithCap extends RMContainerAllocator {
     }
 
     @Private
-    @Override
     public void rampDownReduces(int rampDown) {
         //remove from the scheduled and move back to pending
         for (int i = 0; i < rampDown; i++) {
@@ -633,7 +630,6 @@ public class RMContainerAllocatorWithCap extends RMContainerAllocator {
     }
 
     @VisibleForTesting
-    @Override
     public TaskAttemptEvent createContainerFinishedEvent(ContainerStatus cont,
             TaskAttemptId attemptID) {
         if (cont.getExitStatus() == ContainerExitStatus.ABORTED) {
@@ -685,7 +681,6 @@ public class RMContainerAllocatorWithCap extends RMContainerAllocator {
     }
 
     @Private
-    @Override
     public int getMemLimit() {
         int headRoom = getAvailableResources() != null ? getAvailableResources().getMemory() : 0;
         int org = headRoom + assignedRequests.maps.size() * mapResourceReqt
