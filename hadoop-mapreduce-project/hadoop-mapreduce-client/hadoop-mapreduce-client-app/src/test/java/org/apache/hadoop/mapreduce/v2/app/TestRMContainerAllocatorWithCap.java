@@ -160,7 +160,8 @@ public class TestRMContainerAllocatorWithCap {
 
             LOG.info("Setup top-level queues a and b");
         }
-  @Ignore("not ready") @Test
+  //@Ignore("not ready")
+  @Test
   public void testSimple() throws Exception {
 
     LOG.info("Running testSimple");
@@ -246,7 +247,8 @@ public class TestRMContainerAllocatorWithCap {
     Assert.assertEquals(5, rm.getMyFifoScheduler().lastAsk.size());    
   }
   
-  @Ignore("not ready") @Test 
+  //@Ignore("not ready")
+  @Test 
   public void testMapNodeLocality() throws Exception {
     // test checks that ordering of allocated containers list from the RM does 
     // not affect the map->container assignment done by the AM. If there is a 
