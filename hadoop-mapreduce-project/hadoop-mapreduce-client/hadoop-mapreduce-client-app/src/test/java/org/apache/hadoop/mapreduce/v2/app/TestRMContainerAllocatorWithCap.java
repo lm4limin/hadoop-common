@@ -102,6 +102,7 @@ import org.apache.hadoop.yarn.server.resourcemanager.scheduler.fifo.FifoSchedule
 import org.apache.hadoop.yarn.util.Clock;
 import org.apache.hadoop.yarn.util.SystemClock;
 import org.junit.After;
+import org.junit.Ignore;
 import org.junit.Test;
 
 @SuppressWarnings("unchecked")
@@ -159,7 +160,7 @@ public class TestRMContainerAllocatorWithCap {
 
             LOG.info("Setup top-level queues a and b");
         }
-  @Test
+  @Ignore("not ready") @Test
   public void testSimple() throws Exception {
 
     LOG.info("Running testSimple");
