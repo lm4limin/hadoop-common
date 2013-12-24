@@ -93,6 +93,9 @@ public class LeafQueueWithCapacity extends LeafQueue{
                 application.getResourceRequestCap(priority, node.getHostName());
         if (hm_req != null) {
             for (ResourceRequest nodeLocalResourceRequest : hm_req.values()) {
+                if(nodeLocalResourceRequest.getNumContainers()<=0){
+                    continue;
+                }
                 assigned =
                         assignNodeLocalContainers(clusterResource, nodeLocalResourceRequest,
                         node, application, priority, reservedContainer);
@@ -112,6 +115,9 @@ public class LeafQueueWithCapacity extends LeafQueue{
                 if (!rackLocalResourceRequest.getRelaxLocality()) {
                     return SKIP_ASSIGNMENT;
                 }
+                if(rackLocalResourceRequest.getNumContainers()<=0){
+                    continue;
+                }
                 assigned =
                         assignRackLocalContainers(clusterResource, rackLocalResourceRequest,
                         node, application, priority, reservedContainer);
@@ -129,6 +135,9 @@ public class LeafQueueWithCapacity extends LeafQueue{
             for(ResourceRequest offSwitchResourceRequest:hm_offSwitchreq.values()){
                 if (!offSwitchResourceRequest.getRelaxLocality()) {
                     return SKIP_ASSIGNMENT;
+                }
+                if(offSwitchResourceRequest.getNumContainers()<=0){
+                    continue;
                 }
                 return new CSAssignment(
                         assignOffSwitchContainers(clusterResource, offSwitchResourceRequest,
