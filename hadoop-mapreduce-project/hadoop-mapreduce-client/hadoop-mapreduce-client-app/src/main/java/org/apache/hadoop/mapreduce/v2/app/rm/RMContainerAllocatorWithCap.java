@@ -1071,8 +1071,10 @@ public class RMContainerAllocatorWithCap extends RMContainerRequestor
                 // hence this while loop would almost always have O(1) complexity
                 String host = allocated.getNodeId().getHost();
                 LinkedList<TaskAttemptId> list = mapsHostMapping.get(host);
-                while (list != null && list.size() > 0) {
-                    TaskAttemptId tId = list.getFirst();//list.removeFirst();//todo: double check
+                int i=0;
+                //LinkedList<TaskAttemptId> tmplist=new LinkedList<TaskAttemptId>();
+                while (list != null && i<list.size()) {
+                    TaskAttemptId tId = list.get(i++);//list.removeFirst();//todo: double check                    
                     if (maps.containsKey(tId)) {
                         ContainerRequest assigned;//= maps.remove(tId);
                         assigned = maps.get(tId);
@@ -1100,7 +1102,7 @@ public class RMContainerAllocatorWithCap extends RMContainerRequestor
                     }
                 }
             }
-
+            
             // try to match all rack local
             it = allocatedContainers.iterator();
             while (it.hasNext() && maps.size() > 0) {
@@ -1112,8 +1114,9 @@ public class RMContainerAllocatorWithCap extends RMContainerRequestor
                 String host = allocated.getNodeId().getHost();
                 String rack = RackResolver.resolve(host).getNetworkLocation();
                 LinkedList<TaskAttemptId> list = mapsRackMapping.get(rack);
-                while (list != null && list.size() > 0) {
-                    TaskAttemptId tId = list.getFirst();//list.removeFirst();
+                int i=0;
+                while (list != null && i<list.size()) {
+                    TaskAttemptId tId = list.get(i++);//list.removeFirst();
                     if (LOG.isDebugEnabled()) {
                                LOG.debug("Rack " + rack+" temptId "+tId.toString());
                     }
