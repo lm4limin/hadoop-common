@@ -162,7 +162,7 @@ public class TestRMContainerAllocatorWithCap {
             LOG.info("Setup top-level queues a and b");
         }
   //@Ignore("not ready")
-  @Test
+  @Test(timeout = 30000)
   public void testSimple() throws Exception {
 
     LOG.info("Running testSimple");
@@ -249,7 +249,7 @@ public class TestRMContainerAllocatorWithCap {
   }
   
   //@Ignore("not ready")
-  @Test 
+  @Test (timeout = 30000)
   public void testMapNodeLocality() throws Exception {
     // test checks that ordering of allocated containers list from the RM does 
     // not affect the map->container assignment done by the AM. If there is a 
@@ -335,7 +335,7 @@ public class TestRMContainerAllocatorWithCap {
         assigned, true);
   }
 
-  @Test
+  @Test(timeout = 30000)
   public void testResource() throws Exception {
 
     LOG.info("Running testResource");
@@ -410,7 +410,7 @@ public class TestRMContainerAllocatorWithCap {
         assigned, false);
   }
 
-  @Test
+  @Test(timeout = 30000)
   public void testMapReduceScheduling() throws Exception {
 
     LOG.info("Running testMapReduceScheduling");
@@ -549,7 +549,7 @@ public class TestRMContainerAllocatorWithCap {
     }
   }
 
-  @Test
+  @Test(timeout = 30000)
   public void testReportedAppProgress() throws Exception {
 
     LOG.info("Running testReportedAppProgress");
@@ -704,7 +704,7 @@ public class TestRMContainerAllocatorWithCap {
     mrApp.waitForState(task, TaskState.SUCCEEDED);
   }
 
-  @Test
+  @Test(timeout = 30000)
   public void testReportedAppProgressWithOnlyMaps() throws Exception {
 
     LOG.info("Running testReportedAppProgressWithOnlyMaps");
@@ -802,7 +802,7 @@ public class TestRMContainerAllocatorWithCap {
     Assert.assertEquals(0.95f, rmApp.getProgress(), 0.001f);
   }
   
-  @Test
+  @Test(timeout = 30000)
   public void testUpdatedNodes() throws Exception {
     Configuration conf = new Configuration();
     MyResourceManager rm = new MyResourceManager(conf);
@@ -884,7 +884,7 @@ public class TestRMContainerAllocatorWithCap {
     Assert.assertTrue(allocator.getTaskAttemptKillEvents().isEmpty());
   }
 
-  @Test
+  @Test(timeout = 30000)
   public void testBlackListedNodes() throws Exception {
     
     LOG.info("Running testBlackListedNodes");
@@ -986,7 +986,7 @@ public class TestRMContainerAllocatorWithCap {
     }
   }
   
-  @Test
+  @Test(timeout = 30000)
   public void testIgnoreBlacklisting() throws Exception {
     LOG.info("Running testIgnoreBlacklisting");
 
@@ -1155,7 +1155,7 @@ public class TestRMContainerAllocatorWithCap {
     return assigned;
   }
  
-  @Test
+  @Test(timeout = 30000)
   public void testBlackListedNodesWithSchedulingToThatNode() throws Exception {
     LOG.info("Running testBlackListedNodesWithSchedulingToThatNode");
 
@@ -1442,166 +1442,163 @@ public class TestRMContainerAllocatorWithCap {
     }
   }
 
-  // Mock RMContainerAllocator
-  // Instead of talking to remote Scheduler,uses the local Scheduler
-  private static class MyContainerAllocator extends RMContainerAllocatorWithCap {
-    static final List<TaskAttemptContainerAssignedEvent> events
-      = new ArrayList<TaskAttemptContainerAssignedEvent>();
-    static final List<TaskAttemptKillEvent> taskAttemptKillEvents 
-      = new ArrayList<TaskAttemptKillEvent>();
-    static final List<JobUpdatedNodesEvent> jobUpdatedNodeEvents 
-    = new ArrayList<JobUpdatedNodesEvent>();
-    //private MyResourceManager rm;//limin
-    private MockRM rm;
+    // Mock RMContainerAllocator
+    // Instead of talking to remote Scheduler,uses the local Scheduler
+    private static class MyContainerAllocator extends RMContainerAllocatorWithCap {
 
-    private static AppContext createAppContext(
-        ApplicationAttemptId appAttemptId, Job job) {
-      AppContext context = mock(AppContext.class);
-      ApplicationId appId = appAttemptId.getApplicationId();
-      when(context.getApplicationID()).thenReturn(appId);
-      when(context.getApplicationAttemptId()).thenReturn(appAttemptId);
-      when(context.getJob(isA(JobId.class))).thenReturn(job);
-      when(context.getClusterInfo()).thenReturn(
-        new ClusterInfo(Resource.newInstance(10240, 1)));
-      when(context.getEventHandler()).thenReturn(new EventHandler() {
-        @Override
-        public void handle(Event event) {
-          // Only capture interesting events.
-          if (event instanceof TaskAttemptContainerAssignedEvent) {
-            events.add((TaskAttemptContainerAssignedEvent) event);
-          } else if (event instanceof TaskAttemptKillEvent) {
-            taskAttemptKillEvents.add((TaskAttemptKillEvent)event);
-          } else if (event instanceof JobUpdatedNodesEvent) {
-            jobUpdatedNodeEvents.add((JobUpdatedNodesEvent)event);
-          }
+        static final List<TaskAttemptContainerAssignedEvent> events = new ArrayList<TaskAttemptContainerAssignedEvent>();
+        static final List<TaskAttemptKillEvent> taskAttemptKillEvents = new ArrayList<TaskAttemptKillEvent>();
+        static final List<JobUpdatedNodesEvent> jobUpdatedNodeEvents = new ArrayList<JobUpdatedNodesEvent>();
+        //private MyResourceManager rm;//limin
+        private MockRM rm;
+
+        private static AppContext createAppContext(
+                ApplicationAttemptId appAttemptId, Job job) {
+            AppContext context = mock(AppContext.class);
+            ApplicationId appId = appAttemptId.getApplicationId();
+            when(context.getApplicationID()).thenReturn(appId);
+            when(context.getApplicationAttemptId()).thenReturn(appAttemptId);
+            when(context.getJob(isA(JobId.class))).thenReturn(job);
+            when(context.getClusterInfo()).thenReturn(
+                    new ClusterInfo(Resource.newInstance(10240, 1)));
+            when(context.getEventHandler()).thenReturn(new EventHandler() {
+                @Override
+                public void handle(Event event) {
+                    // Only capture interesting events.
+                    if (event instanceof TaskAttemptContainerAssignedEvent) {
+                        events.add((TaskAttemptContainerAssignedEvent) event);
+                    } else if (event instanceof TaskAttemptKillEvent) {
+                        taskAttemptKillEvents.add((TaskAttemptKillEvent) event);
+                    } else if (event instanceof JobUpdatedNodesEvent) {
+                        jobUpdatedNodeEvents.add((JobUpdatedNodesEvent) event);
+                    }
+                }
+            });
+            return context;
         }
-      });
-      return context;
+
+        private static AppContext createAppContext(
+                ApplicationAttemptId appAttemptId, Job job, Clock clock) {
+            AppContext context = createAppContext(appAttemptId, job);
+            when(context.getClock()).thenReturn(clock);
+            return context;
+        }
+
+        private static ClientService createMockClientService() {
+            ClientService service = mock(ClientService.class);
+            when(service.getBindAddress()).thenReturn(
+                    NetUtils.createSocketAddr("localhost:4567"));
+            when(service.getHttpPort()).thenReturn(890);
+            return service;
+        }
+
+        // Use this constructor when using a real job.
+        MyContainerAllocator(MyResourceManager rm,
+                ApplicationAttemptId appAttemptId, AppContext context) {
+            super(createMockClientService(), context);
+            this.rm = rm;
+        }
+
+        // Use this constructor when you are using a mocked job.
+        public MyContainerAllocator(MyResourceManager rm, Configuration conf,
+                ApplicationAttemptId appAttemptId, Job job) {
+            super(createMockClientService(), createAppContext(appAttemptId, job));
+            this.rm = rm;
+            super.init(conf);
+            super.start();
+        }
+
+        public MyContainerAllocator(MyRM_CS rm, Configuration conf,
+                ApplicationAttemptId appAttemptId, Job job) {
+            super(createMockClientService(), createAppContext(appAttemptId, job));
+            this.rm = rm;
+            super.init(conf);
+            super.start();
+        }
+
+        public MyContainerAllocator(MyResourceManager rm, Configuration conf,
+                ApplicationAttemptId appAttemptId, Job job, Clock clock) {
+            super(createMockClientService(),
+                    createAppContext(appAttemptId, job, clock));
+            this.rm = rm;
+            super.init(conf);
+            super.start();
+        }
+
+        @Override
+        protected ApplicationMasterProtocol createSchedulerProxy() {
+            return this.rm.getApplicationMasterService();
+        }
+
+        @Override
+        protected void register() {
+            ApplicationAttemptId attemptId = getContext().getApplicationAttemptId();
+            UserGroupInformation ugi =
+                    UserGroupInformation.createRemoteUser(attemptId.toString());
+            Token<AMRMTokenIdentifier> token =
+                    rm.getRMContext().getRMApps().get(attemptId.getApplicationId()).getRMAppAttempt(attemptId).getAMRMToken();
+            try {
+                ugi.addTokenIdentifier(token.decodeIdentifier());
+            } catch (IOException e) {
+                throw new YarnRuntimeException(e);
+            }
+            UserGroupInformation.setLoginUser(ugi);
+            super.register();
+        }
+
+        @Override
+        protected void unregister() {
+        }
+
+        @Override
+        protected Resource getMaxContainerCapability() {
+            return Resource.newInstance(10240, 1);
+        }
+
+        public void sendRequest(ContainerRequestEvent req) {
+            sendRequests(Arrays.asList(new ContainerRequestEvent[]{req}));
+        }
+
+        public void sendRequests(List<ContainerRequestEvent> reqs) {
+            for (ContainerRequestEvent req : reqs) {
+                super.handleEvent(req);
+            }
+        }
+
+        public void sendFailure(ContainerFailedEvent f) {
+            super.handleEvent(f);
+        }
+
+        // API to be used by tests
+        public List<TaskAttemptContainerAssignedEvent> schedule() {
+            // run the scheduler
+            try {
+                super.heartbeat();
+            } catch (Exception e) {
+                LOG.error("error in heartbeat ", e);
+                throw new YarnRuntimeException(e);
+            }
+
+            List<TaskAttemptContainerAssignedEvent> result = new ArrayList<TaskAttemptContainerAssignedEvent>(events);
+            events.clear();
+            return result;
+        }
+
+        List<TaskAttemptKillEvent> getTaskAttemptKillEvents() {
+            return taskAttemptKillEvents;
+        }
+
+        List<JobUpdatedNodesEvent> getJobUpdatedNodeEvents() {
+            return jobUpdatedNodeEvents;
+        }
+
+        @Override
+        protected void startAllocatorThread() {
+            // override to NOT start thread
+        }
     }
 
-    private static AppContext createAppContext(
-        ApplicationAttemptId appAttemptId, Job job, Clock clock) {
-      AppContext context = createAppContext(appAttemptId, job);
-      when(context.getClock()).thenReturn(clock);
-      return context;
-    }
-
-    private static ClientService createMockClientService() {
-      ClientService service = mock(ClientService.class);
-      when(service.getBindAddress()).thenReturn(
-          NetUtils.createSocketAddr("localhost:4567"));
-      when(service.getHttpPort()).thenReturn(890);
-      return service;
-    }
-
-    // Use this constructor when using a real job.
-    MyContainerAllocator(MyResourceManager rm,
-        ApplicationAttemptId appAttemptId, AppContext context) {
-      super(createMockClientService(), context);
-      this.rm = rm;
-    }
-
-    // Use this constructor when you are using a mocked job.
-    public MyContainerAllocator(MyResourceManager rm, Configuration conf,
-        ApplicationAttemptId appAttemptId, Job job) {
-      super(createMockClientService(), createAppContext(appAttemptId, job));
-      this.rm = rm;
-      super.init(conf);
-      super.start();
-    }
-    public MyContainerAllocator(MyRM_CS rm, Configuration conf,
-        ApplicationAttemptId appAttemptId, Job job) {
-      super(createMockClientService(), createAppContext(appAttemptId, job));
-      this.rm = rm;
-      super.init(conf);
-      super.start();
-    }
-    public MyContainerAllocator(MyResourceManager rm, Configuration conf,
-        ApplicationAttemptId appAttemptId, Job job, Clock clock) {
-      super(createMockClientService(),
-          createAppContext(appAttemptId, job, clock));
-      this.rm = rm;
-      super.init(conf);
-      super.start();
-    }
-
-    @Override
-    protected ApplicationMasterProtocol createSchedulerProxy() {
-      return this.rm.getApplicationMasterService();
-    }
-
-    @Override
-    protected void register() {
-      ApplicationAttemptId attemptId = getContext().getApplicationAttemptId();
-      UserGroupInformation ugi =
-          UserGroupInformation.createRemoteUser(attemptId.toString());
-      Token<AMRMTokenIdentifier> token =
-          rm.getRMContext().getRMApps().get(attemptId.getApplicationId())
-            .getRMAppAttempt(attemptId).getAMRMToken();
-      try {
-        ugi.addTokenIdentifier(token.decodeIdentifier());
-      } catch (IOException e) {
-        throw new YarnRuntimeException(e);
-      }
-      UserGroupInformation.setLoginUser(ugi);
-      super.register();
-    }
-
-    @Override
-    protected void unregister() {
-    }
-
-    @Override
-    protected Resource getMaxContainerCapability() {
-      return Resource.newInstance(10240, 1);
-    }
-
-    public void sendRequest(ContainerRequestEvent req) {
-      sendRequests(Arrays.asList(new ContainerRequestEvent[] { req }));
-    }
-
-    public void sendRequests(List<ContainerRequestEvent> reqs) {
-      for (ContainerRequestEvent req : reqs) {
-        super.handleEvent(req);
-      }
-    }
-
-    public void sendFailure(ContainerFailedEvent f) {
-      super.handleEvent(f);
-    }
-    
-    // API to be used by tests
-    public List<TaskAttemptContainerAssignedEvent> schedule() {
-      // run the scheduler
-      try {
-        super.heartbeat();
-      } catch (Exception e) {
-        LOG.error("error in heartbeat ", e);
-        throw new YarnRuntimeException(e);
-      }
-
-      List<TaskAttemptContainerAssignedEvent> result
-        = new ArrayList<TaskAttemptContainerAssignedEvent>(events);
-      events.clear();
-      return result;
-    }
-    
-    List<TaskAttemptKillEvent> getTaskAttemptKillEvents() {
-      return taskAttemptKillEvents;
-    }
-    
-    List<JobUpdatedNodesEvent> getJobUpdatedNodeEvents() {
-      return jobUpdatedNodeEvents;
-    }
-
-    @Override
-    protected void startAllocatorThread() {
-      // override to NOT start thread
-    }
-        
-  }
-
-  @Test
+  @Test(timeout = 30000)
   public void testReduceScheduling() throws Exception {
       LOG.info("Running testReduceScheduling");
     int totalMaps = 10;
@@ -1695,7 +1692,7 @@ public class TestRMContainerAllocatorWithCap {
     }
   }
   
-  @Test
+  @Test(timeout = 30000)
   public void testCompletedTasksRecalculateSchedule() throws Exception {
     LOG.info("Running testCompletedTasksRecalculateSchedule");
 
@@ -1734,7 +1731,7 @@ public class TestRMContainerAllocatorWithCap {
         allocator.recalculatedReduceSchedule);
   }
 
-  @Test
+  @Test(timeout = 30000)
   public void testHeartbeatHandler() throws Exception {
     LOG.info("Running testHeartbeatHandler");
 
@@ -1794,7 +1791,7 @@ public class TestRMContainerAllocatorWithCap {
     Assert.assertTrue(callbackCalled.get());
   }
 
-  @Test
+  @Test(timeout = 30000)
   public void testCompletedContainerEvent() {
     RMContainerAllocatorWithCap allocator = new RMContainerAllocatorWithCap(
         mock(ClientService.class), mock(AppContext.class));
