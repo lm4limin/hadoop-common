@@ -357,13 +357,13 @@ public abstract class RMContainerRequestor extends RMCommunicator {
     }
     ResourceRequest remoteRequest = reqMap.get(capability);
 
-    if (LOG.isDebugEnabled()) {
+    /*if (LOG.isDebugEnabled()) {
       LOG.debug("BEFORE decResourceRequest:" + " applicationId="
           + applicationId.getId() + " priority=" + priority.getPriority()
           + " resourceName=" + resourceName + " capacity=" + remoteRequest.getCapability().toString()
               + " numContainers="
           + remoteRequest.getNumContainers() + " #asks=" + ask.size());
-    }
+    }*/
 
     if(remoteRequest.getNumContainers() > 0) {
       // based on blacklisting comments above we can end up decrementing more 
