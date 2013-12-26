@@ -1443,7 +1443,7 @@ public class TestRMContainerAllocatorWithCap {
 
   // Mock RMContainerAllocator
   // Instead of talking to remote Scheduler,uses the local Scheduler
-  private static class MyContainerAllocator extends RMContainerAllocator {
+  private static class MyContainerAllocator extends RMContainerAllocatorWithCap {
     static final List<TaskAttemptContainerAssignedEvent> events
       = new ArrayList<TaskAttemptContainerAssignedEvent>();
     static final List<TaskAttemptKillEvent> taskAttemptKillEvents 
