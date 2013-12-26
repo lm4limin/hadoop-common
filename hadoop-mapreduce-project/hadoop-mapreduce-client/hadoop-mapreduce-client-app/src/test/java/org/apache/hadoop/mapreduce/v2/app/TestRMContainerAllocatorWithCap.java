@@ -316,7 +316,7 @@ public class TestRMContainerAllocatorWithCap {
     assigned = allocator.schedule();
     dispatcher.await();
     Assert.assertEquals("No of assignments must be 0", 0, assigned.size());
-    Assert.assertEquals(3, rm.getMyFifoScheduler().lastAsk.size());
+    Assert.assertEquals(5, rm.getMyFifoScheduler().lastAsk.size());
     
     // update resources in scheduler
     nodeManager1.nodeHeartbeat(true); // Node heartbeat
