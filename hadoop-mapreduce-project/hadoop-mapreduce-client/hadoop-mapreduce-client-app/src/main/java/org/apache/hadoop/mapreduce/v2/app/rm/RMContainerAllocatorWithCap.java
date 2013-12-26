@@ -1135,7 +1135,7 @@ public class RMContainerAllocatorWithCap extends RMContainerRequestor
                     if (maps.containsKey(tId)) {
                         if (LOG.isDebugEnabled()) {
                             LOG.debug("Assigning container " + allocated.getId()
-                                   +" Rack " + rack+"to temptId "+tId.toString() );
+                                   +" Rack " + rack+" to temptId "+tId.toString() );
                         }
 
                         ContainerRequest assigned;//= maps.remove(tId);
