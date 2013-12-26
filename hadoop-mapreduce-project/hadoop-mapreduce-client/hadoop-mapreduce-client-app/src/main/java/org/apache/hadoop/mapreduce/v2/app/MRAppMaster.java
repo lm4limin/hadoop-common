@@ -787,10 +787,10 @@ public class MRAppMaster extends CompositeService {
             Configuration conf = getConfig();
             String mode=conf.get(YarnConfiguration.RM_SCHEDULER_CAPACITYSCHEDYLER_SUPPORT,
                     YarnConfiguration.DEFAULT_RM_SCHEDULER_CAPACITYSCHEDYLER_SUPPORT);
+            LOG.info("MRAppMaster suppport for different cap on the same node "+mode);
             if (mode.equals(YarnConfiguration.RM_SCHEDULER_CAPACITYSCHEDYLER_SUPPORT_YES)) {
                 this.containerAllocator = new RMContainerAllocatorWithCap(
-                        this.clientService, this.context);
-                LOG.info("MRAppMaster suppport for different cap on the same node "+mode);
+                        this.clientService, this.context);                
             } else {
                 this.containerAllocator = new RMContainerAllocator(
                         this.clientService, this.context);
