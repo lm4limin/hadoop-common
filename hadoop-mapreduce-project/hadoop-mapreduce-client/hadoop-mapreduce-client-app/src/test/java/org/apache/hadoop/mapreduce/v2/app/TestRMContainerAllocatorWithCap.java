@@ -64,7 +64,10 @@ import org.apache.hadoop.mapreduce.v2.app.job.event.TaskAttemptEvent;
 import org.apache.hadoop.mapreduce.v2.app.job.event.TaskAttemptEventType;
 import org.apache.hadoop.mapreduce.v2.app.job.event.TaskAttemptKillEvent;
 import org.apache.hadoop.mapreduce.v2.app.job.impl.TaskAttemptImpl;
-import org.apache.hadoop.mapreduce.v2.app.rm.*;
+import org.apache.hadoop.mapreduce.v2.app.rm.ContainerAllocator;
+import org.apache.hadoop.mapreduce.v2.app.rm.ContainerFailedEvent;
+import org.apache.hadoop.mapreduce.v2.app.rm.ContainerRequestEvent;
+import org.apache.hadoop.mapreduce.v2.app.rm.RMContainerAllocatorWithCap;
 import org.apache.hadoop.mapreduce.v2.util.MRBuilderUtils;
 import org.apache.hadoop.metrics2.lib.DefaultMetricsSystem;
 import org.apache.hadoop.net.NetUtils;
@@ -102,9 +105,7 @@ import org.apache.hadoop.yarn.server.resourcemanager.scheduler.fifo.FifoSchedule
 import org.apache.hadoop.yarn.util.Clock;
 import org.apache.hadoop.yarn.util.SystemClock;
 import org.junit.After;
-import org.junit.Ignore;
 import org.junit.Test;
-
 @SuppressWarnings("unchecked")
 public class TestRMContainerAllocatorWithCap {
 
@@ -1615,7 +1616,7 @@ public class TestRMContainerAllocatorWithCap {
     float maxReduceRampupLimit = 0.5f;
     float reduceSlowStart = 0.2f;
     
-    RMContainerAllocator allocator = mock(RMContainerAllocator.class);
+    RMContainerAllocatorWithCap allocator = mock(RMContainerAllocatorWithCap.class);
     doCallRealMethod().when(allocator).
         scheduleReduces(anyInt(), anyInt(), anyInt(), anyInt(), anyInt(), 
             anyInt(), anyInt(), anyInt(), anyInt(), anyFloat(), anyFloat());
@@ -1745,7 +1746,7 @@ public class TestRMContainerAllocatorWithCap {
     when(appContext.getApplicationID()).thenReturn(
         ApplicationId.newInstance(1, 1));
 
-    RMContainerAllocator allocator = new RMContainerAllocator(
+    RMContainerAllocatorWithCap allocator = new RMContainerAllocatorWithCap(
         mock(ClientService.class), appContext) {
           @Override
           protected void register() {
@@ -1795,7 +1796,7 @@ public class TestRMContainerAllocatorWithCap {
 
   @Test
   public void testCompletedContainerEvent() {
-    RMContainerAllocator allocator = new RMContainerAllocator(
+    RMContainerAllocatorWithCap allocator = new RMContainerAllocatorWithCap(
         mock(ClientService.class), mock(AppContext.class));
     
     TaskAttemptId attemptId = MRBuilderUtils.newTaskAttemptId(
