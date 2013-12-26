@@ -1132,14 +1132,10 @@ public class RMContainerAllocatorWithCap extends RMContainerRequestor
                 int i=0;
                 while (list != null && i<list.size()) {
                     TaskAttemptId tId = list.get(i++);//list.removeFirst();
-                    if (LOG.isDebugEnabled()) {
-                               LOG.debug("Rack " + rack+" temptId "+tId.toString());
-                    }
                     if (maps.containsKey(tId)) {
                         if (LOG.isDebugEnabled()) {
                             LOG.debug("Assigning container " + allocated.getId()
-                                    + " with priority " + allocated.getPriority() + " to NM "
-                                    + allocated.getNodeId());
+                                   +" Rack " + rack+"to temptId "+tId.toString() );
                         }
 
                         ContainerRequest assigned;//= maps.remove(tId);
