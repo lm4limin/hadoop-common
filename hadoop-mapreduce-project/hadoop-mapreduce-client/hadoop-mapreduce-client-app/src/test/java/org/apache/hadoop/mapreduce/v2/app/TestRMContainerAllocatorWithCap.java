@@ -246,6 +246,7 @@ public class TestRMContainerAllocatorWithCap {
      allocator.schedule();
     dispatcher.await();
     Assert.assertEquals(5, rm.getMyFifoScheduler().lastAsk.size());    
+    LOG.info("Running testSimple END");
   }
   
   //@Ignore("not ready")
@@ -333,6 +334,7 @@ public class TestRMContainerAllocatorWithCap {
     }
     checkAssignments(new ContainerRequestEvent[] { event1, event2},
         assigned, true);
+    LOG.info("Running testMapNodeLocality END");
   }
 
   @Test(timeout = 60000)
@@ -408,6 +410,7 @@ public class TestRMContainerAllocatorWithCap {
     dispatcher.await();
     checkAssignments(new ContainerRequestEvent[] { event1, event2 },
         assigned, false);
+      LOG.info("Running testResource END");
   }
 
   @Test(timeout = 60000)
