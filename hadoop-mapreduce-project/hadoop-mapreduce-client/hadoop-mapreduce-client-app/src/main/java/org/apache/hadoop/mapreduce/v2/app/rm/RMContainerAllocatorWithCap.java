@@ -1114,6 +1114,9 @@ public class RMContainerAllocatorWithCap extends RMContainerRequestor
                 LinkedList<TaskAttemptId> list = mapsRackMapping.get(rack);
                 while (list != null && list.size() > 0) {
                     TaskAttemptId tId = list.getFirst();//list.removeFirst();
+                    if (LOG.isDebugEnabled()) {
+                               LOG.debug("Rack " + rack+" temptId "+tId.toString());
+                    }
                     if (maps.containsKey(tId)) {
                         ContainerRequest assigned;//= maps.remove(tId);
                         assigned = maps.get(tId);
