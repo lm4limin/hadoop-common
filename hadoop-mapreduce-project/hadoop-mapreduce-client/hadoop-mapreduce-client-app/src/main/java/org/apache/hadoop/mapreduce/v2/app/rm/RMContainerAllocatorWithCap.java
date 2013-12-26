@@ -1073,12 +1073,7 @@ public class RMContainerAllocatorWithCap extends RMContainerRequestor
             Iterator<Container> it = allocatedContainers.iterator();
             while (it.hasNext() && maps.size() > 0) {
                 Container allocated = it.next();
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Assigning container " + allocated.getId()
-                            + " with priority " + allocated.getPriority() + " to NM "
-                            + allocated.getNodeId());
-                }
-                
+
                 Priority priority = allocated.getPriority();
                 assert PRIORITY_MAP.equals(priority);
                 // "if (maps.containsKey(tId))" below should be almost always true.
@@ -1090,6 +1085,12 @@ public class RMContainerAllocatorWithCap extends RMContainerRequestor
                 while (list != null && i<list.size()) {
                     TaskAttemptId tId = list.get(i++);//list.removeFirst();//todo: double check                    
                     if (maps.containsKey(tId)) {
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug("Assigning container " + allocated.getId()
+                                    + " with priority " + allocated.getPriority() + " to NM "
+                                    + allocated.getNodeId());
+                        }
+
                         ContainerRequest assigned;//= maps.remove(tId);
                         assigned = maps.get(tId);
                         int mem = assigned.capability.getMemory();
@@ -1135,6 +1136,12 @@ public class RMContainerAllocatorWithCap extends RMContainerRequestor
                                LOG.debug("Rack " + rack+" temptId "+tId.toString());
                     }
                     if (maps.containsKey(tId)) {
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug("Assigning container " + allocated.getId()
+                                    + " with priority " + allocated.getPriority() + " to NM "
+                                    + allocated.getNodeId());
+                        }
+
                         ContainerRequest assigned;//= maps.remove(tId);
                         assigned = maps.get(tId);
                         int mem = assigned.capability.getMemory();
@@ -1170,6 +1177,12 @@ public class RMContainerAllocatorWithCap extends RMContainerRequestor
                 ContainerRequest assigned = null;// = maps.remove(tId);
                 Iterator itm = maps.entrySet().iterator();
                 while (assigned == null && itm.hasNext()) {//find a task; 
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("Assigning container " + allocated.getId()
+                                + " with priority " + allocated.getPriority() + " to NM "
+                                + allocated.getNodeId());
+                    }
+
                     Map.Entry<TaskAttemptId, ContainerRequest> pairs = (Map.Entry) itm.next();
                     assigned = pairs.getValue();//maps.get(tId);
                     tId = pairs.getKey();
