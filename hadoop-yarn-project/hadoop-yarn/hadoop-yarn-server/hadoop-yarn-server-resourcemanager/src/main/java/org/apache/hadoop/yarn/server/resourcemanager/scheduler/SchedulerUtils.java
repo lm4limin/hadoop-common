@@ -101,7 +101,7 @@ public class SchedulerUtils {
             normalizeRequest(
                     ask, resourceCalculator, clusterResource, minimumResource,
                     maximumResource, minimumResource);
-        }
+        }/*
         try {
             //merge the requests
             Class<?> clazz = asks.getClass();
@@ -123,7 +123,7 @@ public class SchedulerUtils {
             }
         } catch (Exception e) {
             throw new InvalidResourceRequestException(e.toString());
-        }
+        }*/
     }
 
   /**
