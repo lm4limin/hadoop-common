@@ -105,8 +105,9 @@ public class SchedulerUtils {
         try {
             //merge the requests
             Class<?> clazz = asks.getClass();
-            Constructor con = clazz.getConstructor();
-            List<ResourceRequest> ls_tmp = (List<ResourceRequest>) con.newInstance();
+            //Constructor con = clazz.getConstructor();
+            //List<ResourceRequest> ls_tmp = (List<ResourceRequest>) con.newInstance();
+             List<ResourceRequest> ls_tmp = (List<ResourceRequest>) clazz.newInstance();
             //new ArrayList<ResourceRequest>();
             for (ResourceRequest ask : asks) {
                 int ind = indexof(ls_tmp,ask);
