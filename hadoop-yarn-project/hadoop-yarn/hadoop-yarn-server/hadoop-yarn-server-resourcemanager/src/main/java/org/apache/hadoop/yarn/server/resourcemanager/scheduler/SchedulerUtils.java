@@ -101,7 +101,7 @@ public class SchedulerUtils {
             normalizeRequest(
                     ask, resourceCalculator, clusterResource, minimumResource,
                     maximumResource, minimumResource);
-        }/*
+        }
         try {
             //merge the requests
             Class<?> clazz = asks.getClass();
@@ -109,7 +109,7 @@ public class SchedulerUtils {
             List<ResourceRequest> ls_tmp = (List<ResourceRequest>) con.newInstance();
             //new ArrayList<ResourceRequest>();
             for (ResourceRequest ask : asks) {
-                int ind = ls_tmp.indexOf(ask);
+                int ind = indexof(ls_tmp,ask);
                 if (ind == -1) {
                     ls_tmp.add(ask);
                 } else {
@@ -123,9 +123,23 @@ public class SchedulerUtils {
             }
         } catch (Exception e) {
             throw new InvalidResourceRequestException(e.toString());
-        }*/
+        }
     }
-
+    public static int indexof(List<ResourceRequest> ls, ResourceRequest ask){
+        for(int i=0;i<ls.size();i++){
+            ResourceRequest tmp=ls.get(i);
+            if(tmp.getPriority()==ask.getPriority()){
+                if(tmp.getResourceName().equals(ask.getResourceName())){
+                    if(tmp.getCapability()==ask.getCapability()){
+                        if(tmp.getRelaxLocality()==ask.getRelaxLocality()){
+                            return i;
+                        }                        
+                    }
+                }
+            }
+        }
+        return -1;
+    }
   /**
    * Utility method to normalize a resource request, by insuring that the
    * requested memory is a multiple of minMemory and is not zero.
