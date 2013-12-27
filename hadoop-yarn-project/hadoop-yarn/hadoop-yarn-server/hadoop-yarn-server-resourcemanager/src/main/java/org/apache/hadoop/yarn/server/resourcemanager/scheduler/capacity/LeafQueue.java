@@ -1318,96 +1318,96 @@ protected synchronized CSAssignment
   }
 
   //private Resource assignContainer(Resource clusterResource, FiCaSchedulerNode node, 
-    protected Resource assignContainer(Resource clusterResource, FiCaSchedulerNode node, 
-      FiCaSchedulerApp application, Priority priority, 
-      ResourceRequest request, NodeType type, RMContainer rmContainer) {
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("assignContainers: node=" + node.getHostName()
-        + " application=" + application.getApplicationId().getId()
-        + " priority=" + priority.getPriority()
-        + " request=" + request + " type=" + type);
-    }
-    Resource capability = request.getCapability();
-
-    Resource available = node.getAvailableResource();
-
-    assert Resources.greaterThan(
-        resourceCalculator, clusterResource, available, Resources.none());
-
-    // Create the container if necessary
-    Container container = 
-        getContainer(rmContainer, application, node, capability, priority);
-  
-    // something went wrong getting/creating the container 
-    if (container == null) {
-      LOG.warn("Couldn't get container for allocation!");
-      return Resources.none();
-    }
-
-    // Can we allocate a container on this node?
-    int availableContainers = 
-        resourceCalculator.computeAvailableContainers(available, capability);
-    if (availableContainers > 0) {
-      // Allocate...
-
-      // Did we previously reserve containers at this 'priority'?
-      if (rmContainer != null){
-        unreserve(application, priority, node, rmContainer);
-      }
-
-      Token containerToken =
-          createContainerToken(application, container);
-      if (containerToken == null) {
-        // Something went wrong...
-        return Resources.none();
-      }
-      container.setContainerToken(containerToken);
-      
-      // Inform the application
-      RMContainer allocatedContainer = 
-          application.allocate(type, node, priority, request, container);
-      
-      
-      // Does the application need this resource?
-      if (allocatedContainer == null) {
-        return Resources.none();
-      }
-
-      // Inform the node
-      node.allocateContainer(application.getApplicationId(), 
-          allocatedContainer);
-
-      LOG.info("AssignedContainer" +
-          " application=" + application.getApplicationId() +
-          " container=" + container + 
-          " containerId=" + container.getId() + 
-          " queue=" + this + 
-          " usedCapacity=" + getUsedCapacity() +
-          " absoluteUsedCapacity=" + getAbsoluteUsedCapacity() +
-          " used=" + usedResources + 
-          " cluster=" + clusterResource);
-        if(LOG.isDebugEnabled()){
-            application.showRequests();
+    protected Resource assignContainer(Resource clusterResource, FiCaSchedulerNode node,
+            FiCaSchedulerApp application, Priority priority,
+            ResourceRequest request, NodeType type, RMContainer rmContainer) {
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("assignContainers: node=" + node.getHostName()
+                    + " application=" + application.getApplicationId().getId()
+                    + " priority=" + priority.getPriority()
+                    + " request=" + request + " type=" + type);
         }
-      return container.getResource();
-    } else {
-      // Reserve by 'charging' in advance...
-      reserve(application, priority, node, rmContainer, container);
+        Resource capability = request.getCapability();
 
-      LOG.info("AssignedContainer: Reserved container, not assigned " + 
-          " application=" + application.getApplicationId() +
-          " resource=" + request.getCapability() + 
-          " queue=" + this.toString() + 
-          " usedCapacity=" + getUsedCapacity() +
-          " absoluteUsedCapacity=" + getAbsoluteUsedCapacity() +
-          " used=" + usedResources + 
-          " cluster=" + clusterResource);
-      if(LOG.isDebugEnabled()){
-            application.showRequests();
+        Resource available = node.getAvailableResource();
+
+        assert Resources.greaterThan(
+                resourceCalculator, clusterResource, available, Resources.none());
+
+        // Create the container if necessary
+        Container container =
+                getContainer(rmContainer, application, node, capability, priority);
+
+        // something went wrong getting/creating the container 
+        if (container == null) {
+            LOG.warn("Couldn't get container for allocation!");
+            return Resources.none();
         }
-      return request.getCapability();
+
+        // Can we allocate a container on this node?
+        int availableContainers =
+                resourceCalculator.computeAvailableContainers(available, capability);
+        if (availableContainers > 0) {
+            // Allocate...
+
+            // Did we previously reserve containers at this 'priority'?
+            if (rmContainer != null) {
+                unreserve(application, priority, node, rmContainer);
+            }
+
+            Token containerToken =
+                    createContainerToken(application, container);
+            if (containerToken == null) {
+                // Something went wrong...
+                return Resources.none();
+            }
+            container.setContainerToken(containerToken);
+
+            // Inform the application
+            RMContainer allocatedContainer =
+                    application.allocate(type, node, priority, request, container);
+
+
+            // Does the application need this resource?
+            if (allocatedContainer == null) {
+                return Resources.none();
+            }
+
+            // Inform the node
+            node.allocateContainer(application.getApplicationId(),
+                    allocatedContainer);
+
+            LOG.info("AssignedContainer"
+                    + " application=" + application.getApplicationId()
+                    + " container=" + container
+                    + " containerId=" + container.getId()
+                    + " queue=" + this
+                    + " usedCapacity=" + getUsedCapacity()
+                    + " absoluteUsedCapacity=" + getAbsoluteUsedCapacity()
+                    + " used=" + usedResources
+                    + " cluster=" + clusterResource);
+            if (LOG.isDebugEnabled()) {
+                application.showRequests();
+            }
+            return container.getResource();
+        } else {
+            // Reserve by 'charging' in advance...
+            reserve(application, priority, node, rmContainer, container);
+
+            LOG.info("AssignedContainer: Reserved container, not assigned "
+                    + " application=" + application.getApplicationId()
+                    + " resource=" + request.getCapability()
+                    + " queue=" + this.toString()
+                    + " usedCapacity=" + getUsedCapacity()
+                    + " absoluteUsedCapacity=" + getAbsoluteUsedCapacity()
+                    + " used=" + usedResources
+                    + " cluster=" + clusterResource);
+            if (LOG.isDebugEnabled()) {
+                application.showRequests();
+            }
+            return request.getCapability();
+        }
     }
-  }
 
   private void reserve(FiCaSchedulerApp application, Priority priority, 
       FiCaSchedulerNode node, RMContainer rmContainer, Container container) {

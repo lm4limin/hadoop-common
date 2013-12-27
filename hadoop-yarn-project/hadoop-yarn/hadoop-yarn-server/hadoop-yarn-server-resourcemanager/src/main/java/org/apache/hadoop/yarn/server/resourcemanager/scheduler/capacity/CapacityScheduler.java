@@ -531,78 +531,78 @@ public class CapacityScheduler
   private static final Allocation EMPTY_ALLOCATION = 
       new Allocation(EMPTY_CONTAINER_LIST, Resources.createResource(0, 0));
 
-  @Override
-  @Lock(Lock.NoLock.class)
-  public Allocation allocate(ApplicationAttemptId applicationAttemptId,
-      List<ResourceRequest> ask, List<ContainerId> release, 
-      List<String> blacklistAdditions, List<String> blacklistRemovals) {
+    @Override
+    @Lock(Lock.NoLock.class)
+    public Allocation allocate(ApplicationAttemptId applicationAttemptId,
+            List<ResourceRequest> ask, List<ContainerId> release,
+            List<String> blacklistAdditions, List<String> blacklistRemovals) {
 
-    FiCaSchedulerApp application = getApplication(applicationAttemptId);
-    if (application == null) {
-      LOG.info("Calling allocate on removed " +
-          "or non existant application " + applicationAttemptId);
-      return EMPTY_ALLOCATION;
-    }
-    
-    // Sanity check
-    SchedulerUtils.normalizeRequests(
-        ask, getResourceCalculator(), getClusterResources(),
-        getMinimumResourceCapability(), maximumAllocation);
-
-    // Release containers
-    for (ContainerId releasedContainerId : release) {
-      RMContainer rmContainer = getRMContainer(releasedContainerId);
-      if (rmContainer == null) {
-         RMAuditLogger.logFailure(application.getUser(),
-             AuditConstants.RELEASE_CONTAINER, 
-             "Unauthorized access or invalid container", "CapacityScheduler",
-             "Trying to release container not owned by app or with invalid id",
-             application.getApplicationId(), releasedContainerId);
-      }
-      completedContainer(rmContainer,
-          SchedulerUtils.createAbnormalContainerStatus(
-              releasedContainerId, 
-              SchedulerUtils.RELEASED_CONTAINER),
-          RMContainerEventType.RELEASED);
-    }
-
-    synchronized (application) {
-
-      // make sure we aren't stopping/removing the application
-      // when the allocate comes in
-      if (application.isStopped()) {
-        LOG.info("Calling allocate on a stopped " +
-            "application " + applicationAttemptId);
-        return EMPTY_ALLOCATION;
-      }
-
-      if (!ask.isEmpty()) {
-
-        if(LOG.isDebugEnabled()) {
-          LOG.debug("allocate: pre-update" +
-            " applicationAttemptId=" + applicationAttemptId + 
-            " application=" + application);
+        FiCaSchedulerApp application = getApplication(applicationAttemptId);
+        if (application == null) {
+            LOG.info("Calling allocate on removed "
+                    + "or non existant application " + applicationAttemptId);
+            return EMPTY_ALLOCATION;
         }
-        application.showRequests();
-  
-        // Update application requests
-        application.updateResourceRequests(ask, 
-            blacklistAdditions, blacklistRemovals);
-  
-        LOG.debug("allocate: post-update");
-        application.showRequests();
-      }
 
-      if(LOG.isDebugEnabled()) {
-        LOG.debug("allocate:" +
-          " applicationAttemptId=" + applicationAttemptId + 
-          " #ask=" + ask.size());
-      }
+        // Sanity check
+        SchedulerUtils.normalizeRequests(
+                ask, getResourceCalculator(), getClusterResources(),
+                getMinimumResourceCapability(), maximumAllocation);
 
-      return application.getAllocation(getResourceCalculator(),
-                   clusterResource, getMinimumResourceCapability());
+        // Release containers
+        for (ContainerId releasedContainerId : release) {
+            RMContainer rmContainer = getRMContainer(releasedContainerId);
+            if (rmContainer == null) {
+                RMAuditLogger.logFailure(application.getUser(),
+                        AuditConstants.RELEASE_CONTAINER,
+                        "Unauthorized access or invalid container", "CapacityScheduler",
+                        "Trying to release container not owned by app or with invalid id",
+                        application.getApplicationId(), releasedContainerId);
+            }
+            completedContainer(rmContainer,
+                    SchedulerUtils.createAbnormalContainerStatus(
+                    releasedContainerId,
+                    SchedulerUtils.RELEASED_CONTAINER),
+                    RMContainerEventType.RELEASED);
+        }
+
+        synchronized (application) {
+
+            // make sure we aren't stopping/removing the application
+            // when the allocate comes in
+            if (application.isStopped()) {
+                LOG.info("Calling allocate on a stopped "
+                        + "application " + applicationAttemptId);
+                return EMPTY_ALLOCATION;
+            }
+
+            if (!ask.isEmpty()) {
+
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("allocate: pre-update"
+                            + " applicationAttemptId=" + applicationAttemptId
+                            + " application=" + application);
+                }
+                application.showRequests();
+
+                // Update application requests
+                application.updateResourceRequests(ask,
+                        blacklistAdditions, blacklistRemovals);
+
+                LOG.debug("allocate: post-update");
+                application.showRequests();
+            }
+
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("allocate:"
+                        + " applicationAttemptId=" + applicationAttemptId
+                        + " #ask=" + ask.size());
+            }
+
+            return application.getAllocation(getResourceCalculator(),
+                    clusterResource, getMinimumResourceCapability());
+        }
     }
-  }
 
   @Override
   @Lock(Lock.NoLock.class)

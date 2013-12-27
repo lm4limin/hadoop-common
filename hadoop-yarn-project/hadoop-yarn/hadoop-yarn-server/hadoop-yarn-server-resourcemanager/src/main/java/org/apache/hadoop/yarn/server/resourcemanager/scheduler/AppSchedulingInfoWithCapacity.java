@@ -63,13 +63,40 @@ public class AppSchedulingInfoWithCapacity extends AppSchedulingInfo{
     LOG.info("Application " + applicationId + " requests cleared");
   }
 
-
+    
+    public static int indexof(List<ResourceRequest> ls, ResourceRequest ask){
+        for(int i=0;i<ls.size();i++){
+            ResourceRequest tmp=ls.get(i);
+            if(tmp.getPriority()==ask.getPriority()){
+                if(tmp.getResourceName().equals(ask.getResourceName())){
+                    if(tmp.getCapability()==ask.getCapability()){
+                        if(tmp.getRelaxLocality()==ask.getRelaxLocality()){
+                            return i;
+                        }                        
+                    }
+                }
+            }
+        }
+        return -1;
+    }
     @Override
     synchronized public void updateResourceRequests(
-            List<ResourceRequest> requests,
+            List<ResourceRequest> ls_requests,
             List<String> blacklistAdditions, List<String> blacklistRemovals) {
         QueueMetrics metrics = queue.getMetrics();
-
+        
+        ArrayList<ResourceRequest> requests=new ArrayList<ResourceRequest>();
+        for (int i = 0; i < ls_requests.size(); i++) {
+            ResourceRequest ask = ls_requests.get(i);
+            int ind = indexof(requests, ask);
+            if (ind == -1) {
+                requests.add(ask);
+            } else {
+                ResourceRequest tmp = requests.get(ind);
+                tmp.setNumContainers(tmp.getNumContainers() + ask.getNumContainers());
+            }
+        }           
+        
         // Update resource requests
         for (ResourceRequest request : requests) {
             Priority priority = request.getPriority();
