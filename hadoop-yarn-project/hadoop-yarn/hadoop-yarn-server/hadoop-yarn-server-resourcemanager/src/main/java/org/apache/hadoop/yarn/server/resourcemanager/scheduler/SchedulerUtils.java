@@ -17,6 +17,9 @@
  */
 package org.apache.hadoop.yarn.server.resourcemanager.scheduler;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.hadoop.classification.InterfaceAudience.Private;
@@ -88,18 +91,40 @@ public class SchedulerUtils {
    * Utility method to normalize a list of resource requests, by insuring that
    * the memory for each request is a multiple of minMemory and is not zero.
    */
-  public static void normalizeRequests(
-    List<ResourceRequest> asks,
-    ResourceCalculator resourceCalculator,
-    Resource clusterResource,
-    Resource minimumResource,
-    Resource maximumResource) {
-    for (ResourceRequest ask : asks) {
-      normalizeRequest(
-        ask, resourceCalculator, clusterResource, minimumResource,
-        maximumResource, minimumResource);
+    public static void normalizeRequests(
+            List<ResourceRequest> asks,
+            ResourceCalculator resourceCalculator,
+            Resource clusterResource,
+            Resource minimumResource,
+            Resource maximumResource) throws InvalidResourceRequestException {
+        for (ResourceRequest ask : asks) {
+            normalizeRequest(
+                    ask, resourceCalculator, clusterResource, minimumResource,
+                    maximumResource, minimumResource);
+        }
+        try {
+            //merge the requests
+            Class<?> clazz = asks.getClass();
+            Constructor con = clazz.getConstructor();
+            List<ResourceRequest> ls_tmp = (List<ResourceRequest>) con.newInstance();
+            //new ArrayList<ResourceRequest>();
+            for (ResourceRequest ask : asks) {
+                int ind = ls_tmp.indexOf(ask);
+                if (ind == -1) {
+                    ls_tmp.add(ask);
+                } else {
+                    ResourceRequest tmp = ls_tmp.get(ind);
+                    tmp.setNumContainers(tmp.getNumContainers() + ask.getNumContainers());
+                }
+            }
+            if (ls_tmp.size() != asks.size()) {
+                asks.clear();
+                asks = ls_tmp;
+            }
+        } catch (Exception e) {
+            throw new InvalidResourceRequestException(e.toString());
+        }
     }
-  }
 
   /**
    * Utility method to normalize a resource request, by insuring that the
