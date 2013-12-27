@@ -96,7 +96,7 @@ public class SchedulerUtils {
             ResourceCalculator resourceCalculator,
             Resource clusterResource,
             Resource minimumResource,
-            Resource maximumResource) throws InvalidResourceRequestException {
+            Resource maximumResource) {//throws InvalidResourceRequestException {
         for (ResourceRequest ask : asks) {
             normalizeRequest(
                     ask, resourceCalculator, clusterResource, minimumResource,
