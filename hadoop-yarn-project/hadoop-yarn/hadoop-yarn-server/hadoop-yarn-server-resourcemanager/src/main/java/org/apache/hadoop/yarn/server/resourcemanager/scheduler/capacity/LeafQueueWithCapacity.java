@@ -481,11 +481,11 @@ public class LeafQueueWithCapacity extends LeafQueue{
                         } else {
                             // Do not assign out of order w.r.t priorities
                             isbreak = true;
-                            break;
+                           // break;
                         }
-                    }
+                    }//end resource iteration
                     if (isbreak) {
-                        break;
+                        break;//end priority iteration
                     }
 
                     // Do we need containers at this 'priority'?
