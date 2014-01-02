@@ -65,6 +65,9 @@ public class AppSchedulingInfoWithCapacity extends AppSchedulingInfo{
 
     
     public static int indexof(List<ResourceRequest> ls, ResourceRequest ask){
+        if(ls==null||ask==null){
+            return -1;
+        }
         for(int i=0;i<ls.size();i++){
             ResourceRequest tmp=ls.get(i);
             if(tmp.getPriority()==ask.getPriority()){
@@ -79,12 +82,13 @@ public class AppSchedulingInfoWithCapacity extends AppSchedulingInfo{
         }
         return -1;
     }
+    
     @Override
     synchronized public void updateResourceRequests(
             List<ResourceRequest> ls_requests,
             List<String> blacklistAdditions, List<String> blacklistRemovals) {
-        QueueMetrics metrics = queue.getMetrics();
-        
+                
+        //====merge the request that are the same====
         ArrayList<ResourceRequest> requests=new ArrayList<ResourceRequest>();
         for (int i = 0; i < ls_requests.size(); i++) {
             ResourceRequest ask = ls_requests.get(i);
@@ -97,6 +101,7 @@ public class AppSchedulingInfoWithCapacity extends AppSchedulingInfo{
             }
         }           
         
+        QueueMetrics metrics = queue.getMetrics();
         // Update resource requests
         for (ResourceRequest request : requests) {
             Priority priority = request.getPriority();
@@ -110,7 +115,6 @@ public class AppSchedulingInfoWithCapacity extends AppSchedulingInfo{
                             + request);
                 }
                 updatePendingResources = true;
-
                 // Premature optimization?
                 // Assumes that we won't see more than one priority request updated
                 // in one call, reasonable assumption... however, it's totally safe
@@ -119,14 +123,12 @@ public class AppSchedulingInfoWithCapacity extends AppSchedulingInfo{
                 // which is needed during deactivate.
                 if (request.getNumContainers() > 0) {
                     super.activateApplication();
-
                 }
             }
 
             //limin-begin
             Map<String, Map<Resource, ResourceRequest>> asksCap = this.requestsCap.get(priority);
-            if (asksCap == null) {
-                //asks = new HashMap<String, ResourceRequest>();
+            if (asksCap == null) {                
                 asksCap = new HashMap<String, Map<Resource, ResourceRequest>>();
                 this.priorities.add(priority);
                 this.requestsCap.put(priority, asksCap);
@@ -135,15 +137,10 @@ public class AppSchedulingInfoWithCapacity extends AppSchedulingInfo{
             if (hm == null) {
                 hm = new HashMap<Resource, ResourceRequest>();
                 asksCap.put(resourceName, hm);
-            }  else  if (updatePendingResources) {
-                //lastRequest = asksCap.get(resourceName).values().iterator().next();//todo:doublecheck
+            }  else  if (updatePendingResources) {                
                 lastRequest = asksCap.get(resourceName).get(request.getCapability());
             }            
-            hm.put(request.getCapability(), request);
-            
-
-
-            
+            hm.put(request.getCapability(), request);                      
 
             if (updatePendingResources) {
                 // Similarly, deactivate application?
@@ -159,16 +156,12 @@ public class AppSchedulingInfoWithCapacity extends AppSchedulingInfo{
                         lastRequestContainers)));
             }
         }
-
-        //
-        // Update blacklist
-        //
-
+        
+        //==== Update blacklist====        
         // Add to blacklist
         if (blacklistAdditions != null) {
             blacklist.addAll(blacklistAdditions);
         }
-
         // Remove from blacklist
         if (blacklistRemovals != null) {
             blacklist.removeAll(blacklistRemovals);
@@ -181,10 +174,10 @@ public class AppSchedulingInfoWithCapacity extends AppSchedulingInfo{
     return requestsCap.get(priority);
   }
 
-
+  //values will return Collection<> which is not null. yet might be empty;
     synchronized public List<ResourceRequest> getAllResourceRequestsCap() {
         List<ResourceRequest> ret = new ArrayList<ResourceRequest>();
-        for (Map<String, Map<Resource, ResourceRequest>> r : requestsCap.values()) {
+        for (Map<String, Map<Resource, ResourceRequest>> r : requestsCap.values()) {            
             for (Map<Resource, ResourceRequest> rr : r.values()) {
                 ret.addAll(rr.values());
             }

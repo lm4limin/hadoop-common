@@ -77,10 +77,60 @@ public class LeafQueueWithCapacity extends LeafQueue{
     private static final CSAssignment SKIP_ASSIGNMENT = new CSAssignment(true);
       private static final CSAssignment NULL_ASSIGNMENT =
       new CSAssignment(Resources.createResource(0, 0), NodeType.NODE_LOCAL);
-  
-  
-    //get the first one; 
-    private CSAssignment assignContainersOnNode(Resource clusterResource,
+    
+    private CSAssignment assignContainersOnNodeCap(Resource clusterResource,
+            FiCaSchedulerNode node, FiCaSchedulerAppWithCapacity application,
+            Priority priority, Resource resourceCap,RMContainer reservedContainer) {
+
+        Resource assigned = Resources.none();
+
+        // Data-local
+        ResourceRequest nodeLocalResourceRequest =application.getSingleResourceRequestCap(priority, node.getHostName(), resourceCap);
+                //application.getResourceRequest(priority, node.getHostName());
+        if (nodeLocalResourceRequest != null) {
+            assigned =
+                    assignNodeLocalContainers(clusterResource, nodeLocalResourceRequest,
+                    node, application, priority, reservedContainer);
+            if (Resources.greaterThan(resourceCalculator, clusterResource,
+                    assigned, Resources.none())) {
+                return new CSAssignment(assigned, NodeType.NODE_LOCAL);
+            }
+        }
+
+        // Rack-local
+        ResourceRequest rackLocalResourceRequest =application.getSingleResourceRequestCap(priority, node.getRackName(), resourceCap);
+              //  application.getResourceRequest(priority, node.getRackName());
+        if (rackLocalResourceRequest != null) {
+            if (!rackLocalResourceRequest.getRelaxLocality()) {
+                return SKIP_ASSIGNMENT;
+            }
+
+            assigned =
+                    assignRackLocalContainers(clusterResource, rackLocalResourceRequest,
+                    node, application, priority, reservedContainer);
+            if (Resources.greaterThan(resourceCalculator, clusterResource,
+                    assigned, Resources.none())) {
+                return new CSAssignment(assigned, NodeType.RACK_LOCAL);
+            }
+        }
+
+        // Off-switch
+        ResourceRequest offSwitchResourceRequest =application.getSingleResourceRequestCap(priority, ResourceRequest.ANY, resourceCap);
+                //application.getResourceRequest(priority, ResourceRequest.ANY);
+        if (offSwitchResourceRequest != null) {
+            if (!offSwitchResourceRequest.getRelaxLocality()) {
+                return SKIP_ASSIGNMENT;
+            }
+
+            return new CSAssignment(
+                    assignOffSwitchContainers(clusterResource, offSwitchResourceRequest,
+                    node, application, priority, reservedContainer),
+                    NodeType.OFF_SWITCH);
+        }
+
+        return SKIP_ASSIGNMENT;
+    }
+    /*private CSAssignment assignContainersOnNode(Resource clusterResource,
             FiCaSchedulerNode node, FiCaSchedulerAppWithCapacity application,
             Priority priority, RMContainer reservedContainer) {
 
@@ -88,12 +138,12 @@ public class LeafQueueWithCapacity extends LeafQueue{
 
         // Data-local
         //ResourceRequest nodeLocalResourceRequest =
-         //       application.getResourceRequest(priority, node.getHostName());
+        //       application.getResourceRequest(priority, node.getHostName());
         Map<Resource, ResourceRequest> hm_req =
                 application.getResourceRequestCap(priority, node.getHostName());
         if (hm_req != null) {
             for (ResourceRequest nodeLocalResourceRequest : hm_req.values()) {
-                if(nodeLocalResourceRequest.getNumContainers()<=0){
+                if (nodeLocalResourceRequest.getNumContainers() <= 0) {
                     continue;
                 }
                 assigned =
@@ -106,16 +156,16 @@ public class LeafQueueWithCapacity extends LeafQueue{
             }
 
         }
-        
+
         // Rack-local
-        Map<Resource,ResourceRequest> hm_rackreq=
+        Map<Resource, ResourceRequest> hm_rackreq =
                 application.getResourceRequestCap(priority, node.getRackName());
         if (hm_rackreq != null) {
-            for(ResourceRequest rackLocalResourceRequest:hm_rackreq.values()){            
+            for (ResourceRequest rackLocalResourceRequest : hm_rackreq.values()) {
                 if (!rackLocalResourceRequest.getRelaxLocality()) {
                     return SKIP_ASSIGNMENT;
                 }
-                if(rackLocalResourceRequest.getNumContainers()<=0){
+                if (rackLocalResourceRequest.getNumContainers() <= 0) {
                     continue;
                 }
                 assigned =
@@ -124,19 +174,19 @@ public class LeafQueueWithCapacity extends LeafQueue{
                 if (Resources.greaterThan(resourceCalculator, clusterResource,
                         assigned, Resources.none())) {
                     return new CSAssignment(assigned, NodeType.RACK_LOCAL);
-                }                        
+                }
             }
         }
 
         // Off-switch
-        Map<Resource,ResourceRequest> hm_offSwitchreq=
-                application.getResourceRequestCap(priority, ResourceRequest.ANY);             
+        Map<Resource, ResourceRequest> hm_offSwitchreq =
+                application.getResourceRequestCap(priority, ResourceRequest.ANY);
         if (hm_offSwitchreq != null) {
-            for(ResourceRequest offSwitchResourceRequest:hm_offSwitchreq.values()){
+            for (ResourceRequest offSwitchResourceRequest : hm_offSwitchreq.values()) {
                 if (!offSwitchResourceRequest.getRelaxLocality()) {
                     return SKIP_ASSIGNMENT;
                 }
-                if(offSwitchResourceRequest.getNumContainers()<=0){
+                if (offSwitchResourceRequest.getNumContainers() <= 0) {
                     continue;
                 }
                 return new CSAssignment(
@@ -146,8 +196,72 @@ public class LeafQueueWithCapacity extends LeafQueue{
             }
         }
         return SKIP_ASSIGNMENT;
-    }
+    }  */
     
+    
+    //get the first one; 
+    /*private CSAssignment assignContainersOnNodeCap(Resource clusterResource,
+            FiCaSchedulerNode node, FiCaSchedulerAppWithCapacity application,
+            Priority priority, Resource resourcecap,RMContainer reservedContainer) {
+
+        Resource assigned = Resources.none();
+
+        // Data-local
+        ResourceRequest nodeLocalResourceRequest = application.getSingleResourceRequestCap(priority, node.getHostName(), resourcecap);
+        //       application.getResourceRequest(priority, node.getHostName());
+
+        assigned =
+                assignNodeLocalContainers(clusterResource, nodeLocalResourceRequest,
+                node, application, priority, reservedContainer);
+        if (Resources.greaterThan(resourceCalculator, clusterResource,
+                assigned, Resources.none())) {
+            return new CSAssignment(assigned, NodeType.NODE_LOCAL);
+        }
+
+
+        
+
+        // Rack-local
+        Map<Resource, ResourceRequest> hm_rackreq =
+                application.getResourceRequestCap(priority, node.getRackName());
+        if (hm_rackreq != null) {
+            for (ResourceRequest rackLocalResourceRequest : hm_rackreq.values()) {
+                if (!rackLocalResourceRequest.getRelaxLocality()) {
+                    return SKIP_ASSIGNMENT;
+                }
+                if (rackLocalResourceRequest.getNumContainers() <= 0) {
+                    continue;
+                }
+                assigned =
+                        assignRackLocalContainers(clusterResource, rackLocalResourceRequest,
+                        node, application, priority, reservedContainer);
+                if (Resources.greaterThan(resourceCalculator, clusterResource,
+                        assigned, Resources.none())) {
+                    return new CSAssignment(assigned, NodeType.RACK_LOCAL);
+                }
+            }
+        }
+
+        // Off-switch
+        Map<Resource, ResourceRequest> hm_offSwitchreq =
+                application.getResourceRequestCap(priority, ResourceRequest.ANY);
+        if (hm_offSwitchreq != null) {
+            for (ResourceRequest offSwitchResourceRequest : hm_offSwitchreq.values()) {
+                if (!offSwitchResourceRequest.getRelaxLocality()) {
+                    return SKIP_ASSIGNMENT;
+                }
+                if (offSwitchResourceRequest.getNumContainers() <= 0) {
+                    continue;
+                }
+                return new CSAssignment(
+                        assignOffSwitchContainers(clusterResource, offSwitchResourceRequest,
+                        node, application, priority, reservedContainer),
+                        NodeType.OFF_SWITCH);
+            }
+        }
+        return SKIP_ASSIGNMENT;
+    }*/
+
       //private Resource assignNodeLocalContainers(
     @Override
     protected Resource assignNodeLocalContainers(
@@ -202,7 +316,7 @@ public class LeafQueueWithCapacity extends LeafQueue{
             FiCaSchedulerNode node, NodeType type, RMContainer reservedContainer) {
 
         FiCaSchedulerAppWithCapacity application = (FiCaSchedulerAppWithCapacity) app;
-        long requiredContainers_off,requiredContainers_rack,requiredContainers_node;
+        long requiredContainers_off;
         // Clearly we need containers for this application...
         if (type == NodeType.OFF_SWITCH) {            
             if (reservedContainer != null) {
@@ -221,6 +335,7 @@ public class LeafQueueWithCapacity extends LeafQueue{
         }
 
         // Check if we need containers on this rack 
+        long requiredContainers_rack;
         Map<Resource, ResourceRequest> hm_rackLocalRequest =
                 application.getResourceRequestCap(priority, node.getRackName());
         requiredContainers_rack=FiCaSchedulerAppWithCapacity.getNumContainers(hm_rackLocalRequest) ;
@@ -243,8 +358,7 @@ public class LeafQueueWithCapacity extends LeafQueue{
             Map<Resource, ResourceRequest> hm_nodeLocalRequest =
                     application.getResourceRequestCap(priority, node.getHostName());
             if (hm_nodeLocalRequest != null) {
-                boolean res = true;
-                //limin**
+          
                 return FiCaSchedulerAppWithCapacity.getNumContainers(hm_nodeLocalRequest) > 0;
             }
         }
@@ -327,7 +441,7 @@ public class LeafQueueWithCapacity extends LeafQueue{
 
                         // Try to schedule
                         CSAssignment assignment =
-                                assignContainersOnNode(clusterResource, node, application, priority,
+                                assignContainersOnNodeCap(clusterResource, node, application, priority,required,
                                 null);
 
                         // Did the application skip this node?
@@ -391,7 +505,7 @@ public class LeafQueueWithCapacity extends LeafQueue{
   assignReservedContainer(FiCaSchedulerApp app, 
       FiCaSchedulerNode node, RMContainer rmContainer, Resource clusterResource) {
     // Do we still need this reservation?
-        FiCaSchedulerAppWithCapacity application=(FiCaSchedulerAppWithCapacity) app;
+    FiCaSchedulerAppWithCapacity application=(FiCaSchedulerAppWithCapacity) app;
     Priority priority = rmContainer.getReservedPriority();
     if (application.getTotalRequiredResources(priority) == 0) {
       // Release
@@ -399,7 +513,7 @@ public class LeafQueueWithCapacity extends LeafQueue{
     }
 
     // Try to assign if we have sufficient resources
-    assignContainersOnNode(clusterResource, node, application, priority, 
+    assignContainersOnNodeCap(clusterResource, node, application, priority, rmContainer.getReservedResource(),
         rmContainer);
     
     // Doesn't matter... since it's already charged for at time of reservation
@@ -408,33 +522,31 @@ public class LeafQueueWithCapacity extends LeafQueue{
   }
     @Override
     boolean needContainers(FiCaSchedulerApp app, Priority priority, Resource required) {
-        FiCaSchedulerAppWithCapacity application=(FiCaSchedulerAppWithCapacity) app;
-    int requiredContainers = application.getTotalRequiredResources(priority);
-    int reservedContainers = application.getNumReservedContainers(priority);
-    int starvation = 0;
-    if (reservedContainers > 0) {
-      float nodeFactor = 
-          Resources.ratio(
-              resourceCalculator, required, getMaximumAllocation()
-              );
-      
-      // Use percentage of node required to bias against large containers...
-      // Protect against corner case where you need the whole node with
-      // Math.min(nodeFactor, minimumAllocationFactor)
-      starvation = 
-          (int)((application.getReReservations(priority) / (float)reservedContainers) * 
-                (1.0f - (Math.min(nodeFactor, getMinimumAllocationFactor())))
-               );
-      
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("needsContainers:" +
-            " app.#re-reserve=" + application.getReReservations(priority) + 
-            " reserved=" + reservedContainers + 
-            " nodeFactor=" + nodeFactor + 
-            " minAllocFactor=" + getMinimumAllocationFactor() +
-            " starvation=" + starvation);
-      }
+        FiCaSchedulerAppWithCapacity application = (FiCaSchedulerAppWithCapacity) app;
+        int requiredContainers = application.getTotalRequiredResources(priority);
+        int reservedContainers = application.getNumReservedContainers(priority);
+        int starvation = 0;
+        if (reservedContainers > 0) {
+            float nodeFactor =
+                    Resources.ratio(
+                    resourceCalculator, required, getMaximumAllocation());
+
+            // Use percentage of node required to bias against large containers...
+            // Protect against corner case where you need the whole node with
+            // Math.min(nodeFactor, minimumAllocationFactor)
+            starvation =
+                    (int) ((application.getReReservations(priority) / (float) reservedContainers)
+                    * (1.0f - (Math.min(nodeFactor, getMinimumAllocationFactor()))));
+
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("needsContainers:"
+                        + " app.#re-reserve=" + application.getReReservations(priority)
+                        + " reserved=" + reservedContainers
+                        + " nodeFactor=" + nodeFactor
+                        + " minAllocFactor=" + getMinimumAllocationFactor()
+                        + " starvation=" + starvation);
+            }
+        }
+        return (((starvation + requiredContainers) - reservedContainers) > 0);
     }
-    return (((starvation + requiredContainers) - reservedContainers) > 0);
-  }
 }
