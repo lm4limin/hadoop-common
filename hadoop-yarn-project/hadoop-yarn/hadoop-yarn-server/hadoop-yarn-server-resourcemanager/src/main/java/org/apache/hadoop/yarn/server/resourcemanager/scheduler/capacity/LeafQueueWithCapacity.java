@@ -323,10 +323,14 @@ public class LeafQueueWithCapacity extends LeafQueue{
                 return true;
             }
             // 'Delay' off-switch
-            Map<Resource, ResourceRequest> offSwitchRequest =
+            Map<Resource, ResourceRequest> hm_offSwitchRequest =
                     application.getResourceRequestCap(priority, ResourceRequest.ANY);
+            
             long missedOpportunities = application.getSchedulingOpportunities(priority);
-            requiredContainers_off = FiCaSchedulerAppWithCapacity.getNumContainers(offSwitchRequest);//offSwitchRequest.getNumContainers(); 
+            requiredContainers_off = FiCaSchedulerAppWithCapacity.getNumContainers(hm_offSwitchRequest);//offSwitchRequest.getNumContainers(); 
+            if(hm_offSwitchRequest==null||requiredContainers_off<=0){
+                return false;
+            }
             float localityWaitFactor =
                     application.getLocalityWaitFactor(priority,
                     scheduler.getNumClusterNodes());
