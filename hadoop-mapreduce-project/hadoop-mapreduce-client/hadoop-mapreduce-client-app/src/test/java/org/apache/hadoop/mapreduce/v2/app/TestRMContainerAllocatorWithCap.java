@@ -436,10 +436,12 @@ public class TestRMContainerAllocatorWithCap {
    // conf.setClass(YarnConfiguration.RM_SCHEDULER, 
     //    CapacityScheduler.class, ResourceScheduler.class);
                  CapacitySchedulerConfiguration csConf = new CapacitySchedulerConfiguration();
+                 
                 setupQueueConfiguration(csConf);
                 YarnConfiguration conf = new YarnConfiguration(csConf);
-                csConf.set(YarnConfiguration.RM_SCHEDULER_CAPACITYSCHEDYLER_SUPPORT,
+                conf.set(YarnConfiguration.RM_SCHEDULER_CAPACITYSCHEDYLER_SUPPORT,
                 YarnConfiguration.RM_SCHEDULER_CAPACITYSCHEDYLER_SUPPORT_YES);
+                
         LOG.debug("yarnconfig "+YarnConfiguration.RM_SCHEDULER_CAPACITYSCHEDYLER_SUPPORT);
      //   csConf.setConf(conf);
                 
