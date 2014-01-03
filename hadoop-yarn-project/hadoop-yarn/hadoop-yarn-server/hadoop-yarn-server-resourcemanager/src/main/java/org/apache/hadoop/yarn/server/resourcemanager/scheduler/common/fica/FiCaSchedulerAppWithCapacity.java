@@ -62,6 +62,7 @@ import org.apache.hadoop.yarn.util.resource.ResourceCalculator;
 
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multiset;
+import java.util.*;
 /**
  *
  * @author limin
@@ -179,6 +180,20 @@ public class FiCaSchedulerAppWithCapacity extends FiCaSchedulerApp {
         Map<Resource,ResourceRequest> hm=getResourceRequestCap(priority, ResourceRequest.ANY);
         return (int)FiCaSchedulerAppWithCapacity.getNumContainers(hm);
   }
+    public synchronized int getNumReservedContainers(Priority priority, Resource cap) {
+        Map<NodeId, RMContainer> reservedContainers_l =
+                this.reservedContainers.get(priority);
+        int res = 0;
+        Iterator it = reservedContainers_l.entrySet().iterator();
+        //return (reservedContainers_l == null) ? 0 : reservedContainers_l.size();
+        while (it.hasNext()) {
+            Map.Entry<NodeId, RMContainer> pair = (Map.Entry<NodeId, RMContainer>) it.next();
+            if (pair.getValue().getContainer().getResource() == cap) {
+                res++;
+            }
+        }
+        return res;
+    }
   @Override
   public synchronized void updateResourceRequests(
       List<ResourceRequest> requests, 
