@@ -659,10 +659,11 @@ public class LeafQueueWithCapacity extends LeafQueue{
         ResourceRequest req = application.getSingleResourceRequestCap(priority,
                 ResourceRequest.ANY, required);// application.getTotalRequiredResources(priority);
         int requiredContainers = (req == null) ? 0 : req.getNumContainers();
-        int reservedContainers = application.getNumReservedContainers(priority);
+        int reservedContainers = application.getNumReservedContainers(priority,required);
         int starvation = 0;
+        float nodeFactor=0;
         if (reservedContainers > 0) {
-            float nodeFactor =
+             nodeFactor =
                     Resources.ratio(
                     resourceCalculator, required, getMaximumAllocation());
 
@@ -672,16 +673,18 @@ public class LeafQueueWithCapacity extends LeafQueue{
             starvation =
                     (int) ((application.getReReservations(priority) / (float) reservedContainers)
                     * (1.0f - (Math.min(nodeFactor, getMinimumAllocationFactor()))));
-
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("needsContainers:"
-                        + " app.#re-reserve=" + application.getReReservations(priority)
-                        + " reserved=" + reservedContainers
-                        + " nodeFactor=" + nodeFactor
-                        + " minAllocFactor=" + getMinimumAllocationFactor()
-                        + " starvation=" + starvation);
-            }
         }
-        return (((starvation + requiredContainers) - reservedContainers) > 0);
+        boolean res = (((starvation + requiredContainers) - reservedContainers) > 0);
+        if (LOG.isDebugEnabled()&&reservedContainers > 0) {
+            LOG.debug("needsContainers:"
+                    + " required= " + required.toString()
+                    + " app.#re-reserve=" + application.getReReservations(priority)
+                    + " reserved=" + reservedContainers
+                    + " nodeFactor=" + nodeFactor
+                    + " minAllocFactor=" + getMinimumAllocationFactor()
+                    + " starvation=" + starvation                    
+                    +" result="+ res);
+        }
+        return res;
     }
 }
