@@ -275,7 +275,7 @@ public class LeafQueueWithCapacity extends LeafQueue{
 
             ResourceRequest rackreq=app.getSingleResourceRequestCap(priority, node.getRackName(), nodeLocalResourceRequest.getCapability());
             int num1 = (rackreq==null)?0:rackreq.getNumContainers();
-            if (num1 < num) {
+            if (num1 < num||num==0) {
                 return Resources.none();
             }
             ResourceRequest offswitchreq=app.getSingleResourceRequestCap(priority, ResourceRequest.ANY, nodeLocalResourceRequest.getCapability());
@@ -301,7 +301,7 @@ public class LeafQueueWithCapacity extends LeafQueue{
             int num = rackLocalResourceRequest.getNumContainers();
             ResourceRequest offswitchreq = app.getSingleResourceRequestCap(priority, ResourceRequest.ANY, rackLocalResourceRequest.getCapability());
             int num2 = (offswitchreq == null) ? 0 : offswitchreq.getNumContainers();
-            if (num2 < num) {
+            if (num2 < num||num==0) {
                 return Resources.none();
             }
             return assignContainer(clusterResource, node, application, priority,
@@ -323,7 +323,7 @@ public class LeafQueueWithCapacity extends LeafQueue{
             int num = offSwitchResourceRequest.getNumContainers();
             ResourceRequest offswitchreq = app.getSingleResourceRequestCap(priority, ResourceRequest.ANY, offSwitchResourceRequest.getCapability());
            int num2 = (offswitchreq == null) ? 0 : offswitchreq.getNumContainers();
-            if(num2<num){
+            if(num2<num||num==0){
                   return Resources.none();
             }
             return assignContainer(clusterResource, node, application, priority,
