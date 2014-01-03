@@ -183,6 +183,7 @@ public class FiCaSchedulerAppWithCapacity extends FiCaSchedulerApp {
     public synchronized int getNumReservedContainers(Priority priority, Resource cap) {
         Map<NodeId, RMContainer> reservedContainers_l =
                 this.reservedContainers.get(priority);
+        if(reservedContainers_l==null) return 0;
         int res = 0;
         Iterator it = reservedContainers_l.entrySet().iterator();
         //return (reservedContainers_l == null) ? 0 : reservedContainers_l.size();
