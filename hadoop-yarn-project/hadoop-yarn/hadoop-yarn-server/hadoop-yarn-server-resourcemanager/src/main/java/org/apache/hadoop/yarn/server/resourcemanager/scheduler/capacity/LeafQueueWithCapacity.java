@@ -278,7 +278,7 @@ public class LeafQueueWithCapacity extends LeafQueue{
             Resource clusterResource, ResourceRequest nodeLocalResourceRequest,
             FiCaSchedulerNode node, FiCaSchedulerApp application,
             Priority priority, RMContainer reservedContainer) {
-        if (canAssign(application, priority, node, NodeType.NODE_LOCAL,
+        if (canAssignCap(application, priority,nodeLocalResourceRequest.getCapability(), node, NodeType.NODE_LOCAL,
                 reservedContainer)) {
             FiCaSchedulerAppWithCapacity app = (FiCaSchedulerAppWithCapacity) application;
             int num = nodeLocalResourceRequest.getNumContainers();
@@ -305,7 +305,7 @@ public class LeafQueueWithCapacity extends LeafQueue{
             Resource clusterResource, ResourceRequest rackLocalResourceRequest,
             FiCaSchedulerNode node, FiCaSchedulerApp application, Priority priority,
             RMContainer reservedContainer) {
-        if (canAssign(application, priority, node, NodeType.RACK_LOCAL,
+        if (canAssignCap(application, priority,rackLocalResourceRequest.getCapability(), node, NodeType.RACK_LOCAL,
                 reservedContainer)) {
             FiCaSchedulerAppWithCapacity app = (FiCaSchedulerAppWithCapacity) application;
             int num = rackLocalResourceRequest.getNumContainers();
@@ -326,7 +326,7 @@ public class LeafQueueWithCapacity extends LeafQueue{
             Resource clusterResource, ResourceRequest offSwitchResourceRequest,
             FiCaSchedulerNode node, FiCaSchedulerApp application, Priority priority,
             RMContainer reservedContainer) {
-        if (canAssign(application, priority, node, NodeType.OFF_SWITCH,
+        if (canAssignCap(application, priority,offSwitchResourceRequest.getCapability(), node, NodeType.OFF_SWITCH,
                 reservedContainer)) {
             
             FiCaSchedulerAppWithCapacity app = (FiCaSchedulerAppWithCapacity) application;
@@ -342,11 +342,19 @@ public class LeafQueueWithCapacity extends LeafQueue{
 
         return Resources.none();
     }
-    
-    @Override
-    boolean canAssign(FiCaSchedulerApp app, Priority priority,
+    /*
+    //@Override
+    boolean canAssign_old(FiCaSchedulerApp app, Priority priority,
             FiCaSchedulerNode node, NodeType type, RMContainer reservedContainer) {
-
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("canAssign:  node type "
+                    + type);
+            if (reservedContainer != null) {
+                LOG.debug("reserved container"
+                        + " priority " + reservedContainer.getReservedPriority().toString()
+                        + " cap " + reservedContainer.getReservedResource().toString());
+            }
+        }
         FiCaSchedulerAppWithCapacity application = (FiCaSchedulerAppWithCapacity) app;
         long requiredContainers_off;
         // Clearly we need containers for this application...
@@ -403,8 +411,57 @@ public class LeafQueueWithCapacity extends LeafQueue{
                     +type);
         }
         return false;
-    }
+    }*/
+    
+    boolean canAssignCap(FiCaSchedulerApp app, Priority priority, Resource resourceCap,
+            FiCaSchedulerNode node, NodeType type, RMContainer reservedContainer) {
+        FiCaSchedulerAppWithCapacity application = (FiCaSchedulerAppWithCapacity) app;
+        // Clearly we need containers for this application...
+        if (type == NodeType.OFF_SWITCH) {
+            if (reservedContainer != null) {
+                return true;
+            }
 
+            // 'Delay' off-switch
+            ResourceRequest offSwitchRequest =application.getSingleResourceRequestCap(priority, ResourceRequest.ANY, resourceCap);
+                    //application.getResourceRequest(priority, ResourceRequest.ANY);
+            long missedOpportunities = application.getSchedulingOpportunities(priority);
+            long requiredContainers = offSwitchRequest.getNumContainers();
+
+            float localityWaitFactor =
+                    application.getLocalityWaitFactor(priority,
+                    scheduler.getNumClusterNodes());
+
+            return ((requiredContainers * localityWaitFactor) < missedOpportunities);
+        }
+
+        // Check if we need containers on this rack 
+        ResourceRequest rackLocalRequest =application.getSingleResourceRequestCap(priority, node.getRackName(), resourceCap);
+               // application.getResourceRequest(priority, node.getRackName());
+        if (rackLocalRequest == null || rackLocalRequest.getNumContainers() <= 0) {
+            return false;
+        }
+
+        // If we are here, we do need containers on this rack for RACK_LOCAL req
+        if (type == NodeType.RACK_LOCAL) {
+            // 'Delay' rack-local just a little bit...
+            long missedOpportunities = application.getSchedulingOpportunities(priority);
+            return (Math.min(scheduler.getNumClusterNodes(), getNodeLocalityDelay())
+                    < missedOpportunities);
+        }
+
+        // Check if we need containers on this host
+        if (type == NodeType.NODE_LOCAL) {
+            // Now check if we need containers on this host...
+            ResourceRequest nodeLocalRequest =application.getSingleResourceRequestCap(priority, node.getHostName(), resourceCap);
+                  //  application.getResourceRequest(priority, node.getHostName());
+            if (nodeLocalRequest != null) {
+                return nodeLocalRequest.getNumContainers() > 0;
+            }
+        }
+
+        return false;
+    }
     @Override
     public synchronized CSAssignment assignContainers(Resource clusterResource, FiCaSchedulerNode node) {
 
@@ -455,7 +512,7 @@ public class LeafQueueWithCapacity extends LeafQueue{
                     }
                     boolean isbreak = false;
                     for (Resource required : hm_required.keySet()) {
-                        if (!needContainers(application, priority, required)) {
+                        if (!needContainersCap(application, priority, required)) {
                             continue;
                         }
 
@@ -567,10 +624,41 @@ public class LeafQueueWithCapacity extends LeafQueue{
     // "re-reservation" is *free*
     return new CSAssignment(Resources.none(), NodeType.NODE_LOCAL);
   }
-    @Override
-    boolean needContainers(FiCaSchedulerApp app, Priority priority, Resource required) {
+   // @Override
+  /*
+    boolean needContainers_old(FiCaSchedulerApp app, Priority priority, Resource required) {
         FiCaSchedulerAppWithCapacity application = (FiCaSchedulerAppWithCapacity) app;
         int requiredContainers = application.getTotalRequiredResources(priority);
+        int reservedContainers = application.getNumReservedContainers(priority);
+        int starvation = 0;
+        if (reservedContainers > 0) {
+            float nodeFactor =
+                    Resources.ratio(
+                    resourceCalculator, required, getMaximumAllocation());
+
+            // Use percentage of node required to bias against large containers...
+            // Protect against corner case where you need the whole node with
+            // Math.min(nodeFactor, minimumAllocationFactor)
+            starvation =
+                    (int) ((application.getReReservations(priority) / (float) reservedContainers)
+                    * (1.0f - (Math.min(nodeFactor, getMinimumAllocationFactor()))));
+
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("needsContainers:"
+                        + " app.#re-reserve=" + application.getReReservations(priority)
+                        + " reserved=" + reservedContainers
+                        + " nodeFactor=" + nodeFactor
+                        + " minAllocFactor=" + getMinimumAllocationFactor()
+                        + " starvation=" + starvation);
+            }
+        }
+        return (((starvation + requiredContainers) - reservedContainers) > 0);
+    }*/
+    boolean needContainersCap(FiCaSchedulerAppWithCapacity application, 
+            Priority priority, Resource required) {
+        ResourceRequest req = application.getSingleResourceRequestCap(priority,
+                ResourceRequest.ANY, required);// application.getTotalRequiredResources(priority);
+        int requiredContainers = (req == null) ? 0 : req.getNumContainers();
         int reservedContainers = application.getNumReservedContainers(priority);
         int starvation = 0;
         if (reservedContainers > 0) {
