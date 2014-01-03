@@ -310,7 +310,29 @@ public class LeafQueueWithCapacity extends LeafQueue{
 
         return Resources.none();
     }
- 
+    
+    @Override
+    protected Resource assignOffSwitchContainers(
+            Resource clusterResource, ResourceRequest offSwitchResourceRequest,
+            FiCaSchedulerNode node, FiCaSchedulerApp application, Priority priority,
+            RMContainer reservedContainer) {
+        if (canAssign(application, priority, node, NodeType.OFF_SWITCH,
+                reservedContainer)) {
+            
+            FiCaSchedulerAppWithCapacity app = (FiCaSchedulerAppWithCapacity) application;
+            int num = offSwitchResourceRequest.getNumContainers();
+            ResourceRequest offswitchreq = app.getSingleResourceRequestCap(priority, ResourceRequest.ANY, offSwitchResourceRequest.getCapability());
+           int num2 = (offswitchreq == null) ? 0 : offswitchreq.getNumContainers();
+            if(num2<num){
+                  return Resources.none();
+            }
+            return assignContainer(clusterResource, node, application, priority,
+                    offSwitchResourceRequest, NodeType.OFF_SWITCH, reservedContainer);
+        }
+
+        return Resources.none();
+    }
+    
     @Override
     boolean canAssign(FiCaSchedulerApp app, Priority priority,
             FiCaSchedulerNode node, NodeType type, RMContainer reservedContainer) {
