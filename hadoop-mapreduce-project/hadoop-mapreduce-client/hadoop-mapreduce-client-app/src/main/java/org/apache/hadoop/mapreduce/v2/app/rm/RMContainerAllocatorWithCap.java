@@ -948,11 +948,11 @@ public class RMContainerAllocatorWithCap extends RMContainerRequestor
 
             Priority priority = allocated.getPriority();
             if (PRIORITY_FAST_FAIL_MAP.equals(priority)) {
-                LOG.info("Assigning container " + allocated + " to fast fail map");
+                LOG.info("Assigning  to fast fail map using container " + allocated.getId() );
                 assigned = assignToFailedMap(allocated);
             } else if (PRIORITY_REDUCE.equals(priority)) {
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("Assigning container " + allocated + " to reduce");
+                    LOG.debug("Assigning to reduce using container "+allocated.getId() );
                 }
                 assigned = assignToReduce(allocated);
             }
@@ -1010,61 +1010,64 @@ public class RMContainerAllocatorWithCap extends RMContainerRequestor
             LOG.info("Found replacement: " + toBeReplaced);
             return toBeReplaced;
         }
-
-        //find the attempt that satisfy the container requirement;  
-        @SuppressWarnings("unchecked")
-        private ContainerRequest assignToFailedMap(Container allocated) {
-                                        if (LOG.isDebugEnabled()) {
+            /*                            if (LOG.isDebugEnabled()) {
                     LOG.debug("Assigning container " + allocated.getId()
                             + " with priority " + allocated.getPriority() + " to NM "
                             + allocated.getNodeId());
-                }
-            //try to assign to earlierFailedMaps if present
-            ContainerRequest assigned = null;
-            while (assigned == null && earlierFailedMaps.size() > 0) {
-                TaskAttemptId tId = earlierFailedMaps.removeFirst();       //todo:double check        
-                if (maps.containsKey(tId)) {
-                    assigned = maps.get(tId);
-                    int mem = assigned.capability.getMemory();
-                    int a_mem = allocated.getResource().getMemory();
-                    if (mem <= a_mem && mem + 256 >= a_mem
-                            && assigned.capability.getVirtualCores() == allocated.getResource().getVirtualCores()) {
-                        maps.remove(tId);
-                        this._maps_total_mem -= assigned.capability.getMemory();//limin
-                        JobCounterUpdateEvent jce =
-                                new JobCounterUpdateEvent(assigned.attemptID.getTaskId().getJobId());
-                        jce.addCounterUpdate(JobCounter.OTHER_LOCAL_MAPS, 1);
-                        eventHandler.handle(jce);
-                        LOG.info("Assigned from earlierFailedMaps");
-                        break;
-                    }
+                }*/
+        //find the attempt that satisfy the container requirement;  
 
+        @SuppressWarnings("unchecked")
+        private ContainerRequest assignToFailedMap(Container allocated) {
+
+            //try to assign to earlierFailedMaps if present            
+            int i = 0;
+            while (i < earlierFailedMaps.size()) {
+                TaskAttemptId tId = earlierFailedMaps.get(i++);
+                if (!maps.containsKey(tId)) {
+                    continue;
+                }
+                ContainerRequest assigned = maps.get(tId);
+                int mem = assigned.capability.getMemory();
+                int a_mem = allocated.getResource().getMemory();
+                if (mem == a_mem && assigned.capability.getVirtualCores()
+                        == allocated.getResource().getVirtualCores()) {
+                    earlierFailedMaps.remove(tId);
+                    maps.remove(tId);
+                    this._maps_total_mem -= assigned.capability.getMemory();//limin
+                    JobCounterUpdateEvent jce =
+                            new JobCounterUpdateEvent(assigned.attemptID.getTaskId().getJobId());
+                    jce.addCounterUpdate(JobCounter.OTHER_LOCAL_MAPS, 1);
+                    eventHandler.handle(jce);
+                    LOG.info("assigned to earlierFailedMaps");
+                    return assigned;
                 }
             }
-            return assigned;
+            return null;
         }
 
         private ContainerRequest assignToReduce(Container allocated) {
-                            if (LOG.isDebugEnabled()) {
-                    LOG.debug("Assigning container " + allocated.getId()
-                            + " with priority " + allocated.getPriority() + " to NM "
-                            + allocated.getNodeId());
-                }
-            ContainerRequest assigned = null;
+           /* if (LOG.isDebugEnabled()) {
+                LOG.debug("Assigning container " + allocated.getId()
+                        + " with priority " + allocated.getPriority() + " to NM "
+                        + allocated.getNodeId());
+            }*/
+            ContainerRequest assigned ;
             //try to assign to reduces if present
             Iterator it = reduces.entrySet().iterator();
-            while (assigned == null && it.hasNext()) {
+            while ( it.hasNext()) {
                 Map.Entry<TaskAttemptId, ContainerRequest> entry = (Map.Entry) it.next();
                 assigned = entry.getValue();
                 int mem = assigned.capability.getMemory();
                 int a_mem = allocated.getResource().getMemory();
-                if (mem <= a_mem && mem + 256 >= a_mem
-                        && assigned.capability.getVirtualCores() == allocated.getResource().getVirtualCores()) {
+                if (mem == a_mem && assigned.capability.getVirtualCores()
+                        == allocated.getResource().getVirtualCores()) {
                     reduces.remove(entry.getKey());
                     this._reduce_total_mem -= assigned.capability.getMemory();//limin
+                    return assigned;
                 }
             }
-            return assigned;
+            return null;
         }
 
         @SuppressWarnings("unchecked")
@@ -1080,8 +1083,7 @@ public class RMContainerAllocatorWithCap extends RMContainerRequestor
                 // hence this while loop would almost always have O(1) complexity
                 String host = allocated.getNodeId().getHost();
                 LinkedList<TaskAttemptId> list = mapsHostMapping.get(host);
-                int i=0;
-                //LinkedList<TaskAttemptId> tmplist=new LinkedList<TaskAttemptId>();
+                int i=0;                
                 while (list != null && i<list.size()) {
                     TaskAttemptId tId = list.get(i++);//list.removeFirst();//todo: double check                    
                     if (maps.containsKey(tId)) {
@@ -1095,7 +1097,7 @@ public class RMContainerAllocatorWithCap extends RMContainerRequestor
                         assigned = maps.get(tId);
                         int mem = assigned.capability.getMemory();
                         int a_mem = allocated.getResource().getMemory();
-                        if (mem <= a_mem && mem + 256 >= a_mem
+                        if (mem == a_mem
                                 && assigned.capability.getVirtualCores() == allocated.getResource().getVirtualCores()) {
                             this._maps_total_mem -= assigned.capability.getMemory();//limin
                             containerAssigned(allocated, assigned);
@@ -1108,7 +1110,7 @@ public class RMContainerAllocatorWithCap extends RMContainerRequestor
                             eventHandler.handle(jce);
                             hostLocalAssigned++;
                             if (LOG.isDebugEnabled()) {
-                                LOG.debug("Assigned based on host match " + host);
+                                LOG.debug("success based on host match " + host);
                             }
                             break;
                         }
@@ -1142,7 +1144,7 @@ public class RMContainerAllocatorWithCap extends RMContainerRequestor
                         assigned = maps.get(tId);
                         int mem = assigned.capability.getMemory();
                         int a_mem = allocated.getResource().getMemory();
-                        if (mem <= a_mem && mem + 256 >= a_mem
+                        if (mem == a_mem 
                                 && assigned.capability.getVirtualCores() == allocated.getResource().getVirtualCores()) {
                             this._maps_total_mem -= assigned.capability.getMemory();//limin
                             containerAssigned(allocated, assigned);
@@ -1155,7 +1157,7 @@ public class RMContainerAllocatorWithCap extends RMContainerRequestor
                             eventHandler.handle(jce);
                             rackLocalAssigned++;
                             if (LOG.isDebugEnabled()) {
-                                LOG.debug("Assigned based on rack match " + rack);
+                                LOG.debug("success based on rack match " + rack);
                             }
                             break;
                         }
@@ -1184,7 +1186,7 @@ public class RMContainerAllocatorWithCap extends RMContainerRequestor
                     tId = pairs.getKey();
                     int mem = assigned.capability.getMemory();
                     int a_mem = allocated.getResource().getMemory();
-                    if (mem <= a_mem && mem + 256 >= a_mem
+                    if (mem == a_mem 
                             && assigned.capability.getVirtualCores() == allocated.getResource().getVirtualCores()) {
                         this._maps_total_mem -= assigned.capability.getMemory();//limin
                         containerAssigned(allocated, assigned);
@@ -1195,7 +1197,7 @@ public class RMContainerAllocatorWithCap extends RMContainerRequestor
                         jce.addCounterUpdate(JobCounter.OTHER_LOCAL_MAPS, 1);
                         eventHandler.handle(jce);
                         if (LOG.isDebugEnabled()) {
-                            LOG.debug("Assigned based on * match");
+                            LOG.debug("success based on * match");
                         }
                         break;
                     }
