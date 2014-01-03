@@ -84,6 +84,7 @@ public class LeafQueueWithCapacity extends LeafQueue{
 
         Resource assigned = Resources.none();
 
+        
         // Data-local
         ResourceRequest nodeLocalResourceRequest =application.getSingleResourceRequestCap(priority, node.getHostName(), resourceCap);
                 //application.getResourceRequest(priority, node.getHostName());
@@ -127,7 +128,16 @@ public class LeafQueueWithCapacity extends LeafQueue{
                     node, application, priority, reservedContainer),
                     NodeType.OFF_SWITCH);
         }
-
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("assignContainerOnNodeCap:  skip assignment"
+                    + " priority " + priority.toString()
+                    + " cap " + resourceCap.toString());
+            if (reservedContainer != null) {
+                LOG.debug("reserved container"
+                        + " priority " + reservedContainer.getReservedPriority().toString()
+                        + " cap " + reservedContainer.getReservedResource().toString());
+            }
+        }
         return SKIP_ASSIGNMENT;
     }
     /*private CSAssignment assignContainersOnNode(Resource clusterResource,
@@ -388,7 +398,10 @@ public class LeafQueueWithCapacity extends LeafQueue{
                 return FiCaSchedulerAppWithCapacity.getNumContainers(hm_nodeLocalRequest) > 0;
             }
         }
-
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("canAssign:  false "
+                    +type);
+        }
         return false;
     }
 
@@ -406,6 +419,11 @@ public class LeafQueueWithCapacity extends LeafQueue{
             FiCaSchedulerAppWithCapacity application =
                     (FiCaSchedulerAppWithCapacity) getApplication(reservedContainer.getApplicationAttemptId());
             synchronized (application) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("assignContainers:  reserve container"                            
+                            +" priority " +reservedContainer.getReservedPriority()
+                            +" capacity " +reservedContainer.getReservedResource().toString());
+                }
                 return assignReservedContainer(application, node, reservedContainer,
                         clusterResource);
             }
@@ -535,7 +553,10 @@ public class LeafQueueWithCapacity extends LeafQueue{
     Priority priority = rmContainer.getReservedPriority();
     if (application.getTotalRequiredResources(priority) == 0) {
       // Release
-      return new CSAssignment(application, rmContainer);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("assignReservedContainer container need 0 resources");
+        }
+        return new CSAssignment(application, rmContainer);
     }
 
     // Try to assign if we have sufficient resources
