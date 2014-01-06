@@ -130,10 +130,10 @@ public class TestProcfsBasedProcessTree {
     File tempFile =
         new File(TEST_ROOT_DIR, getClass().getName() + "_shellScript_"
             + rm.nextInt() + ".sh");
-    
+    tempFile.createNewFile();
     tempFile.deleteOnExit();
     shellScript = TEST_ROOT_DIR + File.separator + tempFile.getName();
-    LOG.info("shell script exit"+Boolean.toString(tempFile.exists()));
+    LOG.info("shell script exit "+Boolean.toString(tempFile.exists()));
     // create pid file
     tempFile =
         new File(TEST_ROOT_DIR, getClass().getName() + "_pidFile_"
