@@ -134,6 +134,9 @@ public class TestProcfsBasedProcessTree {
     //tempFile.createNewFile();
     tempFile.deleteOnExit();
     shellScript = TEST_ROOT_DIR + File.separator + tempFile.getName();
+        if (!TEST_ROOT_DIR.mkdirs()) {
+            LOG.error("Could not create parent directories ");
+        }
     LOG.info("shell script exit "+Boolean.toString(TEST_ROOT_DIR.exists())+" sh file "+Boolean.toString(tempFile.exists()));
     // create pid file
     tempFile =
