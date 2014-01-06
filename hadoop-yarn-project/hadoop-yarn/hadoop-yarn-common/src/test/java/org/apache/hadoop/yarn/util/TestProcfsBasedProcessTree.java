@@ -520,7 +520,7 @@ public class TestProcfsBasedProcessTree {
       Assert.assertEquals("Getting non-zero rssmem for processes older than 3 iterations",
                     0L, processTree.getCumulativeRssmem(3));
     } finally {
-      FileUtil.fullyDelete(procfsRootDir);
+   //   FileUtil.fullyDelete(procfsRootDir);
     }
   }
 
@@ -548,7 +548,7 @@ public class TestProcfsBasedProcessTree {
       Assert.assertTrue(ProcfsBasedProcessTree.checkPidPgrpidForMatch(
             pid, procfsRootDir.getAbsolutePath()));
     } finally {
-      FileUtil.fullyDelete(procfsRootDir);
+     // FileUtil.fullyDelete(procfsRootDir);
     }
   }
 
@@ -627,7 +627,7 @@ public class TestProcfsBasedProcessTree {
               + " " + p.pgrpId + " " + p.session + " (" + p.name + ") "
               + p.utime + " " + p.stime + " " + p.vmem + " " + cmdLines[5]));
     } finally {
-      FileUtil.fullyDelete(procfsRootDir);
+     // FileUtil.fullyDelete(procfsRootDir);
     }
   }
 
