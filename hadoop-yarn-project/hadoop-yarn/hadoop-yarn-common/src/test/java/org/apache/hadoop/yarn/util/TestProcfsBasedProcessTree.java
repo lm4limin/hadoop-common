@@ -132,7 +132,7 @@ public class TestProcfsBasedProcessTree {
         new File(TEST_ROOT_DIR, getClass().getName() + "_shellScript_"
             + rm.nextInt() + ".sh");
     //tempFile.createNewFile();
-    tempFile.deleteOnExit();
+    //tempFile.deleteOnExit();
     shellScript = TEST_ROOT_DIR + File.separator + tempFile.getName();
         if (!TEST_ROOT_DIR.mkdirs()) {
             LOG.error("Could not create parent directories ");
@@ -142,7 +142,7 @@ public class TestProcfsBasedProcessTree {
     tempFile =
         new File(TEST_ROOT_DIR, getClass().getName() + "_pidFile_"
             + rm.nextInt() + ".pid");
-    tempFile.deleteOnExit();
+    //tempFile.deleteOnExit();
     pidFile = TEST_ROOT_DIR + File.separator + tempFile.getName();
 
     lowestDescendant = TEST_ROOT_DIR + File.separator + "lowestDescendantPidFile";
