@@ -126,12 +126,14 @@ public class TestProcfsBasedProcessTree {
     }
     // create shell script
     Random rm = new Random();
+    try {
     File tempFile =
         new File(TEST_ROOT_DIR, getClass().getName() + "_shellScript_"
             + rm.nextInt() + ".sh");
+    
     tempFile.deleteOnExit();
     shellScript = TEST_ROOT_DIR + File.separator + tempFile.getName();
-
+    LOG.info("shell script exit"+Boolean.toString(tempFile.exists()));
     // create pid file
     tempFile =
         new File(TEST_ROOT_DIR, getClass().getName() + "_pidFile_"
@@ -142,7 +144,7 @@ public class TestProcfsBasedProcessTree {
     lowestDescendant = TEST_ROOT_DIR + File.separator + "lowestDescendantPidFile";
 
     // write to shell-script
-    try {
+    
       FileWriter fWriter = new FileWriter(shellScript);
       fWriter.write(
           "# rogue task\n" +
