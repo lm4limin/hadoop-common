@@ -103,8 +103,8 @@ public class TestProcfsBasedProcessTree {
 
   @Before
   public void setup() throws IOException {
- //   FileContext.getLocalFSFileContext().delete(
-  //      new Path(TEST_ROOT_DIR.getAbsolutePath()), true);
+    FileContext.getLocalFSFileContext().delete(
+        new Path(TEST_ROOT_DIR.getAbsolutePath()), true);
   }
 
   @Test (timeout = 30000)
@@ -127,13 +127,14 @@ public class TestProcfsBasedProcessTree {
     // create shell script
     Random rm = new Random();
     try {
+        
     File tempFile =
         new File(TEST_ROOT_DIR, getClass().getName() + "_shellScript_"
             + rm.nextInt() + ".sh");
     tempFile.createNewFile();
     tempFile.deleteOnExit();
     shellScript = TEST_ROOT_DIR + File.separator + tempFile.getName();
-    LOG.info("shell script exit "+Boolean.toString(tempFile.exists()));
+    LOG.info("shell script exit "+Boolean.toString(TEST_ROOT_DIR.exists())+" sh file "+Boolean.toString(tempFile.exists()));
     // create pid file
     tempFile =
         new File(TEST_ROOT_DIR, getClass().getName() + "_pidFile_"
