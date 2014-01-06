@@ -103,8 +103,8 @@ public class TestProcfsBasedProcessTree {
 
   @Before
   public void setup() throws IOException {
-    FileContext.getLocalFSFileContext().delete(
-        new Path(TEST_ROOT_DIR.getAbsolutePath()), true);
+ //   FileContext.getLocalFSFileContext().delete(
+  //      new Path(TEST_ROOT_DIR.getAbsolutePath()), true);
   }
 
   @Test (timeout = 30000)
