@@ -414,7 +414,7 @@ public class TestProcfsBasedProcessTree {
       Assert.assertEquals("Cumulative cpu time does not match",
                    cumuCpuTime, processTree.getCumulativeCpuTime());
     } finally {
-      FileUtil.fullyDelete(procfsRootDir);
+      //FileUtil.fullyDelete(procfsRootDir);
     }
   }
 
