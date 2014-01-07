@@ -959,7 +959,22 @@ public class MapTask extends Task {
       // buffers and accounting
       int maxMemUsage = sortmb << 20;
       maxMemUsage -= maxMemUsage % METASIZE;
-      kvbuffer = new byte[maxMemUsage];
+      //limin-begin
+      //old
+     // kvbuffer = new byte[maxMemUsage];
+      //new
+      int l_size=maxMemUsage;
+      float factor=0.5f;
+        while (true) {
+            try {
+                kvbuffer = new byte[l_size];
+                break;
+            } catch (OutOfMemoryError e) {                
+                l_size=(int)(l_size*factor);
+                LOG.error("OOME, try"+l_size +" "+ e);
+            }
+        }
+      //limin-dend
       bufvoid = kvbuffer.length;
       kvmeta = ByteBuffer.wrap(kvbuffer)
          .order(ByteOrder.nativeOrder())
