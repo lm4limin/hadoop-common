@@ -971,7 +971,7 @@ public class MapTask extends Task {
                 break;
             } catch (OutOfMemoryError e) {                
                 l_size=(int)(l_size*factor);
-                LOG.error("OOME, try"+l_size +" "+ e);
+                LOG.error("OOME, try "+l_size +" "+ e);
             }
         }
       //limin-dend
