@@ -578,7 +578,7 @@ abstract public class Task implements Writable, Configurable {
             null, ResourceCalculatorProcessTree.class);
     pTree = ResourceCalculatorProcessTree
             .getResourceCalculatorProcessTree(System.getenv().get("JVM_PID"), clazz, conf);
-    LOG.info(" Using ResourceCalculatorProcessTree : " + pTree);
+    LOG.info(" Using ResourceCalculatorProcessTree : " + pTree+" JVM_PID "+System.getenv().get("JVM_PID"));
     if (pTree != null) {
       pTree.updateProcessTree();
       initCpuCumulativeTime = pTree.getCumulativeCpuTime();
