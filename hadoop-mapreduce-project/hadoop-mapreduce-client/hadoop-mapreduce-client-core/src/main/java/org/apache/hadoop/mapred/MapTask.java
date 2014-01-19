@@ -961,9 +961,9 @@ public class MapTask extends Task {
       maxMemUsage -= maxMemUsage % METASIZE;
       //limin-begin
       //old
-     // kvbuffer = new byte[maxMemUsage];
+      kvbuffer = new byte[maxMemUsage];
       //new
-      int l_size=maxMemUsage;
+    /*  int l_size=maxMemUsage;
       float factor=0.5f;
         while (true) {
             try {
@@ -973,7 +973,7 @@ public class MapTask extends Task {
                 l_size=(int)(l_size*factor);
                 LOG.error("OOME, try "+l_size +" "+ e);
             }
-        }
+        }*/
       //limin-dend
       bufvoid = kvbuffer.length;
       kvmeta = ByteBuffer.wrap(kvbuffer)
