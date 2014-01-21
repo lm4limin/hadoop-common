@@ -584,7 +584,18 @@ public class CLI extends Configured implements Tool {
     displayJobList(jobs, new PrintWriter(new OutputStreamWriter(System.out,
         Charsets.UTF_8)));
   }
+  //limin
 
+    public void killJob(JobID jid) throws IOException, InterruptedException {
+
+        Job job = cluster.getJob(jid);
+        if (job == null) {
+            System.out.println("Could not find job " + jid.toString());
+        } else {
+            job.killJob();
+            System.out.println("Killed job " + jid.toString());
+        }
+    }
   @Private
   public static String headerPattern = "%23s\t%10s\t%14s\t%12s\t%12s\t%10s\t%15s\t%15s\t%8s\t%8s\t%10s\t%10s\n";
   @Private
