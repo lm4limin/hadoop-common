@@ -566,57 +566,66 @@ public abstract class TaskAttemptImpl implements
   //    return 0;
   //}
   private int getMemoryRequired(Configuration conf, TaskType taskType) {
-    int memory = 0;//1024;
-    int tmp=0;//1024;
-    if (taskType == TaskType.MAP)  {
-      memory =
-          conf.getInt(MRJobConfig.MAP_MEMORY_MB,
-              MRJobConfig.DEFAULT_MAP_MEMORY_MB);
-      tmp=conf.getInt(MRJobConfig.MAP_MEMORY_MB+"."+attemptId.getTaskId().toString()+".xml",
-              -1);
-    } else if (taskType == TaskType.REDUCE) {
-      memory =
-          conf.getInt(MRJobConfig.REDUCE_MEMORY_MB,
-              MRJobConfig.DEFAULT_REDUCE_MEMORY_MB);
-      tmp=conf.getInt(MRJobConfig.REDUCE_MEMORY_MB+"."+attemptId.getTaskId().toString()+".xml",
-              -1);
-    }
-    
-    if(tmp>0){
-        LOG.info("memory from task-conf is "+Integer.toString(tmp)+" "+attemptId.getTaskId().toString());//limin
-        return tmp;
-    }
-    LOG.info("memory is "+Integer.toString(memory)+" "+attemptId.getTaskId().toString());//limin
-    return memory;
-  }
+        int memory = 0;//1024;
+        int tmp = 0;//1024;
+        int jobval=0;
+        if (taskType == TaskType.MAP) {
+            memory= conf.getInt(MRJobConfig.MAP_MEMORY_MB,
+                            MRJobConfig.DEFAULT_MAP_MEMORY_MB);
+            tmp = conf.getInt(MRJobConfig.MAP_MEMORY_MB + "." + attemptId.getTaskId().toString() + ".xml",
+                    -1);
+            jobval = conf.getInt(MRJobConfig.MAP_MEMORY_MB + "." + attemptId.getTaskId().getJobId().toString() + ".xml",
+                    -1);
+        } else if (taskType == TaskType.REDUCE) {
+            memory = conf.getInt(MRJobConfig.REDUCE_MEMORY_MB,
+                            MRJobConfig.DEFAULT_REDUCE_MEMORY_MB);
+            tmp = conf.getInt(MRJobConfig.REDUCE_MEMORY_MB + "." + attemptId.getTaskId().toString() + ".xml",
+                    -1);
+            jobval= conf.getInt(MRJobConfig.REDUCE_MEMORY_MB + "." + attemptId.getTaskId().getJobId().toString()+ ".xml",
+                    -1);
+        }
 
-  private int getCpuRequired(Configuration conf, TaskType taskType) {
-    int vcores =0;// 1;
-    int tmp=0;//1;
-    if (taskType == TaskType.MAP)  {
-      vcores =
-          conf.getInt(MRJobConfig.MAP_CPU_VCORES,
-              MRJobConfig.DEFAULT_MAP_CPU_VCORES);
-      tmp=conf.getInt(MRJobConfig.MAP_CPU_VCORES+"."+attemptId.getTaskId().toString()+".xml",
-              -1);
-    } else if (taskType == TaskType.REDUCE) {
-      vcores =
-          conf.getInt(MRJobConfig.REDUCE_CPU_VCORES,
-              MRJobConfig.DEFAULT_REDUCE_CPU_VCORES);
-      tmp=conf.getInt(MRJobConfig.REDUCE_CPU_VCORES+"."+attemptId.getTaskId().toString()+".xml",
-              -1);
+        
+        LOG.info("memory is " + Integer.toString(memory)                 
+                +" " + attemptId.getTaskId().toString() +" "+tmp
+                +" "+ attemptId.getTaskId().getJobId().toString()+" "+jobval);//limin
+            //LOG.info("memory from task-conf is " + Integer.toString(tmp) + " " + attemptId.getTaskId().toString());//limin
+        if (tmp > 0) {return tmp;}
+        if(jobval>0) {return jobval;}
+        return memory;
     }
-    
-    if(tmp>0){
-        LOG.info("vcores from task-conf is "+Integer.toString(tmp)
-                +" "+attemptId.getTaskId().toString());//limin
-        return tmp;
+
+    private int getCpuRequired(Configuration conf, TaskType taskType) {
+        int vcores = 0;// 1;
+        int tmp = 0;//1;
+        int jobval = 0;
+        if (taskType == TaskType.MAP) {
+            vcores= conf.getInt(MRJobConfig.MAP_CPU_VCORES,
+                            MRJobConfig.DEFAULT_MAP_CPU_VCORES);
+            tmp = conf.getInt(MRJobConfig.MAP_CPU_VCORES + "." + attemptId.getTaskId().toString() + ".xml",
+                    -1);
+            jobval = conf.getInt(MRJobConfig.MAP_CPU_VCORES + "." + attemptId.getTaskId().getJobId().toString() + ".xml",
+                    -1);
+        } else if (taskType == TaskType.REDUCE) {
+            vcores = conf.getInt(MRJobConfig.REDUCE_CPU_VCORES,
+                            MRJobConfig.DEFAULT_REDUCE_CPU_VCORES);
+            tmp = conf.getInt(MRJobConfig.REDUCE_CPU_VCORES + "." + attemptId.getTaskId().toString() + ".xml",
+                    -1);
+            jobval = conf.getInt(MRJobConfig.REDUCE_CPU_VCORES + "." + attemptId.getTaskId().getJobId().toString() + ".xml",
+                    -1);
+        }
+    // LOG.info("vcores from task-conf is "+Integer.toString(tmp)
+        //        +" "+attemptId.getTaskId().toString());//limin
+
+        LOG.info("vcores  is " + Integer.toString(vcores) + " " + vcore
+                + " " + attemptId.getTaskId().toString() + " " + tmp
+                + " " + attemptId.getTaskId().getJobId().toString() + " " + jobval);//limin
+        if (tmp > 0) {return tmp;}
+        if (jobval > 0) {
+            return jobval;
+        }
+        return vcores;
     }
-       LOG.info("vcores  is "+Integer.toString(vcores)
-                +" "+attemptId.getTaskId().toString());//limin
-     
-    return vcores;
-  }
   //limin-end
 /*
   private int getMemoryRequired(Configuration conf, TaskType taskType) {

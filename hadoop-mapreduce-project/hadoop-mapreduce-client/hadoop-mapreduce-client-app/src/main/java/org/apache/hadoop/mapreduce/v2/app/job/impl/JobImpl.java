@@ -728,6 +728,24 @@ public class JobImpl implements org.apache.hadoop.mapreduce.v2.app.job.Job,
 
     @Override
     public void setConfNamesValues(HashMap<String, String> confNameValues, String source) {
+        try {
+
+            LOG.info("setConNamesValues called");
+            if (this.conf.get(MRConfig.ONLINE_TUNING).equals(MRConfig.ONLINE_TUNING_GRAYBOX)) {
+                setConfNamesValues_graybox(confNameValues, source);
+            } else if (this.conf.get(MRConfig.ONLINE_TUNING).equals(MRConfig.ONLINE_TUNING_HEURISTIC)) {
+                setConfNamesValues_heuristic(confNameValues, source);
+            } else {
+                throw new Exception("should not use default");
+            }
+        } catch (Exception e) {
+            LOG.error(e);
+        } finally {
+
+        }
+    }
+    
+    private void setConfNamesValues_graybox(HashMap<String, String> confNameValues, String source) {
         //      writeLock.lock();
         try {
             //for (String name : confNameValues.keySet()) {
@@ -736,7 +754,7 @@ public class JobImpl implements org.apache.hadoop.mapreduce.v2.app.job.Job,
             if(this.conf.get(MRConfig.ONLINE_TUNING).equals(MRConfig.DEFUALT_ONLINE_TUNING)){
                 throw new Exception("should use online tuning graybox");
             }
-            LOG.info("setConNamesValues called");
+            
             Set<TaskId> tmpMapSet = new LinkedHashSet<TaskId>();
             Set<TaskId> tmpReduceSet = new LinkedHashSet<TaskId>();
             int appidint = this.jobId.getAppId().getId();
@@ -769,6 +787,26 @@ public class JobImpl implements org.apache.hadoop.mapreduce.v2.app.job.Job,
 //            writeLock.unlock();
         }
     }
+    private void setConfNamesValues_heuristic(HashMap<String, String> confNameValues, String source) {        
+        try {
+            if (this.conf.get(MRConfig.ONLINE_TUNING).equals(MRConfig.DEFUALT_ONLINE_TUNING)) {
+                throw new Exception("should use online tuning heuristic");
+            }
+            LOG.info("setConNamesValues called");
+            Set<TaskId> tmpMapSet = new LinkedHashSet<TaskId>();
+            Set<TaskId> tmpReduceSet = new LinkedHashSet<TaskId>();
+            int appidint = this.jobId.getAppId().getId();
+            for (String name : confNameValues.keySet()) {
+                LOG.info(name + " " + confNameValues.get(name));
+                conf.set(name, confNameValues.get(name), source);//even with unnecessary values.e.g. map task with reduce.vcore values.
+            }
+        } catch (Exception e) {
+            LOG.error(e);
+        } finally {
+
+        }
+    }
+    
   @Override
   public Counters getAllCounters() {
 

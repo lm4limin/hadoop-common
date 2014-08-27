@@ -146,6 +146,38 @@ private static String getChildJavaOpts(JobConf jobConf, boolean isMapTask,TaskID
     // Add admin classpath first so it can be overridden by user.
     return adminClasspath + " " + userClasspath;
   }
+private static String getChildJavaOpts(JobConf jobConf, boolean isMapTask,JobID jid) {
+    String userClasspath = "";
+    String adminClasspath = "";
+    if (isMapTask) {
+      userClasspath = 
+          jobConf.get(
+              JobConf.MAPRED_MAP_TASK_JAVA_OPTS+"."+jid.toString()+".xml", 
+              jobConf.get(
+                  JobConf.MAPRED_TASK_JAVA_OPTS, 
+                  JobConf.DEFAULT_MAPRED_TASK_JAVA_OPTS)
+          );
+      adminClasspath = 
+          jobConf.get(
+              MRJobConfig.MAPRED_MAP_ADMIN_JAVA_OPTS,
+              MRJobConfig.DEFAULT_MAPRED_ADMIN_JAVA_OPTS);
+    } else {
+      userClasspath =
+          jobConf.get(
+              JobConf.MAPRED_REDUCE_TASK_JAVA_OPTS+"."+jid.toString()+".xml", 
+              jobConf.get(
+                  JobConf.MAPRED_TASK_JAVA_OPTS,
+                  JobConf.DEFAULT_MAPRED_TASK_JAVA_OPTS)
+              );
+      adminClasspath =
+          jobConf.get(
+              MRJobConfig.MAPRED_REDUCE_ADMIN_JAVA_OPTS,
+              MRJobConfig.DEFAULT_MAPRED_ADMIN_JAVA_OPTS);
+    }
+    
+    // Add admin classpath first so it can be overridden by user.
+    return adminClasspath + " " + userClasspath;
+  }
 //limin-end
   private static String getChildJavaOpts(JobConf jobConf, boolean isMapTask) {
     String userClasspath = "";
@@ -230,7 +262,11 @@ private static String getChildJavaOpts(JobConf jobConf, boolean isMapTask,TaskID
     String javaOpts;
     if(conf.get(MRConfig.ONLINE_TUNING,MRConfig.DEFUALT_ONLINE_TUNING).equals(MRConfig.ONLINE_TUNING_GRAYBOX)){//limin
         javaOpts = getChildJavaOpts(conf, task.isMapTask(),task.getTaskID().getTaskID());
-    }    else{
+    }
+    else if(conf.get(MRConfig.ONLINE_TUNING,MRConfig.DEFUALT_ONLINE_TUNING).equals(MRConfig.ONLINE_TUNING_HEURISTIC)){
+        javaOpts = getChildJavaOpts(conf, task.isMapTask(),task.getJobID());
+    }
+    else{
         javaOpts = getChildJavaOpts(conf, task.isMapTask());
     }
     
