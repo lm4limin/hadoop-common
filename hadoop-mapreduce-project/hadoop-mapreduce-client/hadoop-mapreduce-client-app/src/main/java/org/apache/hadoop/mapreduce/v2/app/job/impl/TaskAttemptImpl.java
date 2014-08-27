@@ -617,7 +617,7 @@ public abstract class TaskAttemptImpl implements
     // LOG.info("vcores from task-conf is "+Integer.toString(tmp)
         //        +" "+attemptId.getTaskId().toString());//limin
 
-        LOG.info("vcores  is " + Integer.toString(vcores) + " " + vcore
+        LOG.info("vcores  is " + Integer.toString(vcores) + " " + vcores
                 + " " + attemptId.getTaskId().toString() + " " + tmp
                 + " " + attemptId.getTaskId().getJobId().toString() + " " + jobval);//limin
         if (tmp > 0) {return tmp;}
