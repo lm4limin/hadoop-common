@@ -117,5 +117,6 @@ public interface MRConfig {
   public static final String ONLINE_TUNING="mapreduce.onlinetuning";//limin
   public static final String DEFUALT_ONLINE_TUNING="off";//limin
   public static final String ONLINE_TUNING_GRAYBOX="graybox";//limin
+  public static final String ONLINE_TUNING_HEURISTIC="heuristic";//limin
 }
   

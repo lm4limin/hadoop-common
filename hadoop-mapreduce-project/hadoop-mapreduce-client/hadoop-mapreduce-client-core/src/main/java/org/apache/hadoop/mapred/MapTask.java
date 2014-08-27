@@ -961,6 +961,9 @@ public class MapTask extends Task {
       maxMemUsage -= maxMemUsage % METASIZE;
       //limin-begin
       //old
+      if (LOG.isInfoEnabled()) {
+        LOG.info(JobContext.IO_SORT_MB + ": " + sortmb);
+      }
       kvbuffer = new byte[maxMemUsage];
       //new
     /*  int l_size=maxMemUsage;
