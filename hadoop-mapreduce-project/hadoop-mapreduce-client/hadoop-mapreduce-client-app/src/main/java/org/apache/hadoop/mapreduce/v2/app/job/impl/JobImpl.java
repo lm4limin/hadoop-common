@@ -1672,7 +1672,8 @@ public class JobImpl implements org.apache.hadoop.mapreduce.v2.app.job.Job,
             String onlinetuning=job.conf.get(MRConfig.ONLINE_TUNING,
                     MRConfig.DEFUALT_ONLINE_TUNING);
             LOG.info("the onlinetuningMode is "+onlinetuning);
-            if (onlinetuning.equals(MRConfig.DEFUALT_ONLINE_TUNING)) {//limin    
+            if (onlinetuning.equals(MRConfig.DEFUALT_ONLINE_TUNING)||
+                    onlinetuning.equals(MRConfig.ONLINE_TUNING_HEURISTIC)) {//limin    
                 job.scheduleTasks(job.mapTasks, job.numReduceTasks == 0);
                 job.scheduleTasks(job.reduceTasks, true);
             }
