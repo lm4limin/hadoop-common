@@ -70,6 +70,7 @@ import org.apache.hadoop.mapreduce.v2.api.records.Phase;
 import org.apache.hadoop.mapreduce.v2.api.records.TaskAttemptCompletionEvent;
 import org.apache.hadoop.mapreduce.v2.api.records.TaskAttemptCompletionEventStatus;
 import org.apache.hadoop.mapreduce.v2.api.records.TaskAttemptId;
+import org.apache.hadoop.mapreduce.v2.api.records.TaskAttemptState;
 import org.apache.hadoop.mapreduce.v2.api.records.TaskId;
 import org.apache.hadoop.mapreduce.v2.api.records.TaskState;
 import org.apache.hadoop.mapreduce.v2.api.records.TaskType;
@@ -81,6 +82,7 @@ import org.apache.hadoop.mapreduce.v2.app.commit.CommitterJobSetupEvent;
 import org.apache.hadoop.mapreduce.v2.app.job.JobStateInternal;
 import org.apache.hadoop.mapreduce.v2.app.job.Task;
 import org.apache.hadoop.mapreduce.v2.app.job.TaskAttempt;
+import org.apache.hadoop.mapreduce.v2.app.job.TaskAttemptStateInternal;
 import org.apache.hadoop.mapreduce.v2.app.job.event.JobAbortCompletedEvent;
 import org.apache.hadoop.mapreduce.v2.app.job.event.JobCommitFailedEvent;
 import org.apache.hadoop.mapreduce.v2.app.job.event.JobCounterUpdateEvent;
@@ -754,7 +756,7 @@ public class JobImpl implements org.apache.hadoop.mapreduce.v2.app.job.Job,
             if(this.conf.get(MRConfig.ONLINE_TUNING).equals(MRConfig.DEFUALT_ONLINE_TUNING)){
                 throw new Exception("should use online tuning graybox");
             }
-            
+            LOG.info("setConNamesValues graybox called");
             Set<TaskId> tmpMapSet = new LinkedHashSet<TaskId>();
             Set<TaskId> tmpReduceSet = new LinkedHashSet<TaskId>();
             int appidint = this.jobId.getAppId().getId();
@@ -787,18 +789,39 @@ public class JobImpl implements org.apache.hadoop.mapreduce.v2.app.job.Job,
 //            writeLock.unlock();
         }
     }
+    //todo better to move the statemachine
     private void setConfNamesValues_heuristic(HashMap<String, String> confNameValues, String source) {        
         try {
             if (this.conf.get(MRConfig.ONLINE_TUNING).equals(MRConfig.DEFUALT_ONLINE_TUNING)) {
                 throw new Exception("should use online tuning heuristic");
             }
-            LOG.info("setConNamesValues called");
-            Set<TaskId> tmpMapSet = new LinkedHashSet<TaskId>();
-            Set<TaskId> tmpReduceSet = new LinkedHashSet<TaskId>();
-            int appidint = this.jobId.getAppId().getId();
+            LOG.info("setConNamesValues heuristic called");
+            
             for (String name : confNameValues.keySet()) {
                 LOG.info(name + " " + confNameValues.get(name));
                 conf.set(name, confNameValues.get(name), source);//even with unnecessary values.e.g. map task with reduce.vcore values.
+            }
+            
+            if(!JobState.RUNNING.equals(this.getState())){ 
+                LOG.info("job is not running "+this.getState().toString());
+                return;
+            }
+            
+            for(Task task:this.tasks.values()){
+                if(!TaskState.SCHEDULED.equals(task.getState())){ 
+                    LOG.info("task is not scheudled "+task.getID().toString()+" "+task.getState().toString());
+                    continue;
+                }
+                Map<TaskAttemptId,TaskAttempt>attempts= task.getAttempts();
+                for(TaskAttempt attempt:attempts.values()){
+                    if(!TaskAttemptStateInternal.UNASSIGNED.equals(((TaskAttemptImpl)attempt).getInternalState())){
+                        LOG.info("taskattempt is no unassigned "+attempt.getID().toString());
+                        continue;
+                    }
+                    String mesg="Because of container size update, reschedule task attempt "+attempt.getID().toString();
+                    this.eventHandler.handle(new TaskAttemptKillEvent(attempt.getID(),mesg));
+                    LOG.info(mesg);
+                }
             }
         } catch (Exception e) {
             LOG.error(e);
