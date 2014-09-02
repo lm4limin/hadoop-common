@@ -814,13 +814,14 @@ public class JobImpl implements org.apache.hadoop.mapreduce.v2.app.job.Job,
                 }
                 Map<TaskAttemptId,TaskAttempt>attempts= task.getAttempts();
                 for(TaskAttempt attempt:attempts.values()){
-                    if(!TaskAttemptStateInternal.UNASSIGNED.equals(((TaskAttemptImpl)attempt).getInternalState())){
-                        LOG.info("taskattempt is no unassigned "+attempt.getID().toString());
-                        continue;
+                    if(TaskAttemptStateInternal.UNASSIGNED.equals(((TaskAttemptImpl)attempt).getInternalState())){
+                        String mesg="Because of container size update, reschedule task attempt "+attempt.getID().toString();
+                        this.eventHandler.handle(new TaskAttemptKillEvent(attempt.getID(),mesg));
+                        LOG.info(mesg);
+                       
+                    }else{                    
+                         LOG.info("taskattempt is no unassigned "+attempt.getID().toString());
                     }
-                    String mesg="Because of container size update, reschedule task attempt "+attempt.getID().toString();
-                    this.eventHandler.handle(new TaskAttemptKillEvent(attempt.getID(),mesg));
-                    LOG.info(mesg);
                 }
             }
         } catch (Exception e) {
