@@ -726,10 +726,14 @@ public class RMContainerAllocatorWithCap extends RMContainerRequestor
             ContainerRequest req = null;
             if (tId.getTaskId().getTaskType().equals(TaskType.MAP)) {
                 req = maps.remove(tId);
-                this._maps_total_mem -= req.capability.getMemory();//limin
+                if(req!=null)
+                {this._maps_total_mem -= req.capability.getMemory();//limin                
+                }
             } else {
                 req = reduces.remove(tId);
+                if(req!=null){
                 this._reduce_total_mem -= req.capability.getMemory();//limin
+                }
             }
 
             if (req == null) {
