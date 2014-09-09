@@ -346,6 +346,9 @@ public class RMContainerAllocator extends RMContainerRequestor
             ContainerFailedEvent fEv = (ContainerFailedEvent) event;
             String host = getHost(fEv.getContMgrAddress());
             containerFailedOnHost(host);
+        } else if (event.getType() == ContainerAllocator.EventType.CONTAINER_REPLACE) {
+            ContainerReplaceEvent reqEvent = (ContainerReplaceEvent) event;
+            LOG.info("Processing the event " + event.toString()+reqEvent.getCapability().toString());
         }
     }
 

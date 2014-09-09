@@ -99,6 +99,7 @@ import org.apache.hadoop.mapreduce.v2.app.job.event.JobUpdatedNodesEvent;
 import org.apache.hadoop.mapreduce.v2.app.job.event.TaskAttemptEvent;
 import org.apache.hadoop.mapreduce.v2.app.job.event.TaskAttemptEventType;
 import org.apache.hadoop.mapreduce.v2.app.job.event.TaskAttemptKillEvent;
+import org.apache.hadoop.mapreduce.v2.app.job.event.TaskAttemptContainerReplaceEvent;
 import org.apache.hadoop.mapreduce.v2.app.job.event.TaskEvent;
 import org.apache.hadoop.mapreduce.v2.app.job.event.TaskEventType;
 import org.apache.hadoop.mapreduce.v2.app.job.event.TaskRecoverEvent;
@@ -815,8 +816,9 @@ public class JobImpl implements org.apache.hadoop.mapreduce.v2.app.job.Job,
                 Map<TaskAttemptId,TaskAttempt>attempts= task.getAttempts();
                 for(TaskAttempt attempt:attempts.values()){
                     if(TaskAttemptStateInternal.UNASSIGNED.equals(((TaskAttemptImpl)attempt).getInternalState())){
-                        String mesg="Because of container size update, reschedule task attempt "+attempt.getID().toString();
-                        this.eventHandler.handle(new TaskAttemptKillEvent(attempt.getID(),mesg));
+                        String mesg="Because of container size update, reschedule task attempt "+attempt.getID().toString()+" "+attempt.getState();
+                        //this.eventHandler.handle(new TaskAttemptKillEvent(attempt.getID(),mesg));
+                         this.eventHandler.handle(new TaskAttemptContainerReplaceEvent(attempt.getID()));
                         LOG.info(mesg);
                        
                     }else{                    

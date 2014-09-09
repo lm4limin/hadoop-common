@@ -162,7 +162,8 @@ public abstract class TaskAttemptImpl implements
   private final Clock clock;
   private final org.apache.hadoop.mapred.JobID oldJobId;
   private final TaskAttemptListener taskAttemptListener;
-  private final Resource resourceCapability;
+  //private final Resource resourceCapability;//limin
+  private Resource resourceCapability;
   protected Set<String> dataLocalHosts;
   protected Set<String> dataLocalRacks;
   private final List<String> diagnostics = new ArrayList<String>();
@@ -203,6 +204,8 @@ public abstract class TaskAttemptImpl implements
      // Transitions from the NEW state.
      .addTransition(TaskAttemptStateInternal.NEW, TaskAttemptStateInternal.UNASSIGNED,
          TaskAttemptEventType.TA_SCHEDULE, new RequestContainerTransition(false))
+      .addTransition(TaskAttemptStateInternal.NEW, TaskAttemptStateInternal.UNASSIGNED,
+         TaskAttemptEventType.TA_CONTAINER_REPLACE, new ReplaceContainerTransition())      
      .addTransition(TaskAttemptStateInternal.NEW, TaskAttemptStateInternal.UNASSIGNED,
          TaskAttemptEventType.TA_RESCHEDULE, new RequestContainerTransition(true))
      .addTransition(TaskAttemptStateInternal.NEW, TaskAttemptStateInternal.KILLED,
@@ -1566,7 +1569,32 @@ public abstract class TaskAttemptImpl implements
       }
     }
   }
+    static class ReplaceContainerTransition implements //limin
+            SingleArcTransition<TaskAttemptImpl, TaskAttemptEvent> {
 
+        public RequestContainerTransition() {
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        public void transition(TaskAttemptImpl taskAttempt,
+                TaskAttemptEvent event) {
+
+            //request for replace container
+            taskAttempt.resourceCapability.setMemory(
+                    taskAttempt.getMemoryRequired(conf, taskId.getTaskType()));
+            taskAttempt.resourceCapability.setVirtualCores(
+                    taskAttempt.getCpuRequired(conf, taskId.getTaskType()));
+
+            taskAttempt.eventHandler.handle(new ContainerRequestEvent(
+                    taskAttempt.attemptId, taskAttempt.resourceCapability,
+                    taskAttempt.dataLocalHosts.toArray(
+                            new String[taskAttempt.dataLocalHosts.size()]),
+                    taskAttempt.dataLocalRacks.toArray(
+                            new String[taskAttempt.dataLocalRacks.size()])));
+
+        }
+    }
   protected Set<String> resolveHosts(String[] src) {
     Set<String> result = new HashSet<String>();
     if (src != null) {

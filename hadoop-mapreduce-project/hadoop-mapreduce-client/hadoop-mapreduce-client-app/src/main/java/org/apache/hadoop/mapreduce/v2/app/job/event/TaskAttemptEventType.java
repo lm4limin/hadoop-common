@@ -27,9 +27,11 @@ public enum TaskAttemptEventType {
   TA_SCHEDULE,
   TA_RESCHEDULE,
   TA_RECOVER,
+  
 
   //Producer:Client, Task
   TA_KILL,
+  TA_CONTAINER_REPLACE,//limin
 
   //Producer:ContainerAllocator
   TA_ASSIGNED,
