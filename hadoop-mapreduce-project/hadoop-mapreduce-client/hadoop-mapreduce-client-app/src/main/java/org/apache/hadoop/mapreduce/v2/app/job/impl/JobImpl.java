@@ -797,7 +797,7 @@ public class JobImpl implements org.apache.hadoop.mapreduce.v2.app.job.Job,
     private final static RecordFactory recordFactory = RecordFactoryProvider.getRecordFactory(null);
     private void setConfNamesValues_heuristic(HashMap<String, String> confNameValues, String source) {        
         try {
-            if (this.conf.get(MRConfig.ONLINE_TUNING).equals(MRConfig.DEFUALT_ONLINE_TUNING)) {
+            if (!this.conf.get(MRConfig.ONLINE_TUNING).equals(MRConfig.ONLINE_TUNING_HEURISTIC)) {
                 throw new Exception("should use online tuning heuristic");
             }
             LOG.info("setConNamesValues heuristic called");
@@ -827,13 +827,14 @@ public class JobImpl implements org.apache.hadoop.mapreduce.v2.app.job.Job,
                         
                         //this.eventHandler.handle(new TaskAttemptKillEvent(attempt.getID(),mesg));
                         TaskType type=attempt.getID().getTaskId().getTaskType();
+                        TaskAttemptId attemptId=attempt.getID();
                         String memval="-1", vcoreval="-1";
                         if(type==TaskType.MAP){
-                            memval=confNameValues.get(MRJobConfig.MAP_MEMORY_MB);                        
-                            vcoreval=confNameValues.get(MRJobConfig.MAP_CPU_VCORES);
+                            memval=confNameValues.get(MRJobConfig.MAP_MEMORY_MB+ "." + jobId.toString() + ".xml");                        
+                            vcoreval=confNameValues.get(MRJobConfig.MAP_CPU_VCORES+ "." + jobId.toString() + ".xml");
                         }else{
-                            memval=confNameValues.get(MRJobConfig.REDUCE_MEMORY_MB);                        
-                            vcoreval=confNameValues.get(MRJobConfig.REDUCE_CPU_VCORES);                        
+                            memval=confNameValues.get(MRJobConfig.REDUCE_MEMORY_MB+ "." + jobId.toString() + ".xml");                        
+                            vcoreval=confNameValues.get(MRJobConfig.REDUCE_CPU_VCORES+ "." + jobId.toString() + ".xml");                        
                         }
                         resourceCapability.setMemory(Integer.parseInt(memval));
                         resourceCapability.setVirtualCores(Integer.parseInt(vcoreval));
