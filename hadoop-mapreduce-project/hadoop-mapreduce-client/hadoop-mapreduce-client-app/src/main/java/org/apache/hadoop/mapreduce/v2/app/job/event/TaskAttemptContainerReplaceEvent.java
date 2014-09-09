@@ -16,14 +16,17 @@
 
 package org.apache.hadoop.mapreduce.v2.app.job.event;
 import org.apache.hadoop.mapreduce.v2.api.records.TaskAttemptId;
+import org.apache.hadoop.yarn.api.records.Resource;
 /**
  *
  * @author minli
  */
 public class TaskAttemptContainerReplaceEvent extends TaskAttemptEvent {
-
-    public TaskAttemptContainerReplaceEvent(TaskAttemptId attemptID) {
+    private final Resource capability;
+    
+    public TaskAttemptContainerReplaceEvent(TaskAttemptId attemptID,Resource cap) {         
         super(attemptID, TaskAttemptEventType.TA_CONTAINER_REPLACE);
-
+        capability=cap;
     }
+    public Resource getCapability(){return capability;}
 }

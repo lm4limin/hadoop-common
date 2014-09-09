@@ -115,8 +115,11 @@ import org.apache.hadoop.yarn.api.records.ApplicationAttemptId;
 import org.apache.hadoop.yarn.api.records.NodeId;
 import org.apache.hadoop.yarn.api.records.NodeReport;
 import org.apache.hadoop.yarn.api.records.NodeState;
+import org.apache.hadoop.yarn.api.records.Resource;
 import org.apache.hadoop.yarn.event.EventHandler;
 import org.apache.hadoop.yarn.exceptions.YarnRuntimeException;
+import org.apache.hadoop.yarn.factories.RecordFactory;
+import org.apache.hadoop.yarn.factory.providers.RecordFactoryProvider;
 import org.apache.hadoop.yarn.state.InvalidStateTransitonException;
 import org.apache.hadoop.yarn.state.MultipleArcTransition;
 import org.apache.hadoop.yarn.state.SingleArcTransition;
@@ -791,6 +794,7 @@ public class JobImpl implements org.apache.hadoop.mapreduce.v2.app.job.Job,
         }
     }
     //todo better to move the statemachine
+    private final static RecordFactory recordFactory = RecordFactoryProvider.getRecordFactory(null);
     private void setConfNamesValues_heuristic(HashMap<String, String> confNameValues, String source) {        
         try {
             if (this.conf.get(MRConfig.ONLINE_TUNING).equals(MRConfig.DEFUALT_ONLINE_TUNING)) {
@@ -808,6 +812,10 @@ public class JobImpl implements org.apache.hadoop.mapreduce.v2.app.job.Job,
                 return;
             }
             
+            Resource resourceCapability = recordFactory.newRecordInstance(Resource.class);
+              
+              
+        
             for(Task task:this.tasks.values()){
                 if(!TaskState.SCHEDULED.equals(task.getState())){ 
                     LOG.info("task is not scheudled "+task.getID().toString()+" "+task.getState().toString());
@@ -816,10 +824,22 @@ public class JobImpl implements org.apache.hadoop.mapreduce.v2.app.job.Job,
                 Map<TaskAttemptId,TaskAttempt>attempts= task.getAttempts();
                 for(TaskAttempt attempt:attempts.values()){
                     if(TaskAttemptStateInternal.UNASSIGNED.equals(((TaskAttemptImpl)attempt).getInternalState())){
-                        String mesg="Because of container size update, reschedule task attempt "+attempt.getID().toString()+" "+attempt.getState();
+                        
                         //this.eventHandler.handle(new TaskAttemptKillEvent(attempt.getID(),mesg));
-                         this.eventHandler.handle(new TaskAttemptContainerReplaceEvent(attempt.getID()));
-                        LOG.info(mesg);
+                        TaskType type=attempt.getID().getTaskId().getTaskType();
+                        String memval="-1", vcoreval="-1";
+                        if(type==TaskType.MAP){
+                            memval=confNameValues.get(MRJobConfig.MAP_MEMORY_MB);                        
+                            vcoreval=confNameValues.get(MRJobConfig.MAP_CPU_VCORES);
+                        }else{
+                            memval=confNameValues.get(MRJobConfig.REDUCE_MEMORY_MB);                        
+                            vcoreval=confNameValues.get(MRJobConfig.REDUCE_CPU_VCORES);                        
+                        }
+                        resourceCapability.setMemory(Integer.parseInt(memval));
+                        resourceCapability.setVirtualCores(Integer.parseInt(vcoreval));
+                         this.eventHandler.handle(new TaskAttemptContainerReplaceEvent(attempt.getID(),resourceCapability));
+                        String mesg="heuristic tuning "+attempt.getID().toString()+" "+attempt.getState();
+                         LOG.info(mesg);
                        
                     }else{                    
                          LOG.info("taskattempt is no unassigned "+attempt.getID().toString()+" "+attempt.getState());

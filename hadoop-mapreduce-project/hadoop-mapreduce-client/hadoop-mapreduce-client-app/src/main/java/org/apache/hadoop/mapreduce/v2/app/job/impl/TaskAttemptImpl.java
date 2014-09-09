@@ -87,6 +87,7 @@ import org.apache.hadoop.mapreduce.v2.app.job.event.JobEventType;
 import org.apache.hadoop.mapreduce.v2.app.job.event.JobTaskAttemptFetchFailureEvent;
 import org.apache.hadoop.mapreduce.v2.app.job.event.TaskAttemptContainerAssignedEvent;
 import org.apache.hadoop.mapreduce.v2.app.job.event.TaskAttemptContainerLaunchedEvent;
+import org.apache.hadoop.mapreduce.v2.app.job.event.TaskAttemptContainerReplaceEvent;
 import org.apache.hadoop.mapreduce.v2.app.job.event.TaskAttemptDiagnosticsUpdateEvent;
 import org.apache.hadoop.mapreduce.v2.app.job.event.TaskAttemptEvent;
 import org.apache.hadoop.mapreduce.v2.app.job.event.TaskAttemptEventType;
@@ -102,6 +103,7 @@ import org.apache.hadoop.mapreduce.v2.app.launcher.ContainerRemoteLaunchEvent;
 import org.apache.hadoop.mapreduce.v2.app.rm.ContainerAllocator;
 import org.apache.hadoop.mapreduce.v2.app.rm.ContainerAllocatorEvent;
 import org.apache.hadoop.mapreduce.v2.app.rm.ContainerRequestEvent;
+import org.apache.hadoop.mapreduce.v2.app.rm.ContainerReplaceEvent;
 import org.apache.hadoop.mapreduce.v2.app.speculate.SpeculatorEvent;
 import org.apache.hadoop.mapreduce.v2.util.MRApps;
 import org.apache.hadoop.net.NetUtils;
@@ -1586,13 +1588,15 @@ public abstract class TaskAttemptImpl implements
                 TaskAttemptEvent event) {
 
             //request for replace container
-            taskAttempt.resourceCapability.setMemory(
-                    taskAttempt.getMemoryRequired(taskAttempt.conf, taskAttempt.getID().getTaskId().getTaskType()));
-            taskAttempt.resourceCapability.setVirtualCores(
-                    taskAttempt.getCpuRequired(taskAttempt.conf, taskAttempt.getID().getTaskId().getTaskType()));
-
-            taskAttempt.eventHandler.handle(new ContainerRequestEvent(
-                    taskAttempt.attemptId, taskAttempt.resourceCapability,
+           // taskAttempt.resourceCapability.setMemory(
+            //        taskAttempt.getMemoryRequired(taskAttempt.conf, taskAttempt.getID().getTaskId().getTaskType()));
+            //taskAttempt.resourceCapability.setVirtualCores(
+            //        taskAttempt.getCpuRequired(taskAttempt.conf, taskAttempt.getID().getTaskId().getTaskType()));
+            
+            TaskAttemptContainerReplaceEvent req=(TaskAttemptContainerReplaceEvent)event;
+            LOG.debug("capability: "+req.getCapability().toString());
+            taskAttempt.eventHandler.handle(new ContainerReplaceEvent(
+                    taskAttempt.attemptId, req.getCapability(),
                     taskAttempt.dataLocalHosts.toArray(
                             new String[taskAttempt.dataLocalHosts.size()]),
                     taskAttempt.dataLocalRacks.toArray(
