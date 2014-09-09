@@ -204,8 +204,7 @@ public abstract class TaskAttemptImpl implements
      // Transitions from the NEW state.
      .addTransition(TaskAttemptStateInternal.NEW, TaskAttemptStateInternal.UNASSIGNED,
          TaskAttemptEventType.TA_SCHEDULE, new RequestContainerTransition(false))
-      .addTransition(TaskAttemptStateInternal.NEW, TaskAttemptStateInternal.UNASSIGNED,
-         TaskAttemptEventType.TA_CONTAINER_REPLACE, new ReplaceContainerTransition())      
+      
      .addTransition(TaskAttemptStateInternal.NEW, TaskAttemptStateInternal.UNASSIGNED,
          TaskAttemptEventType.TA_RESCHEDULE, new RequestContainerTransition(true))
      .addTransition(TaskAttemptStateInternal.NEW, TaskAttemptStateInternal.KILLED,
@@ -221,11 +220,15 @@ public abstract class TaskAttemptImpl implements
           TaskAttemptStateInternal.NEW,
           TaskAttemptEventType.TA_DIAGNOSTICS_UPDATE,
           DIAGNOSTIC_INFORMATION_UPDATE_TRANSITION)
-
+     //ignorable event
+     .addTransition(TaskAttemptStateInternal.NEW, TaskAttemptStateInternal.NEW,//limin
+         TaskAttemptEventType.TA_CONTAINER_REPLACE)      
      // Transitions from the UNASSIGNED state.
      .addTransition(TaskAttemptStateInternal.UNASSIGNED,
          TaskAttemptStateInternal.ASSIGNED, TaskAttemptEventType.TA_ASSIGNED,
          new ContainerAssignedTransition())
+     .addTransition(TaskAttemptStateInternal.UNASSIGNED, TaskAttemptStateInternal.UNASSIGNED,//limin
+         TaskAttemptEventType.TA_CONTAINER_REPLACE, new ReplaceContainerTransition())  
      .addTransition(TaskAttemptStateInternal.UNASSIGNED, TaskAttemptStateInternal.KILLED,
          TaskAttemptEventType.TA_KILL, new DeallocateContainerTransition(
              TaskAttemptStateInternal.KILLED, true))
@@ -257,7 +260,10 @@ public abstract class TaskAttemptImpl implements
      .addTransition(TaskAttemptStateInternal.ASSIGNED, 
          TaskAttemptStateInternal.FAIL_CONTAINER_CLEANUP,
          TaskAttemptEventType.TA_FAILMSG, CLEANUP_CONTAINER_TRANSITION)
-
+    //ignored        
+    .addTransition(TaskAttemptStateInternal.ASSIGNED, TaskAttemptStateInternal.ASSIGNED,
+         TaskAttemptEventType.TA_CONTAINER_REPLACE)
+            
      // Transitions from RUNNING state.
      .addTransition(TaskAttemptStateInternal.RUNNING, TaskAttemptStateInternal.RUNNING,
          TaskAttemptEventType.TA_UPDATE, new StatusUpdater())
