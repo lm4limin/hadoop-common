@@ -1572,8 +1572,7 @@ public abstract class TaskAttemptImpl implements
     static class ReplaceContainerTransition implements //limin
             SingleArcTransition<TaskAttemptImpl, TaskAttemptEvent> {
 
-        public RequestContainerTransition() {
-        }
+
 
         @SuppressWarnings("unchecked")
         @Override
@@ -1582,9 +1581,9 @@ public abstract class TaskAttemptImpl implements
 
             //request for replace container
             taskAttempt.resourceCapability.setMemory(
-                    taskAttempt.getMemoryRequired(conf, taskId.getTaskType()));
+                    taskAttempt.getMemoryRequired(taskAttempt.conf, taskAttempt.getID().getTaskId().getTaskType()));
             taskAttempt.resourceCapability.setVirtualCores(
-                    taskAttempt.getCpuRequired(conf, taskId.getTaskType()));
+                    taskAttempt.getCpuRequired(taskAttempt.conf, taskAttempt.getID().getTaskId().getTaskType()));
 
             taskAttempt.eventHandler.handle(new ContainerRequestEvent(
                     taskAttempt.attemptId, taskAttempt.resourceCapability,
