@@ -92,7 +92,8 @@ public class LeafQueue implements CSQueue {
   
   private int nodeLocalityDelay;
   
-  private Resource usedResources = Resources.createResource(0, 0);
+  //private Resource usedResources = Resources.createResource(0, 0);
+  protected Resource usedResources = Resources.createResource(0, 0);//limin
   private float usedCapacity = 0.0f;
   private volatile int numContainers;
 
