@@ -20,6 +20,7 @@ package org.apache.hadoop.mapreduce.v2.app.rm;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -28,7 +29,6 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
@@ -272,9 +272,9 @@ public abstract class RMContainerRequestor extends RMCommunicator {
   }
   
   protected void addContainerReq(ContainerRequest req) {
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("add container request" + req.attemptID.toString()
-        +" "+req.hosts+" "+req.priority);
+    if (LOG.isDebugEnabled()) {
+        LOG.debug("add container request "+req.attemptID.toString()
+        +" "+Arrays.toString(req.hosts)+" "+req.priority+" "+req.capability);
       }
     // Create resource requests
     for (String host : req.hosts) {
@@ -296,8 +296,8 @@ public abstract class RMContainerRequestor extends RMCommunicator {
   protected void decContainerReq(ContainerRequest req) {
     // Update resource requests
       if (LOG.isDebugEnabled()) {
-        LOG.debug("dec container request" + req.attemptID.toString()
-        +" "+req.hosts+" "+req.priority);
+        LOG.debug("dec container request "+req.attemptID.toString()
+        +" "+Arrays.toString(req.hosts)+" "+req.priority+" "+req.capability);
       }
     for (String hostName : req.hosts) {
       decResourceRequest(req.priority, hostName, req.capability);
