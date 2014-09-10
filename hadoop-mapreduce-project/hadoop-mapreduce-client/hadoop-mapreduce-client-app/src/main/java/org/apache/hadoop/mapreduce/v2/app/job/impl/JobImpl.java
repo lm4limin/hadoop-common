@@ -812,7 +812,7 @@ public class JobImpl implements org.apache.hadoop.mapreduce.v2.app.job.Job,
                 return;
             }
             
-            Resource resourceCapability = recordFactory.newRecordInstance(Resource.class);
+            //recordFactory.newRecordInstance(Resource.class);
               
               
         
@@ -836,10 +836,10 @@ public class JobImpl implements org.apache.hadoop.mapreduce.v2.app.job.Job,
                             memval=confNameValues.get(MRJobConfig.REDUCE_MEMORY_MB+ "." + jobId.toString() + ".xml");                        
                             vcoreval=confNameValues.get(MRJobConfig.REDUCE_CPU_VCORES+ "." + jobId.toString() + ".xml");                        
                         }
-                        resourceCapability.setMemory(Integer.parseInt(memval));
-                        resourceCapability.setVirtualCores(Integer.parseInt(vcoreval));
+                        Resource resourceCapability = Resource.newInstance(Integer.parseInt(memval), Integer.parseInt(vcoreval));
+                        
                          this.eventHandler.handle(new TaskAttemptContainerReplaceEvent(attempt.getID(),resourceCapability));
-                        String mesg="heuristic tuning "+attempt.getID().toString()+" "+attempt.getState();
+                        String mesg="heuristic tuning "+attempt.getID().toString()+" "+((TaskAttemptImpl)attempt).getInternalState();
                          LOG.info(mesg);
                        
                     }else{                    

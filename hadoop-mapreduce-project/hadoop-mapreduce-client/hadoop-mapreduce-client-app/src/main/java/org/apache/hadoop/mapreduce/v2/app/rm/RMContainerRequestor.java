@@ -108,7 +108,8 @@ public abstract class RMContainerRequestor extends RMCommunicator {
         Resource capability, String[] hosts, String[] racks, 
         Priority priority) {
       this.attemptID = attemptID;
-      this.capability = capability;
+      //this.capability = capability;//limin
+      this.capability = Resource.newInstance(capability.getMemory(),capability.getVirtualCores());//limin
       this.hosts = hosts;
       this.racks = racks;
       this.priority = priority;
