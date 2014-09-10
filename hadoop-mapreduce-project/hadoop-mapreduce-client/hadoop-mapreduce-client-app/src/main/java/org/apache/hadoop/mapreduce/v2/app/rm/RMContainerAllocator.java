@@ -707,7 +707,7 @@ public class RMContainerAllocator extends RMContainerRequestor
                 return true;
             }
         }
-
+      
         ContainerRequest removeReduce() {
             Iterator<Entry<TaskAttemptId, ContainerRequest>> it = reduces.entrySet().iterator();
             if (it.hasNext()) {
@@ -918,7 +918,7 @@ public class RMContainerAllocator extends RMContainerRequestor
 
             assignMapsWithLocality(allocatedContainers);
         }
-
+        
         private ContainerRequest getContainerReqToReplace(Container allocated) {
             LOG.info("Finding containerReq for allocated container: " + allocated);
             Priority priority = allocated.getPriority();

@@ -65,6 +65,7 @@ import org.apache.hadoop.yarn.api.records.NMToken;
 import org.apache.hadoop.yarn.api.records.NodeId;
 import org.apache.hadoop.yarn.api.records.NodeReport;
 import org.apache.hadoop.yarn.api.records.NodeState;
+import org.apache.hadoop.yarn.api.records.Resource;
 import org.apache.hadoop.yarn.api.records.Priority;
 import org.apache.hadoop.yarn.client.api.NMTokenCache;
 import org.apache.hadoop.yarn.exceptions.YarnRuntimeException;
@@ -79,6 +80,8 @@ import com.google.common.annotations.VisibleForTesting;
 //public class RMContainerAllocatorWithCap extends RMContainerAllocator {
 public class RMContainerAllocatorWithCap extends RMContainerRequestor
     implements ContainerAllocator  {
+    
+    private static int EPOCH=1;
     private static final Log LOG = LogFactory.getLog(RMContainerAllocatorWithCap.class);
       public static final   float DEFAULT_COMPLETED_MAPS_PERCENT_FOR_REDUCE_SLOWSTART = 0.05f;
     private static final Priority PRIORITY_FAST_FAIL_MAP;
@@ -349,6 +352,10 @@ public class RMContainerAllocatorWithCap extends RMContainerRequestor
         } else if (event.getType() == ContainerAllocator.EventType.CONTAINER_REPLACE) {
             ContainerReplaceEvent reqEvent = (ContainerReplaceEvent) event;
             LOG.info("Processing the event " + event.toString()+reqEvent.getCapability().toString());
+            scheduledRequests.replaceContainerReqByTaskAttemptId(reqEvent.getAttemptID(),reqEvent.getCapability());
+             
+
+
         }
     }
 
@@ -746,7 +753,33 @@ public class RMContainerAllocatorWithCap extends RMContainerRequestor
                 return true;
             }
         }
+        
+        private boolean replaceContainerReqByTaskAttemptId(TaskAttemptId tId, Resource cap) {//limin
+            ContainerRequest orig = null;
+            if (tId.getTaskId().getTaskType().equals(TaskType.MAP)) {
+                orig = maps.remove(tId);
+            } else {
+                orig = reduces.remove(tId);
+            }
+            if (orig == null) {
+                return false;
+            }
+            LOG.info("Placing a new container request for task attempt "
+                    + orig.attemptID);
+            ContainerRequest newReq = new ContainerRequest(orig.attemptID, cap,
+                    orig.hosts, orig.racks, orig.priority);
 
+            decContainerReq(orig);
+            if (orig.attemptID.getTaskId().getTaskType()
+                    == TaskType.MAP) {
+                maps.put(newReq.attemptID, newReq);
+            } else {
+                reduces.put(newReq.attemptID, newReq);
+            }
+            addContainerReq(newReq);
+
+            return true;
+        }
         ContainerRequest removeReduce() {
             Iterator<Entry<TaskAttemptId, ContainerRequest>> it = reduces.entrySet().iterator();
             if (it.hasNext()) {

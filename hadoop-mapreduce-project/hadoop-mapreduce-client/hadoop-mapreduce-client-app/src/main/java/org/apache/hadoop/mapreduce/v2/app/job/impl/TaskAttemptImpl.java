@@ -1588,13 +1588,13 @@ public abstract class TaskAttemptImpl implements
                 TaskAttemptEvent event) {
 
             //request for replace container
-           // taskAttempt.resourceCapability.setMemory(
-            //        taskAttempt.getMemoryRequired(taskAttempt.conf, taskAttempt.getID().getTaskId().getTaskType()));
-            //taskAttempt.resourceCapability.setVirtualCores(
-            //        taskAttempt.getCpuRequired(taskAttempt.conf, taskAttempt.getID().getTaskId().getTaskType()));
+
             
             TaskAttemptContainerReplaceEvent req=(TaskAttemptContainerReplaceEvent)event;
             LOG.debug("capability: "+req.getCapability().toString());
+            taskAttempt.resourceCapability.setMemory(req.getCapability().getMemory());
+            taskAttempt.resourceCapability.setVirtualCores(req.getCapability().getVirtualCores());
+            
             taskAttempt.eventHandler.handle(new ContainerReplaceEvent(
                     taskAttempt.attemptId, req.getCapability(),
                     taskAttempt.dataLocalHosts.toArray(
