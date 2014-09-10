@@ -843,7 +843,8 @@ public class JobImpl implements org.apache.hadoop.mapreduce.v2.app.job.Job,
                          LOG.info(mesg);
                        
                     }else{                    
-                         LOG.info("taskattempt is no unassigned "+attempt.getID().toString()+" "+attempt.getState());
+                         LOG.info("taskattempt is no unassigned "+attempt.getID().toString()+" "+
+                                 ((TaskAttemptImpl)attempt).getInternalState());
                     }
                 }
             }
