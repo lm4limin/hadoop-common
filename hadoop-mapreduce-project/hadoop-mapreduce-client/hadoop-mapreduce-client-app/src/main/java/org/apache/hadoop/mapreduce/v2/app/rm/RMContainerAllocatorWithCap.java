@@ -276,14 +276,14 @@ public class RMContainerAllocatorWithCap extends RMContainerRequestor
         if (event.getType() == ContainerAllocator.EventType.CONTAINER_REQ) {
             ContainerRequestEvent reqEvent = (ContainerRequestEvent) event;
             JobId jobId = getJob().getID();
-            int supportedMaxContainerCapability =
-                    getMaxContainerCapability().getMemory();
+            int supportedMaxContainerCapability
+                    = getMaxContainerCapability().getMemory();
             if (reqEvent.getAttemptID().getTaskId().getTaskType().equals(TaskType.MAP)) {
                 int tmp_mapResourceReqt = reqEvent.getCapability().getMemory();
                 eventHandler.handle(new JobHistoryEvent(jobId,
                         new NormalizedResourceEvent(org.apache.hadoop.mapreduce.TaskType.MAP,
-                        tmp_mapResourceReqt)));
-                LOG.info("mapResourceReqt:" + tmp_mapResourceReqt);
+                                tmp_mapResourceReqt)));
+                LOG.info("mapResourceReqt:" + tmp_mapResourceReqt+" "+reqEvent.getAttemptID().toString());
                 if (tmp_mapResourceReqt > supportedMaxContainerCapability) {
                     String diagMsg = "MAP capability required is more than the supported "
                             + "max container capability in the cluster. Killing the Job. mapResourceReqt: "
@@ -300,8 +300,8 @@ public class RMContainerAllocatorWithCap extends RMContainerRequestor
                 int tmp_reduceResourceReqt = reqEvent.getCapability().getMemory();
                 eventHandler.handle(new JobHistoryEvent(jobId,
                         new NormalizedResourceEvent(
-                        org.apache.hadoop.mapreduce.TaskType.REDUCE,
-                        tmp_reduceResourceReqt)));
+                                org.apache.hadoop.mapreduce.TaskType.REDUCE,
+                                tmp_reduceResourceReqt)));
                 LOG.info("reduceResourceReqt:" + tmp_reduceResourceReqt);
                 if (tmp_reduceResourceReqt > supportedMaxContainerCapability) {
                     String diagMsg = "REDUCE capability required is more than the "
@@ -351,10 +351,8 @@ public class RMContainerAllocatorWithCap extends RMContainerRequestor
             containerFailedOnHost(host);
         } else if (event.getType() == ContainerAllocator.EventType.CONTAINER_REPLACE) {
             ContainerReplaceEvent reqEvent = (ContainerReplaceEvent) event;
-            LOG.info("Processing the event " + event.toString()+reqEvent.getCapability().toString());
-            scheduledRequests.replaceContainerReqByTaskAttemptId(reqEvent.getAttemptID(),reqEvent.getCapability());
-             
-
+            LOG.info("Processing the event " + event.toString() + reqEvent.getCapability().toString() + "" + reqEvent.getAttemptID().toString());
+            scheduledRequests.replaceContainerReqByTaskAttemptId(reqEvent.getAttemptID(), reqEvent.getCapability());
 
         }
     }

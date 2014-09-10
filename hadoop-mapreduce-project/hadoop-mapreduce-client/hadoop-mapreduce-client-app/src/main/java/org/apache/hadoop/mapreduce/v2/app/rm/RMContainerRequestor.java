@@ -272,6 +272,10 @@ public abstract class RMContainerRequestor extends RMCommunicator {
   }
   
   protected void addContainerReq(ContainerRequest req) {
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("add container request" + req.attemptID.toString()
+        +" "+req.hosts+" "+req.priority);
+      }
     // Create resource requests
     for (String host : req.hosts) {
       // Data-local
@@ -291,6 +295,10 @@ public abstract class RMContainerRequestor extends RMCommunicator {
 
   protected void decContainerReq(ContainerRequest req) {
     // Update resource requests
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("dec container request" + req.attemptID.toString()
+        +" "+req.hosts+" "+req.priority);
+      }
     for (String hostName : req.hosts) {
       decResourceRequest(req.priority, hostName, req.capability);
     }
