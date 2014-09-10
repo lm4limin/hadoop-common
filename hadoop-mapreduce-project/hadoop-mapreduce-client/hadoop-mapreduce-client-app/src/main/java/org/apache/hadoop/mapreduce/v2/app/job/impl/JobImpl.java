@@ -794,7 +794,7 @@ public class JobImpl implements org.apache.hadoop.mapreduce.v2.app.job.Job,
         }
     }
     //todo better to move the statemachine
-    private final static RecordFactory recordFactory = RecordFactoryProvider.getRecordFactory(null);
+    //private final static RecordFactory recordFactory = RecordFactoryProvider.getRecordFactory(null);
     private void setConfNamesValues_heuristic(HashMap<String, String> confNameValues, String source) {        
         try {
             if (!this.conf.get(MRConfig.ONLINE_TUNING).equals(MRConfig.ONLINE_TUNING_HEURISTIC)) {
