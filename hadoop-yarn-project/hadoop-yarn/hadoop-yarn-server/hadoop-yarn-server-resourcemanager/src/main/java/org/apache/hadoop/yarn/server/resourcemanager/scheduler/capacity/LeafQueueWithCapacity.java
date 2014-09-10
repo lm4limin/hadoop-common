@@ -293,7 +293,9 @@ public class LeafQueueWithCapacity extends LeafQueue{
             if (num2 < num) {
                 return Resources.none();
             }
-            return super.assignContainer(clusterResource, node, application, priority,
+            //return super.assignContainer(clusterResource, node, application, priority,
+             //       nodeLocalResourceRequest, NodeType.NODE_LOCAL, reservedContainer);
+            return assignContainer(clusterResource, node, application, priority,
                     nodeLocalResourceRequest, NodeType.NODE_LOCAL, reservedContainer);
         }
 
