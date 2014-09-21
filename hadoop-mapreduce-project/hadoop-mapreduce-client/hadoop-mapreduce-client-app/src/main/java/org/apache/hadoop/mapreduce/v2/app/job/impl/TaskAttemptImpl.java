@@ -924,7 +924,9 @@ public abstract class TaskAttemptImpl implements
     // Set up the launch command
     String a=remoteTask.getConf().get(MRConfig.ONLINE_TUNING,MRConfig.DEFUALT_ONLINE_TUNING);
     String b=remoteTask.getConf().get(MRJobConfig.MAP_JAVA_OPTS+"."+remoteTask.getTaskID().getTaskID().toString()+".xml");
+    if(b==null) b=remoteTask.getConf().get(MRJobConfig.MAP_JAVA_OPTS+"."+remoteTask.getTaskID().getJobID().toString()+".xml");
     String c=remoteTask.getConf().get(MRJobConfig.REDUCE_JAVA_OPTS+"."+remoteTask.getTaskID().getTaskID().toString()+".xml");
+    if(c==null) c=remoteTask.getConf().get(MRJobConfig.REDUCE_JAVA_OPTS+"."+remoteTask.getTaskID().getJobID().toString()+".xml");
     List<String> commands = MapReduceChildJVM.getVMCommand(
         taskAttemptListener.getAddress(), remoteTask, jvmID);
      LOG.info("task-conf child java opt"+Arrays.toString(commands.toArray())

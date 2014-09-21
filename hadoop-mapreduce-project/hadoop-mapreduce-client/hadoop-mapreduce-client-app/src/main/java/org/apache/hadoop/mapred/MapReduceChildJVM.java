@@ -122,7 +122,8 @@ private static String getChildJavaOpts(JobConf jobConf, boolean isMapTask,TaskID
           jobConf.get(
               JobConf.MAPRED_MAP_TASK_JAVA_OPTS+"."+tid.toString()+".xml", 
               jobConf.get(
-                  JobConf.MAPRED_TASK_JAVA_OPTS, 
+                  //JobConf.MAPRED_TASK_JAVA_OPTS, 
+                  JobConf.MAPRED_MAP_TASK_JAVA_OPTS,
                   JobConf.DEFAULT_MAPRED_TASK_JAVA_OPTS)
           );
       adminClasspath = 
@@ -134,7 +135,8 @@ private static String getChildJavaOpts(JobConf jobConf, boolean isMapTask,TaskID
           jobConf.get(
               JobConf.MAPRED_REDUCE_TASK_JAVA_OPTS+"."+tid.toString()+".xml", 
               jobConf.get(
-                  JobConf.MAPRED_TASK_JAVA_OPTS,
+                  //JobConf.MAPRED_TASK_JAVA_OPTS,
+                  JobConf.MAPRED_REDUCE_TASK_JAVA_OPTS,
                   JobConf.DEFAULT_MAPRED_TASK_JAVA_OPTS)
               );
       adminClasspath =
@@ -154,7 +156,8 @@ private static String getChildJavaOpts(JobConf jobConf, boolean isMapTask,JobID 
           jobConf.get(
               JobConf.MAPRED_MAP_TASK_JAVA_OPTS+"."+jid.toString()+".xml", 
               jobConf.get(
-                  JobConf.MAPRED_TASK_JAVA_OPTS, 
+                  //JobConf.MAPRED_TASK_JAVA_OPTS, //limin
+                  JobConf.MAPRED_MAP_TASK_JAVA_OPTS,
                   JobConf.DEFAULT_MAPRED_TASK_JAVA_OPTS)
           );
       adminClasspath = 
@@ -166,7 +169,8 @@ private static String getChildJavaOpts(JobConf jobConf, boolean isMapTask,JobID 
           jobConf.get(
               JobConf.MAPRED_REDUCE_TASK_JAVA_OPTS+"."+jid.toString()+".xml", 
               jobConf.get(
-                  JobConf.MAPRED_TASK_JAVA_OPTS,
+                  //JobConf.MAPRED_TASK_JAVA_OPTS,//limin
+                  JobConf.MAPRED_REDUCE_TASK_JAVA_OPTS,
                   JobConf.DEFAULT_MAPRED_TASK_JAVA_OPTS)
               );
       adminClasspath =
@@ -187,7 +191,8 @@ private static String getChildJavaOpts(JobConf jobConf, boolean isMapTask,JobID 
           jobConf.get(
               JobConf.MAPRED_MAP_TASK_JAVA_OPTS, 
               jobConf.get(
-                  JobConf.MAPRED_TASK_JAVA_OPTS, 
+                  //JobConf.MAPRED_TASK_JAVA_OPTS, 
+                  JobConf.MAPRED_MAP_TASK_JAVA_OPTS,
                   JobConf.DEFAULT_MAPRED_TASK_JAVA_OPTS)
           );
       adminClasspath = 
@@ -199,7 +204,8 @@ private static String getChildJavaOpts(JobConf jobConf, boolean isMapTask,JobID 
           jobConf.get(
               JobConf.MAPRED_REDUCE_TASK_JAVA_OPTS, 
               jobConf.get(
-                  JobConf.MAPRED_TASK_JAVA_OPTS,
+                  //JobConf.MAPRED_TASK_JAVA_OPTS,
+              JobConf.MAPRED_REDUCE_TASK_JAVA_OPTS,
                   JobConf.DEFAULT_MAPRED_TASK_JAVA_OPTS)
               );
       adminClasspath =
